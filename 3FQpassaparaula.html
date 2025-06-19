@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passaparaula - Competició per Equips</title>
+    <style>
+        /* Estils generals i de disseny */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* Contenidors principals (Configuració i Joc) */
+        .setup-container, .game-area {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .game-area {
+            display: none; /* S'amaga per defecte fins que comença el joc */
+        }
+
+        /* Configuració d'equips */
+        .team-setup {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .team-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .team-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .team-card.team-a { border: 2px solid #4ecdc4; }
+        .team-card.team-b { border: 2px solid #ff6b6b; }
+        .team-a h3 { color: #4ecdc4; }
+        .team-b h3 { color: #ff6b6b; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            font-size: 1em;
+        }
+
+        /* Configuració del temporitzador */
+        .timer-setup { text-align: center; margin-bottom: 30px; }
+        .timer-setup h3 { margin-bottom: 15px; font-size: 1.3em; }
+        .timer-inputs { display: flex; justify-content: center; gap: 20px; align-items: center; }
+        .timer-input { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .timer-input input {
+            width: 70px;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        /* Panells d'informació dels equips durant el joc */
+        .teams-display { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
+        .team-info {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+        .team-info.team-a { border: 2px solid #4ecdc4; }
+        .team-info.team-b { border: 2px solid #ff6b6b; }
+        .team-info.active {
+            box-shadow: 0 0 25px rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+
+        /* Estructura del Rosco */
+        .roscos-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        .rosco-section { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        .rosco-wrapper {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin-bottom: 20px;
+        }
+        .rosco {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 5px solid rgba(255,255,0.3);
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+        .rosco.team-a { border-color: #4ecdc4; }
+        .rosco.team-b { border-color: #ff6b6b; }
+
+        /* Lletres del Rosco */
+        .letter {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: 3px solid #ddd;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .letter.current {
+            background: #ffd700;
+            color: #333;
+            border-color: #ffed4e;
+            transform: scale(1.2) !important;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+        }
+        .letter.correct { background: #2ecc71; color: white; border-color: #27ae60; }
+        .letter.incorrect { background: #e74c3c; color: white; border-color: #c0392b; }
+        .letter.passed { background: #3498db; color: white; border-color: #2980b9; }
+
+        /* Temporitzador i controls */
+        .timer-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            border: 3px solid rgba(255,255,255,0.3);
+            min-width: 140px;
+            text-align: center;
+        }
+        .timer-display.warning { color: #ff6b6b; animation: pulse 1s infinite; }
+
+        /* Panell de control central */
+        .control-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .current-team {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #4ecdc4;
+            min-height: 100px;
+            text-align: left;
+        }
+        .input-container { display: flex; gap: 15px; margin-bottom: 20px; }
+        .answer-input {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+        }
+        .answer-input:focus { border-color: #ffd700; }
+        .answer-input:disabled { background: rgba(255,255,255,0.5); cursor: not-allowed; }
+        
+        /* Botons */
+        .btn {
+            padding: 12px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn-start { background: #4ecdc4; color: white; font-size: 1.2em; padding: 15px 30px; }
+        .btn-answer { background: #2ecc71; color: white; }
+        .btn-pass { background: #3498db; color: white; }
+        .btn-passaparaula { background: #9b59b6; color: white; font-size: 1.1em; padding: 15px 25px; }
+        .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* Estadístiques */
+        .stats { display: flex; justify-content: space-around; margin-top: 15px; }
+        .stat { text-align: center; }
+        .stat-number { font-size: 1.5em; font-weight: bold; display: block; }
+
+        /* Modal de fi de partida */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            max-width: 500px;
+        }
+        .modal-content h2 { font-size: 2.5em; margin-bottom: 20px; }
+        .modal-content p { font-size: 1.2em; margin-bottom: 30px; }
+        .btn-restart { background: #ffd700; color: #333; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        /* Media Queries per a disseny adaptable */
+        @media (max-width: 1200px) {
+            .roscos-container { flex-direction: column; align-items: center; gap: 30px; }
+            .rosco-wrapper { width: 300px; height: 300px; }
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .header h1 { font-size: 2em; }
+            .team-setup { grid-template-columns: 1fr; }
+            .teams-display { flex-direction: column; }
+            .rosco-wrapper { width: 280px; height: 280px; }
+            .letter { width: 35px; height: 35px; font-size: 1em; }
+            .control-panel, .setup-container { padding: 20px; }
+            .input-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Passaparaula - Competició per Equips</h1>
+        <p>Física i Química - 3r ESO</p>
+    </div>
+
+    <div class="setup-container" id="setupContainer">
+        <div class="team-setup">
+            <div class="team-card team-a">
+                <h3>Equip A</h3>
+                <div class="input-group">
+                    <label for="teamAName">Nom de l'equip:</label>
+                    <input type="text" id="teamAName" placeholder="Ex: Els Quarks">
+                </div>
+            </div>
+            <div class="team-card team-b">
+                <h3>Equip B</h3>
+                <div class="input-group">
+                    <label for="teamBName">Nom de l'equip:</label>
+                    <input type="text" id="teamBName" placeholder="Ex: Els Bosons">
+                </div>
+            </div>
+        </div>
+        <div class="timer-setup">
+            <h3>⏱️ Configuració del Temporitzador</h3>
+            <div class="timer-inputs">
+                <div class="timer-input">
+                    <label for="timerMinutes">Minuts</label>
+                    <input type="number" id="timerMinutes" value="5" min="1" max="30">
+                </div>
+                <div class="timer-input">
+                    <label for="timerSeconds">Segons</label>
+                    <input type="number" id="timerSeconds" value="0" min="0" max="59">
+                </div>
+            </div>
+        </div>
+        <div style="text-align: center;">
+            <button class="btn btn-start" id="startGameBtn">Començar Competició</button>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <div class="teams-display">
+            <div class="team-info team-a" id="teamAInfo">
+                <h3 id="teamATitle">Equip A</h3>
+                <div class="stats">
+                    <div class="stat"><span class="stat-number" id="teamACorrect">0</span><span>Correctes</span></div>
+                    <div class="stat"><span class="stat-number" id="teamAIncorrect">0</span><span>Incorrectes</span></div>
+                </div>
+                 <div class="timer-display" id="timerA">5:00</div>
+            </div>
+            <div class="team-info team-b" id="teamBInfo">
+                <h3 id="teamBTitle">Equip B</h3>
+                <div class="stats">
+                    <div class="stat"><span class="stat-number" id="teamBCorrect">0</span><span>Correctes</span></div>
+                    <div class="stat"><span class="stat-number" id="teamBIncorrect">0</span><span>Incorrectes</span></div>
+                </div>
+                 <div class="timer-display" id="timerB">5:00</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="current-team" id="currentTeam">Torn de l'Equip A</div>
+            <div class="question" id="question">Benvinguts! Prepareu-vos per a la competició.</div>
+            <div class="input-container">
+                <input type="text" class="answer-input" id="answerInput" placeholder="Escriu la resposta..." disabled>
+                <button class="btn btn-answer" id="answerBtn" disabled>✓ Respondre</button>
+            </div>
+            <div class="controls">
+                <button class="btn btn-pass" id="passBtn" disabled>→ Passar</button>
+                <button class="btn btn-passaparaula" id="passaparaulaBtn" disabled>🔄 Passaparaula</button>
+            </div>
+        </div>
+        
+        <div class="roscos-container">
+            <div class="rosco-section">
+                <div class="rosco-wrapper">
+                    <div class="rosco team-a" id="roscoA"></div>
+                </div>
+            </div>
+            <div class="rosco-section">
+                <div class="rosco-wrapper">
+                    <div class="rosco team-b" id="roscoB"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="endGameModal" class="modal">
+        <div class="modal-content">
+            <h2 id="endGameTitle">Fi de la Partida!</h2>
+            <p id="endGameMessage">Resultats...</p>
+            <button class="btn btn-restart" id="restartBtn">Tornar a Jugar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DEFINICIÓ DE PREGUNTES CORREGIDES ---
+            const questions = {
+                'A': { question: "Comença per A: partícula indivisible que forma la matèria segons el model de Dalton.", answer: "àtom" },
+                'B': { question: "Comença per B: model atòmic on els electrons giren en òrbites circulars definides.", answer: "bohr" },
+                'C': { question: "Comença per C: energia associada al moviment dels cossos.", answer: "cinètica" },
+                'D': { question: "Comença per D: quantitat de matèria dividida pel volum que ocupa.", answer: "densitat" },
+                'E': { question: "Comença per E: partícula elemental amb càrrega elèctrica negativa.", answer: "electró" },
+                'F': { question: "Comença per F: canvi d'estat de sòlid a líquid.", answer: "fusió" },
+                'G': { question: "Comença per G: estat de la matèria on les partícules no tenen forma ni volum fixos.", answer: "gas" },
+                'H': { question: "Comença per H: element químic més lleuger i abundant de l'univers.", answer: "hidrogen" },
+                'I': { question: "Comença per I: àtom o molècula que ha perdut o guanyat electrons i té càrrega elèctrica.", answer: "ió" },
+                'J': { question: "Comença per J: unitat d'energia en el Sistema Internacional.", answer: "joule" },
+                'K': { question: "Conté la K: mesura de la temperatura absoluta utilitzada en ciència.", answer: "kelvin" },
+                'L': { question: "Comença per L: estat de la matèria que té un volum fix però no una forma fixa.", answer: "líquid" },
+                'M': { question: "Comença per M: quantitat de matèria que té un cos.", answer: "massa" },
+                'N': { question: "Comença per N: partícula subatòmica sense càrrega elèctrica que es troba al nucli.", answer: "neutró" },
+                'O': { question: "Comença per O: element essencial per a la respiració, amb símbol O.", answer: "oxigen" },
+                'P': { question: "Comença per P: partícula subatòmica amb càrrega positiva que es troba al nucli.", answer: "protó" },
+                'Q': { question: "Comença per Q: branca de la ciència que estudia la matèria i les seves transformacions.", answer: "química" },
+                'R': { question: "Comença per R: model atòmic que va descobrir el nucli atòmic.", answer: "rutherford" },
+                'S': { question: "Comença per S: estat de la matèria amb forma i volum fixos.", answer: "sòlid" },
+                'T': { question: "Comença per T: mesura de l'energia tèrmica d'un cos.", answer: "temperatura" },
+                'U': { question: "Comença per U: element químic amb símbol U utilitzat com a combustible nuclear.", answer: "urani" },
+                'V': { question: "Comença per V: espai que ocupa un cos.", answer: "volum" },
+                'W': { question: "Conté la W: unitat de potència elèctrica.", answer: "watt" },
+                'X': { question: "Conté la X: tipus de radiació electromagnètica utilitzada en medicina per fer radiografies.", answer: "raigs x" },
+                'Y': { question: "Per la Y: element químic amb símbol Y, metall de terres rares.", answer: "itri" },
+                'Z': { question: "Comença per Z: element químic metàl·lic de símbol Zn.", answer: "zinc" }
+            };
+
+            const LETTERS = Object.keys(questions);
+
+            // --- VARIABLES D'ESTAT DEL JOC ---
+            let activeTeam;
+            let currentLetterIndex;
+            let teams = {};
+            let timerInterval;
+            let gameActive = false;
+
+            // --- ELEMENTS DEL DOM ---
+            const setupContainer = document.getElementById('setupContainer');
+            const gameArea = document.getElementById('gameArea');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const answerInput = document.getElementById('answerInput');
+            const answerBtn = document.getElementById('answerBtn');
+            const passBtn = document.getElementById('passBtn');
+            const passaparaulaBtn = document.getElementById('passaparaulaBtn');
+            const currentTeamEl = document.getElementById('currentTeam');
+            const questionEl = document.getElementById('question');
+            const endGameModal = document.getElementById('endGameModal');
+            const restartBtn = document.getElementById('restartBtn');
+
+            // --- FUNCIONS DE CONFIGURACIÓ I INICI ---
+            
+            function initializeGame() {
+                const teamAName = document.getElementById('teamAName').value.trim() || 'Equip A';
+                const teamBName = document.getElementById('teamBName').value.trim() || 'Equip B';
+                
+                const minutes = parseInt(document.getElementById('timerMinutes').value) || 5;
+                const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+                const totalSeconds = minutes * 60 + seconds;
+
+                teams = {
+                    A: {
+                        name: teamAName,
+                        score: { correct: 0, incorrect: 0 },
+                        time: totalSeconds,
+                        status: LETTERS.reduce((obj, letter) => ({ ...obj, [letter]: 'pending' }), {}),
+                        element: document.getElementById('teamAInfo'),
+                        timerEl: document.getElementById('timerA'),
+                        roscoEl: document.getElementById('roscoA'),
+                        correctEl: document.getElementById('teamACorrect'),
+                        incorrectEl: document.getElementById('teamAIncorrect'),
+                    },
+                    B: {
+                        name: teamBName,
+                        score: { correct: 0, incorrect: 0 },
+                        time: totalSeconds,
+                        status: LETTERS.reduce((obj, letter) => ({ ...obj, [letter]: 'pending' }), {}),
+                        element: document.getElementById('teamBInfo'),
+                        timerEl: document.getElementById('timerB'),
+                        roscoEl: document.getElementById('roscoB'),
+                        correctEl: document.getElementById('teamBCorrect'),
+                        incorrectEl: document.getElementById('teamBIncorrect'),
+                    }
+                };
+                
+                activeTeam = 'A';
+
+                document.getElementById('teamATitle').textContent = teams.A.name;
+                document.getElementById('teamBTitle').textContent = teams.B.name;
+                
+                // Show game area BEFORE creating roscos
+                setupContainer.style.display = 'none';
+                gameArea.style.display = 'block';
+
+                createRosco('A');
+                createRosco('B');
+                updateAllUI();
+
+                startGame();
+            }
+
+            function createRosco(teamId) {
+                const roscoEl = teams[teamId].roscoEl;
+                roscoEl.innerHTML = '';
+                // *** FIX: Use a fixed size based on CSS, as offsetWidth is 0 when the element is hidden. ***
+                const roscoSize = 320; 
+                const radius = (roscoSize / 2) - 20; // Radius for placing letters
+
+                LETTERS.forEach((letter, index) => {
+                    const angle = (index * 360 / LETTERS.length) - 90;
+                    const radian = (angle * Math.PI) / 180;
+                    const x = radius * Math.cos(radian) + (roscoSize / 2) - 20; // Center the letter
+                    const y = radius * Math.sin(radian) + (roscoSize / 2) - 20; // Center the letter
+
+                    const letterElement = document.createElement('div');
+                    letterElement.className = 'letter';
+                    letterElement.textContent = letter;
+                    letterElement.id = `letter-${teamId}-${letter}`;
+                    letterElement.style.left = `${x}px`;
+                    letterElement.style.top = `${y}px`;
+                    roscoEl.appendChild(letterElement);
+                });
+            }
+
+            function startGame() {
+                gameActive = true;
+                currentLetterIndex = 0;
+                setControls(true);
+                switchTurn();
+            }
+
+            // --- LÒGICA DEL JOC I GESTIÓ DE TORNS ---
+
+            function switchTurn(isPassaparaula = false) {
+                if (!gameActive) return;
+
+                stopTimer();
+                
+                if (isPassaparaula) {
+                    activeTeam = activeTeam === 'A' ? 'B' : 'A';
+                }
+
+                currentLetterIndex = findNextPendingLetter(activeTeam);
+                
+                updateActiveTeamUI();
+
+                if (currentLetterIndex === -1) {
+                    // L'equip actiu ha acabat, passem el torn
+                    passaparaula();
+                    return;
+                }
+                
+                showCurrentQuestion();
+                startTimer();
+            }
+
+            function passaparaula() {
+                if (!gameActive) return;
+                switchTurn(true);
+            }
+            
+            function passQuestion() {
+                if (!gameActive) return;
+                const letter = LETTERS[currentLetterIndex];
+                teams[activeTeam].status[letter] = 'passed';
+                updateRoscoUI(activeTeam, letter);
+                
+                // Avancem a la següent pregunta del mateix equip
+                currentLetterIndex = findNextPendingLetter(activeTeam);
+                if (currentLetterIndex === -1) {
+                    passaparaula(); // Si no queden preguntes, canviem d'equip
+                } else {
+                    showCurrentQuestion();
+                }
+            }
+            
+            function checkAnswer() {
+                if (!gameActive) return;
+                const letter = LETTERS[currentLetterIndex];
+                const team = teams[activeTeam];
+                const userAnswer = answerInput.value.trim().toLowerCase();
+                const correctAnswer = questions[letter].answer.toLowerCase();
+
+                if (userAnswer === correctAnswer) {
+                    team.status[letter] = 'correct';
+                    team.score.correct++;
+                } else {
+                    team.status[letter] = 'incorrect';
+                    team.score.incorrect++;
+                    // Si falla, es canvia de torn automàticament
+                    updateRoscoUI(activeTeam, letter);
+                    updateStatsUI();
+                    passaparaula();
+                    return;
+                }
+                
+                answerInput.value = '';
+                updateRoscoUI(activeTeam, letter);
+                updateStatsUI();
+                
+                currentLetterIndex = findNextPendingLetter(activeTeam);
+                if (currentLetterIndex === -1) {
+                    // Ha completat el seu rosco, canviem de torn
+                    passaparaula();
+                } else {
+                    showCurrentQuestion();
+                }
+            }
+
+            function findNextPendingLetter(teamId) {
+                const team = teams[teamId];
+                // Primera volta: busca 'pending'
+                const startIndex = currentLetterIndex >= 0 ? currentLetterIndex : 0;
+                for (let i = startIndex; i < LETTERS.length; i++) {
+                    if (team.status[LETTERS[i]] === 'pending') return i;
+                }
+                for (let i = 0; i < startIndex; i++) {
+                    if (team.status[LETTERS[i]] === 'pending') return i;
+                }
+                // Segona volta: busca 'passed'
+                for (let i = 0; i < LETTERS.length; i++) {
+                    if (team.status[LETTERS[i]] === 'passed') return i;
+                }
+
+                return -1; // No queden lletres pendents ni passades
+            }
+
+
+            // --- GESTIÓ DEL TEMPORITZADOR ---
+
+            function startTimer() {
+                clearInterval(timerInterval);
+                const team = teams[activeTeam];
+                timerInterval = setInterval(() => {
+                    team.time--;
+                    updateTimerDisplay(activeTeam);
+                    if (team.time <= 0) {
+                        stopTimer();
+                        team.time = 0;
+                        updateTimerDisplay(activeTeam);
+                        // El temps s'ha acabat per aquest equip, canviem de torn
+                        passaparaula(); // Afegeix la funció passaparaula enlloc de switchTurn
+                    }
+                }, 1000);
+            }
+
+            function stopTimer() {
+                clearInterval(timerInterval);
+            }
+
+            // --- ACTUALITZACIÓ DE LA INTERFÍCIE (UI) ---
+
+            function updateAllUI() {
+                updateActiveTeamUI();
+                updateStatsUI();
+                updateTimerDisplay('A');
+                updateTimerDisplay('B');
+                LETTERS.forEach(letter => {
+                    updateRoscoUI('A', letter);
+                    updateRoscoUI('B', letter);
+                });
+            }
+
+            function updateActiveTeamUI() {
+                const otherTeam = activeTeam === 'A' ? 'B' : 'A';
+                teams[activeTeam].element.classList.add('active');
+                teams[otherTeam].element.classList.remove('active');
+                
+                currentTeamEl.textContent = `Torn de l'${teams[activeTeam].name}`;
+                document.querySelector('.question').style.borderLeftColor = activeTeam === 'A' ? '#4ecdc4' : '#ff6b6b';
+
+                // Netejar la classe 'current' de totes les lletres
+                document.querySelectorAll('.letter.current').forEach(el => el.classList.remove('current'));
+                
+                if (currentLetterIndex !== -1) {
+                    const currentLetter = LETTERS[currentLetterIndex];
+                    const letterEl = document.getElementById(`letter-${activeTeam}-${currentLetter}`);
+                    if (letterEl) {
+                        letterEl.classList.add('current');
+                    }
+                }
+            }
+            
+            function showCurrentQuestion() {
+                answerInput.value = '';
+                answerInput.focus();
+                if (currentLetterIndex === -1) {
+                    questionEl.textContent = "No queden preguntes pendents per a aquest equip. Canviant de torn...";
+                    setControls(false);
+                    return;
+                }
+                const letter = LETTERS[currentLetterIndex];
+                questionEl.textContent = questions[letter].question;
+                setControls(true);
+            }
+
+            function updateRoscoUI(teamId, letter) {
+                const letterEl = document.getElementById(`letter-${teamId}-${letter}`);
+                if (!letterEl) return;
+                
+                letterEl.classList.remove('pending', 'correct', 'incorrect', 'passed', 'current');
+                const status = teams[teamId].status[letter];
+                letterEl.classList.add(status);
+            }
+
+            function updateStatsUI() {
+                teams.A.correctEl.textContent = teams.A.score.correct;
+                teams.A.incorrectEl.textContent = teams.A.score.incorrect;
+                teams.B.correctEl.textContent = teams.B.score.correct;
+                teams.B.incorrectEl.textContent = teams.B.score.incorrect;
+            }
+
+            function updateTimerDisplay(teamId) {
+                const team = teams[teamId];
+                const minutes = Math.floor(team.time / 60);
+                const seconds = team.time % 60;
+                team.timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (team.time <= 10 && team.time > 0) {
+                    team.timerEl.classList.add('warning');
+                } else {
+                    team.timerEl.classList.remove('warning');
+                }
+            }
+
+            function setControls(enabled) {
+                answerInput.disabled = !enabled;
+                answerBtn.disabled = !enabled;
+                passBtn.disabled = !enabled;
+                passaparaulaBtn.disabled = !enabled;
+            }
+
+
+            // --- FI DEL JOC ---
+
+            function checkEndGame() {
+                const teamAFinished = findNextPendingLetter('A') === -1;
+                const teamBFinished = findNextPendingLetter('B') === -1;
+                const timeUp = teams.A.time <= 0 && teams.B.time <= 0;
+
+                if ((teamAFinished && teamBFinished) || timeUp) {
+                    endGame();
+                }
+            }
+
+            function endGame() {
+                gameActive = false;
+                stopTimer();
+                setControls(false);
+
+                const scoreA = teams.A.score.correct;
+                const scoreB = teams.B.score.correct;
+                let message = `Resultats finals:<br>${teams.A.name}: ${scoreA} encerts | ${teams.B.name}: ${scoreB} encerts.<br><br>`;
+
+                if (scoreA > scoreB) {
+                    endGameTitle.textContent = `🏆 Guanya l'${teams.A.name}!`;
+                    message += "Enhorabona!";
+                } else if (scoreB > scoreA) {
+                    endGameTitle.textContent = `🏆 Guanya l'${teams.B.name}!`;
+                    message += "Enhorabona!";
+                } else {
+                    endGameTitle.textContent = "😮 Empat!";
+                    message += "Gran partida de tots dos equips!";
+                }
+                
+                document.getElementById('endGameMessage').innerHTML = message;
+                endGameModal.style.display = 'flex';
+            }
+
+            // --- EVENT LISTENERS ---
+            startGameBtn.addEventListener('click', initializeGame);
+            
+            answerBtn.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            });
+            
+            passBtn.addEventListener('click', passQuestion);
+            passaparaulaBtn.addEventListener('click', passaparaula);
+            
+            restartBtn.addEventListener('click', () => {
+                window.location.reload();
+            });
+        });
+    </script>
+</body>
+</html>
