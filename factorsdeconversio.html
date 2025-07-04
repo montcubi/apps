@@ -335,9 +335,9 @@
             <ul>
                 <li id="instructions-step1">Tria un nivell de dificultat.</li>
                 <li id="instructions-step2">Observa la conversió que has de fer.</li>
-                <li id="instructions-step3">Arrossega els factors de conversió necessaris a la zona de treball.</li>
+                <li id="instructions-step3">Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.</li>
                 <li id="instructions-step4">Fes clic a "Comprovar" per veure si la teva solució és correcta.</li>
-                <li id="instructions-step5">Per retirar un factor, fes-hi doble clic a sobre.</li>
+                <li id="instructions-step5">Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.</li>
             </ul>
         </div>
 
@@ -378,8 +378,8 @@
                 'drop-zone-placeholder': 'Arrossega els factors aquí',
                 'cat_longitud': 'Longitud', 'cat_massa': 'Massa', 'cat_temps': 'Temps', 'cat_superficie': 'Superfície', 'cat_volum': 'Volum',
                 'instructions-title': 'Instruccions', 'instructions-step1': 'Tria un nivell de dificultat.', 'instructions-step2': 'Observa la conversió que has de fer.',
-                'instructions-step3': 'Arrossega els factors de conversió necessaris a la zona de treball.', 'instructions-step4': 'Fes clic a "Comprovar" per veure si la teva solució és correcta.',
-                'instructions-step5': 'Per retirar un factor, fes-hi doble clic a sobre.'
+                'instructions-step3': 'Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.', 'instructions-step4': 'Fes clic a "Comprovar" per veure si la teva solució és correcta.',
+                'instructions-step5': 'Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.'
             },
             es: {
                 'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado',
@@ -389,8 +389,8 @@
                 'drop-zone-placeholder': 'Arrastra los factores aquí',
                 'cat_longitud': 'Longitud', 'cat_massa': 'Masa', 'cat_temps': 'Tiempo', 'cat_superficie': 'Superficie', 'cat_volum': 'Volumen',
                 'instructions-title': 'Instrucciones', 'instructions-step1': 'Elige un nivel de dificultad.', 'instructions-step2': 'Observa la conversión que tienes que realizar.',
-                'instructions-step3': 'Arrastra los factores de conversión necesarios a la zona de trabajo.', 'instructions-step4': 'Haz clic en "Comprobar" para ver si tu solución es correcta.',
-                'instructions-step5': 'Para retirar un factor, haz doble clic sobre él.'
+                'instructions-step3': 'Arrastra los factores o haz doble clic en ellos para añadirlos a la zona de trabajo.', 'instructions-step4': 'Haz clic en "Comprobar" para ver si tu solución es correcta.',
+                'instructions-step5': 'Para retirar un factor de la zona de trabajo, haz doble clic sobre él.'
             }
         };
 
@@ -426,6 +426,8 @@
             'cm3-m3': { factor: 1/1000000, num: { val: 1, unit: 'm3' }, den: { val: 1000000, unit: 'cm3' }, category: 'volum' },
             'dm3-cm3': { factor: 1000, num: { val: 1000, unit: 'cm3' }, den: { val: 1, unit: 'dm3' }, category: 'volum' },
             'cm3-dm3': { factor: 1/1000, num: { val: 1, unit: 'dm3' }, den: { val: 1000, unit: 'cm3' }, category: 'volum' },
+            'L-mL': { factor: 1000, num: { val: 1000, unit: 'mL' }, den: { val: 1, unit: 'L' }, category: 'volum' },
+            'mL-L': { factor: 1/1000, num: { val: 1, unit: 'L' }, den: { val: 1000, unit: 'mL' }, category: 'volum' },
             // Capacity & Volume
             'L-dm3': { factor: 1, num: { val: 1, unit: 'dm3' }, den: { val: 1, unit: 'L' }, category: 'volum' },
             'dm3-L': { factor: 1, num: { val: 1, unit: 'L' }, den: { val: 1, unit: 'dm3' }, category: 'volum' },
@@ -441,6 +443,7 @@
                 { from: 2, fromUnit: 'kg', toUnit: 'g', factors: ['kg-g'] },
                 { from: 120, fromUnit: 'min', toUnit: 'h', factors: ['min-h'] },
                 { from: 300, fromUnit: 'cm', toUnit: 'm', factors: ['cm-m'] },
+                { from: 1500, fromUnit: 'mL', toUnit: 'L', factors: ['mL-L'] },
             ],
             intermediate: [
                 { from: 72, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
@@ -672,6 +675,7 @@
                         fractionEl.addEventListener('dragstart', e => {
                             e.dataTransfer.setData('text/plain', factorKey);
                         });
+                        fractionEl.ondblclick = () => addFactorToDropZone(factorKey); // Add by double-clicking
                         contentDiv.appendChild(fractionEl);
                     });
 
