@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factors de Conversió - Arrossega i Deixa Anar</title>
+    <style>
+        /* --- General Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            background: white;
+            color: #4facfe;
+        }
+
+        /* --- Level & Stats --- */
+        .level-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .level-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .level-btn.basic { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #2c3e50; }
+        .level-btn.intermediate { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #8b4513; }
+        .level-btn.advanced { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #8b008b; }
+        .level-btn:hover, .level-btn.active { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 30px;
+        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #2c3e50; }
+        .stat-label { color: #7f8c8d; font-size: 0.9em; }
+
+        /* --- Instructions --- */
+        .instructions {
+            margin: 0px 30px 20px 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 5px solid #1abc9c;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #16a085;
+        }
+        .instructions ul {
+            list-style-position: inside;
+            padding-left: 5px;
+        }
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        /* --- Game Area --- */
+        .game-area {
+            padding: 30px;
+            padding-top: 0;
+        }
+
+        .problem {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .problem h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        /* --- Solution Drop Zone --- */
+        .solution-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .value-display {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #34495e;
+            padding: 10px 15px;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .operator {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .drop-zone {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+            min-height: 80px;
+            border: 3px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            background-color: #e0e6f0;
+            border-color: #3498db;
+        }
+        
+        .drop-zone .placeholder {
+            color: #7f8c8d;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* --- Draggable Fractions --- */
+        .factors-panel {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .factor-group {
+            margin-bottom: 25px;
+        }
+
+        .factor-group-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: left;
+            padding-bottom: 5px;
+            border-bottom: 2px solid;
+        }
+
+        .factor-group-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 2px solid; /* Border color will be set by category */
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: grab;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .fraction:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .drop-zone .fraction {
+            cursor: pointer;
+        }
+
+        .numerator, .denominator {
+            padding: 5px 10px;
+            font-weight: bold;
+        }
+
+        .fraction-line {
+            width: 100%;
+            height: 2px;
+            background-color: #2c3e50;
+        }
+        
+        /* Category Colors */
+        .category-longitud { border-color: #3498db; background-color: #eaf4fc; } /* Blue */
+        .category-massa { border-color: #2ecc71; background-color: #eafaf1; } /* Green */
+        .category-temps { border-color: #f39c12; background-color: #fef5e7; } /* Orange */
+        .category-superficie { border-color: #9b59b6; background-color: #f4eef7; } /* Purple */
+        .category-volum { border-color: #e74c3c; background-color: #fbecec; } /* Red */
+        
+        .factor-group-title.category-longitud { border-bottom-color: #3498db; }
+        .factor-group-title.category-massa { border-bottom-color: #2ecc71; }
+        .factor-group-title.category-temps { border-bottom-color: #f39c12; }
+        .factor-group-title.category-superficie { border-bottom-color: #9b59b6; }
+        .factor-group-title.category-volum { border-bottom-color: #e74c3c; }
+
+
+        .fraction.correct { border-color: #27ae60 !important; background-color: #d4edda !important; }
+        .fraction.incorrect { border-color: #c0392b !important; background-color: #f8d7da !important; }
+
+
+        /* --- Controls & Feedback --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 25px; cursor: pointer;
+            font-weight: bold; font-size: 1.1em; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-primary { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); color: white; }
+        .btn-success { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+        .feedback {
+            padding: 15px; border-radius: 10px; margin: 20px auto 0 auto; text-align: center;
+            font-weight: bold; opacity: 0; transform: translateY(-10px);
+            transition: all 0.3s ease;
+            max-width: 80%;
+        }
+        .feedback.show { opacity: 1; transform: translateY(0); }
+        .feedback.success { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.error { background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .language-selector { position: static; justify-content: center; margin-top: 10px; }
+            .level-selector { flex-direction: column; align-items: center; }
+            .controls { flex-direction: column; align-items: center; }
+            .solution-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="main-title">Factors de Conversió</h1>
+            <div class="language-selector">
+                <button class="lang-btn active" onclick="setLanguage('ca')">CAT</button>
+                <button class="lang-btn" onclick="setLanguage('es')">ESP</button>
+            </div>
+        </div>
+
+        <div class="level-selector">
+            <button class="level-btn basic active" onclick="setLevel('basic')" id="basic-btn">Bàsic</button>
+            <button class="level-btn intermediate" onclick="setLevel('intermediate')" id="intermediate-btn">Intermedi</button>
+            <button class="level-btn advanced" onclick="setLevel('advanced')" id="advanced-btn">Avançat</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><div class="stat-value" id="correct-count">0</div><div class="stat-label" id="correct-label">Correctes</div></div>
+            <div class="stat"><div class="stat-value" id="total-count">0</div><div class="stat-label" id="total-label">Total</div></div>
+            <div class="stat"><div class="stat-value" id="percentage">0%</div><div class="stat-label" id="percentage-label">Percentatge</div></div>
+        </div>
+
+        <div class="instructions">
+            <h3 id="instructions-title">Instruccions</h3>
+            <ul>
+                <li id="instructions-step1">Tria un nivell de dificultat.</li>
+                <li id="instructions-step2">Observa la conversió que has de fer.</li>
+                <li id="instructions-step3">Arrossega els factors de conversió necessaris a la zona de treball.</li>
+                <li id="instructions-step4">Fes clic a "Comprovar" per veure si la teva solució és correcta.</li>
+                <li id="instructions-step5">Per retirar un factor, fes-hi doble clic a sobre.</li>
+            </ul>
+        </div>
+
+        <div class="game-area">
+            <div class="problem">
+                <h2 id="problem-title"></h2>
+                <div class="solution-container">
+                    <div id="initial-value-container" class="value-display"></div>
+                    <div class="operator" id="operator-multiply" style="display: none;">×</div>
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="placeholder" id="drop-zone-placeholder"></div>
+                    </div>
+                    <div class="operator" id="operator-equals" style="display: none;">=</div>
+                    <div id="final-result-container" class="value-display" style="display: none;"></div>
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="checkAnswer()" id="check-btn">Comprovar</button>
+                    <button class="btn btn-secondary" onclick="resetProblem()" id="reset-btn">Reiniciar</button>
+                    <button class="btn btn-success" onclick="nextProblem()" id="next-btn">Següent</button>
+                </div>
+            </div>
+
+            <div class="factors-panel" id="factors-panel">
+                <!-- Grouped factors will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLATIONS ---
+        const translations = {
+            ca: {
+                'main-title': 'Factors de Conversió', 'basic-btn': 'Bàsic', 'intermediate-btn': 'Intermedi', 'advanced-btn': 'Avançat',
+                'correct-label': 'Correctes', 'total-label': 'Total', 'percentage-label': 'Percentatge', 'problem-title-prefix': 'Converteix',
+                'check-btn': 'Comprovar', 'reset-btn': 'Reiniciar', 'next-btn': 'Següent',
+                'correct-feedback': 'Correcte! Molt bé!', 'incorrect-feedback': 'Incorrecte. La seqüència o els factors no són correctes.',
+                'drop-zone-placeholder': 'Arrossega els factors aquí',
+                'cat_longitud': 'Longitud', 'cat_massa': 'Massa', 'cat_temps': 'Temps', 'cat_superficie': 'Superfície', 'cat_volum': 'Volum',
+                'instructions-title': 'Instruccions', 'instructions-step1': 'Tria un nivell de dificultat.', 'instructions-step2': 'Observa la conversió que has de fer.',
+                'instructions-step3': 'Arrossega els factors de conversió necessaris a la zona de treball.', 'instructions-step4': 'Fes clic a "Comprovar" per veure si la teva solució és correcta.',
+                'instructions-step5': 'Per retirar un factor, fes-hi doble clic a sobre.'
+            },
+            es: {
+                'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado',
+                'correct-label': 'Correctos', 'total-label': 'Total', 'percentage-label': 'Porcentaje', 'problem-title-prefix': 'Convierte',
+                'check-btn': 'Comprobar', 'reset-btn': 'Reiniciar', 'next-btn': 'Siguiente',
+                'correct-feedback': '¡Correcto! ¡Muy bien!', 'incorrect-feedback': 'Incorrecto. La secuencia o los factores no son correctos.',
+                'drop-zone-placeholder': 'Arrastra los factores aquí',
+                'cat_longitud': 'Longitud', 'cat_massa': 'Masa', 'cat_temps': 'Tiempo', 'cat_superficie': 'Superficie', 'cat_volum': 'Volumen',
+                'instructions-title': 'Instrucciones', 'instructions-step1': 'Elige un nivel de dificultad.', 'instructions-step2': 'Observa la conversión que tienes que realizar.',
+                'instructions-step3': 'Arrastra los factores de conversión necesarios a la zona de trabajo.', 'instructions-step4': 'Haz clic en "Comprobar" para ver si tu solución es correcta.',
+                'instructions-step5': 'Para retirar un factor, haz doble clic sobre él.'
+            }
+        };
+
+        // --- GAME STATE ---
+        let currentLanguage = 'ca';
+        let currentLevel = 'basic';
+        let currentProblem = null;
+        let droppedFactors = [];
+        let stats = { correct: 0, total: 0 };
+
+        // --- DATA ---
+        const conversionFactors = {
+            // Linear
+            'km-m': { factor: 1000, num: { val: 1000, unit: 'm' }, den: { val: 1, unit: 'km' }, category: 'longitud' },
+            'm-km': { factor: 1/1000, num: { val: 1, unit: 'km' }, den: { val: 1000, unit: 'm' }, category: 'longitud' },
+            'm-cm': { factor: 100, num: { val: 100, unit: 'cm' }, den: { val: 1, unit: 'm' }, category: 'longitud' },
+            'cm-m': { factor: 1/100, num: { val: 1, unit: 'm' }, den: { val: 100, unit: 'cm' }, category: 'longitud' },
+            // Mass
+            'kg-g': { factor: 1000, num: { val: 1000, unit: 'g' }, den: { val: 1, unit: 'kg' }, category: 'massa' },
+            'g-kg': { factor: 1/1000, num: { val: 1, unit: 'kg' }, den: { val: 1000, unit: 'g' }, category: 'massa' },
+            // Time
+            'h-min': { factor: 60, num: { val: 60, unit: 'min' }, den: { val: 1, unit: 'h' }, category: 'temps' },
+            'min-h': { factor: 1/60, num: { val: 1, unit: 'h' }, den: { val: 60, unit: 'min' }, category: 'temps' },
+            'min-s': { factor: 60, num: { val: 60, unit: 's' }, den: { val: 1, unit: 'min' }, category: 'temps' },
+            's-min': { factor: 1/60, num: { val: 1, unit: 'min' }, den: { val: 60, unit: 's' }, category: 'temps' },
+            'h-s': { factor: 3600, num: { val: 3600, unit: 's' }, den: { val: 1, unit: 'h' }, category: 'temps' },
+            's-h': { factor: 1/3600, num: { val: 1, unit: 'h' }, den: { val: 3600, unit: 's' }, category: 'temps' },
+            // Area
+            'm2-cm2': { factor: 10000, num: { val: 10000, unit: 'cm2' }, den: { val: 1, unit: 'm2' }, category: 'superficie' },
+            'cm2-m2': { factor: 1/10000, num: { val: 1, unit: 'm2' }, den: { val: 10000, unit: 'cm2' }, category: 'superficie' },
+            // Volume
+            'm3-cm3': { factor: 1000000, num: { val: 1000000, unit: 'cm3' }, den: { val: 1, unit: 'm3' }, category: 'volum' },
+            'cm3-m3': { factor: 1/1000000, num: { val: 1, unit: 'm3' }, den: { val: 1000000, unit: 'cm3' }, category: 'volum' },
+            'dm3-cm3': { factor: 1000, num: { val: 1000, unit: 'cm3' }, den: { val: 1, unit: 'dm3' }, category: 'volum' },
+            'cm3-dm3': { factor: 1/1000, num: { val: 1, unit: 'dm3' }, den: { val: 1000, unit: 'cm3' }, category: 'volum' },
+            // Capacity & Volume
+            'L-dm3': { factor: 1, num: { val: 1, unit: 'dm3' }, den: { val: 1, unit: 'L' }, category: 'volum' },
+            'dm3-L': { factor: 1, num: { val: 1, unit: 'L' }, den: { val: 1, unit: 'dm3' }, category: 'volum' },
+            'mL-cm3': { factor: 1, num: { val: 1, unit: 'cm3' }, den: { val: 1, unit: 'mL' }, category: 'volum' },
+            'cm3-mL': { factor: 1, num: { val: 1, unit: 'mL' }, den: { val: 1, unit: 'cm3' }, category: 'volum' },
+            'm3-L': { factor: 1000, num: { val: 1000, unit: 'L' }, den: { val: 1, unit: 'm3' }, category: 'volum' },
+            'L-m3': { factor: 1/1000, num: { val: 1, unit: 'm3' }, den: { val: 1000, unit: 'L' }, category: 'volum' },
+        };
+
+        const problems = {
+            basic: [
+                { from: 5, fromUnit: 'km', toUnit: 'm', factors: ['km-m'] },
+                { from: 2, fromUnit: 'kg', toUnit: 'g', factors: ['kg-g'] },
+                { from: 120, fromUnit: 'min', toUnit: 'h', factors: ['min-h'] },
+                { from: 300, fromUnit: 'cm', toUnit: 'm', factors: ['cm-m'] },
+            ],
+            intermediate: [
+                { from: 72, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 1.5, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
+                { from: 5, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
+                { from: 10, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+            ],
+            advanced: [
+                { from: 1200, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
+                { from: 850, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
+                { from: 0.5, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
+                { from: 2500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
+                { from: 1.2, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+            ]
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            const browserLang = navigator.language.substring(0, 2);
+            if (['ca', 'es'].includes(browserLang)) setLanguage(browserLang);
+            else setLanguage('ca');
+            
+            setupDragAndDrop();
+            generateProblem();
+        }
+
+        // --- CORE GAME LOGIC ---
+        function setLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.level-btn.${level}`).classList.add('active');
+            generateProblem();
+        }
+
+        function generateProblem() {
+            const levelProblems = problems[currentLevel];
+            currentProblem = levelProblems[Math.floor(Math.random() * levelProblems.length)];
+            
+            updateProblemTitle();
+
+            const initialValueContainer = document.getElementById('initial-value-container');
+            initialValueContainer.innerHTML = '';
+            const initialValueEl = createValueDisplay(currentProblem.from, currentProblem.fromUnit);
+            initialValueContainer.appendChild(initialValueEl);
+            
+            generateFactorGroups();
+            resetProblemLayout();
+        }
+
+        function resetProblemLayout() {
+            droppedFactors = [];
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.innerHTML = '';
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder';
+            placeholder.id = 'drop-zone-placeholder';
+            placeholder.textContent = translations[currentLanguage]['drop-zone-placeholder'];
+            dropZone.appendChild(placeholder);
+
+            document.getElementById('operator-multiply').style.display = 'none';
+            document.getElementById('operator-equals').style.display = 'none';
+            const finalResultContainer = document.getElementById('final-result-container');
+            finalResultContainer.style.display = 'none';
+            finalResultContainer.innerHTML = '';
+            hideFeedback();
+        }
+        
+        function nextProblem() {
+            generateProblem();
+        }
+
+        function checkAnswer() {
+            const isCorrect = arraysEqual(droppedFactors, currentProblem.factors);
+            
+            stats.total++;
+            if (isCorrect) {
+                stats.correct++;
+                showFeedback(translations[currentLanguage]['correct-feedback'], 'success');
+                showSolution(true);
+            } else {
+                showFeedback(translations[currentLanguage]['incorrect-feedback'], 'error');
+                showSolution(false);
+            }
+            updateStatsDisplay();
+        }
+        
+        function showSolution(isCorrect) {
+            const droppedElements = document.querySelectorAll('#drop-zone .fraction');
+            droppedElements.forEach((el, index) => {
+                const factorKey = el.dataset.factor;
+                el.classList.remove('correct', 'incorrect');
+                if (isCorrect) {
+                    el.classList.add('correct');
+                } else {
+                    if (currentProblem.factors[index] === factorKey) {
+                        el.classList.add('correct');
+                    } else {
+                        el.classList.add('incorrect');
+                    }
+                }
+            });
+
+            if (isCorrect) {
+                 let finalValue = currentProblem.from;
+                 droppedFactors.forEach(key => {
+                    const factorData = conversionFactors[key];
+                    finalValue *= factorData.factor;
+                 });
+                 finalValue = parseFloat(finalValue.toPrecision(4));
+
+                 const finalResultContainer = document.getElementById('final-result-container');
+                 finalResultContainer.innerHTML = '';
+                 const resultEl = createValueDisplay(finalValue, currentProblem.toUnit);
+                 
+                 finalResultContainer.appendChild(resultEl);
+                 finalResultContainer.style.display = 'inline-flex';
+                 document.getElementById('operator-equals').style.display = 'inline-block';
+            }
+        }
+
+        // --- DRAG & DROP ---
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const factorKey = e.dataTransfer.getData('text/plain');
+                addFactorToDropZone(factorKey);
+            });
+        }
+
+        function addFactorToDropZone(factorKey) {
+            const placeholder = document.getElementById('drop-zone-placeholder');
+            if (placeholder) placeholder.remove();
+            
+            if (droppedFactors.length === 0) {
+                document.getElementById('operator-multiply').style.display = 'inline-block';
+            }
+
+            droppedFactors.push(factorKey);
+            const fractionEl = createFractionElement(factorKey);
+            fractionEl.ondblclick = () => removeFactorFromDropZone(fractionEl, factorKey);
+            document.getElementById('drop-zone').appendChild(fractionEl);
+        }
+        
+        function removeFactorFromDropZone(element, factorKey) {
+            element.remove();
+            const index = droppedFactors.indexOf(factorKey);
+            if (index > -1) { droppedFactors.splice(index, 1); }
+            
+            if (droppedFactors.length === 0) {
+                resetProblemLayout();
+                const initialValueContainer = document.getElementById('initial-value-container');
+                initialValueContainer.innerHTML = '';
+                const initialValueEl = createValueDisplay(currentProblem.from, currentProblem.fromUnit);
+                initialValueContainer.appendChild(initialValueEl);
+            }
+        }
+
+        // --- UI & ELEMENT GENERATION ---
+        function formatUnitString(unitString) {
+            return unitString.replace(/([a-zA-Z]+)(\d+)/g, '$1<sup>$2</sup>');
+        }
+
+        function createValueDisplay(value, unitString) {
+            const container = document.createElement('div');
+            
+            if (unitString.includes('/')) {
+                const [numUnit, denUnit] = unitString.split('/');
+                container.className = 'fraction';
+                container.innerHTML = `
+                    <div class="numerator">${value} ${formatUnitString(numUnit)}</div>
+                    <div class="fraction-line"></div>
+                    <div class="denominator">${formatUnitString(denUnit)}</div>
+                `;
+            } else {
+                container.innerHTML = `${value} ${formatUnitString(unitString)}`;
+            }
+            return container;
+        }
+
+        function createFractionElement(factorKey) {
+            const factorData = conversionFactors[factorKey];
+            const fraction = document.createElement('div');
+            fraction.className = 'fraction';
+            fraction.classList.add(`category-${factorData.category}`);
+            fraction.dataset.factor = factorKey;
+            fraction.innerHTML = `
+                <div class="numerator">${factorData.num.val} ${formatUnitString(factorData.num.unit)}</div>
+                <div class="fraction-line"></div>
+                <div class="denominator">${factorData.den.val} ${formatUnitString(factorData.den.unit)}</div>
+            `;
+            return fraction;
+        }
+
+        function generateFactorGroups() {
+            const panel = document.getElementById('factors-panel');
+            panel.innerHTML = '';
+
+            const factorsByCategory = {};
+            for (const key in conversionFactors) {
+                const factor = conversionFactors[key];
+                if (!factorsByCategory[factor.category]) {
+                    factorsByCategory[factor.category] = [];
+                }
+                factorsByCategory[factor.category].push(key);
+            }
+
+            const categoryOrder = ['longitud', 'massa', 'temps', 'superficie', 'volum'];
+
+            categoryOrder.forEach(categoryKey => {
+                if (factorsByCategory[categoryKey]) {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'factor-group';
+
+                    const title = document.createElement('h4');
+                    title.className = `factor-group-title category-${categoryKey}`;
+                    title.textContent = translations[currentLanguage][`cat_${categoryKey}`];
+                    groupDiv.appendChild(title);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'factor-group-content';
+                    
+                    shuffleArray(factorsByCategory[categoryKey]).forEach(factorKey => {
+                        const fractionEl = createFractionElement(factorKey);
+                        fractionEl.draggable = true;
+                        fractionEl.addEventListener('dragstart', e => {
+                            e.dataTransfer.setData('text/plain', factorKey);
+                        });
+                        contentDiv.appendChild(fractionEl);
+                    });
+
+                    groupDiv.appendChild(contentDiv);
+                    panel.appendChild(groupDiv);
+                }
+            });
+        }
+        
+        function updateProblemTitle() {
+            if (!currentProblem) return;
+            
+            const problemTitleEl = document.getElementById('problem-title');
+            const fromUnitFormatted = formatUnitString(`${currentProblem.from} ${currentProblem.fromUnit}`);
+            const toUnitFormatted = formatUnitString(`? ${currentProblem.toUnit}`);
+            problemTitleEl.innerHTML = `${translations[currentLanguage]['problem-title-prefix']} ${fromUnitFormatted}  →  ${toUnitFormatted}`;
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="setLanguage('${lang}')"]`).classList.add('active');
+            Object.keys(translations[lang]).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            updateProblemTitle();
+            generateFactorGroups(); // Regenerate groups to update titles
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('correct-count').textContent = stats.correct;
+            document.getElementById('total-count').textContent = stats.total;
+            const percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+            document.getElementById('percentage').textContent = percentage + '%';
+        }
+
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = `feedback ${type} show`;
+        }
+
+        function hideFeedback() {
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('show');
+        }
+
+        // --- UTILITIES ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function arraysEqual(a, b) {
+            return a.length === b.length && a.every((val, index) => val === b[index]);
+        }
+
+        // --- START APP ---
+        window.addEventListener('load', init);
+        
+        window.setLanguage = setLanguage;
+        window.setLevel = setLevel;
+        window.checkAnswer = checkAnswer;
+        window.resetProblem = () => {
+            generateProblem();
+        };
+        window.nextProblem = nextProblem;
+    </script>
+</body>
+</html>
