@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joc: Construeix l'Àtom del Grup 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+            color: #334155; /* Darker text */
+        }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 50px;
+            margin-bottom: 30px;
+            text-align: center;
+            width: 100%;
+        }
+        .game-section {
+            background-color: #e2e8f0; /* Lighter background for game */
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-top: 60px;
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .game-button {
+            background-color: #4f46e5; /* Purple button */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .game-button:hover {
+            background-color: #6366f1;
+            transform: translateY(-2px);
+        }
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .game-button.secondary {
+            background-color: #22c55e; /* Green button */
+        }
+        .game-button.secondary:hover {
+            background-color: #4ade80;
+        }
+        .level-selector button {
+            background-color: #64748b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+            margin: 0 5px;
+        }
+        .level-selector button.active {
+            background-color: #4f46e5;
+            font-weight: 700;
+        }
+        .level-selector button:hover {
+            background-color: #7b869b;
+        }
+
+        .target-atom-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .builder-atom-model {
+            position: relative;
+            width: 500px; /* Increased size for better visibility and clickability */
+            height: 500px; /* Increased size for better visibility and clickability */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed #94a3b8; /* Dashed border for the builder area */
+            margin-bottom: 20px;
+        }
+        .builder-nucleus {
+            width: 50px;
+            height: 50px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .builder-shell {
+            position: absolute;
+            border: 2px solid #94a3b8;
+            border-radius: 50%;
+            z-index: 1; /* Shells are below electrons, but we'll handle click through */
+            cursor: pointer; /* Indicate shells are clickable */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .builder-shell:hover {
+            border-color: #4f46e5; /* Highlight on hover */
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+        }
+        .builder-shell.full {
+            border-color: #ef4444; /* Red border when full */
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.7); /* Stronger red glow */
+        }
+        .builder-electron {
+            width: 15px;
+            height: 15px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 3; /* Electrons are on top */
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.7);
+            cursor: pointer; /* Indicate electrons are clickable to remove */
+            transition: background-color 0.2s ease-in-out;
+        }
+        .builder-electron:hover {
+            background-color: #ef4444; /* Change color on hover to indicate removal */
+        }
+        .feedback-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-height: 40px; /* Ensure space even when empty */
+        }
+        .feedback-message.correct {
+            background-color: #dcfce7; /* Light green */
+            color: #16a34a; /* Dark green */
+        }
+        .feedback-message.incorrect {
+            background-color: #fee2e2; /* Light red */
+            color: #dc2626; /* Dark red */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-section {
+                padding: 25px;
+            }
+            .target-atom-display {
+                font-size: 1.6rem;
+            }
+            .builder-atom-model {
+                width: 300px; /* Adjusted for smaller screens */
+                height: 300px; /* Adjusted for smaller screens */
+            }
+            .builder-electron {
+                width: 12px;
+                height: 12px;
+            }
+            .game-button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 bg-gray-50 flex flex-col items-center min-h-screen">
+
+    <h1 class="text-4xl font-extrabold text-blue-700 mb-8 mt-4 text-center">
+        Joc: Construeix l'Àtom del Grup 2!
+    </h1>
+    <p class="text-lg text-gray-700 mb-10 text-center max-w-2xl">
+        Construeix àtoms neutres o cations del Grup 2 afegint electrons a les capes correctes. Fes clic a una capa per afegir un electró, o **fes clic sobre un electró per eliminar-lo**.
+    </p>
+
+    <div class="game-section">
+        <div class="level-selector">
+            <button id="neutralLevelBtn" class="active" onclick="setGameLevel('neutral')">Nivell Normal (Àtoms Neutres)</button>
+            <button id="advancedLevelBtn" onclick="setGameLevel('advanced')">Nivell Avançat (Cations)</button>
+        </div>
+        <div id="targetAtomDisplay" class="target-atom-display"></div>
+        <div id="builderAtomModel" class="builder-atom-model">
+            <!-- L'àtom que l'alumne construeix es generarà aquí -->
+        </div>
+        <div class="game-controls">
+            <button class="game-button" onclick="startGame()">Nou Àtom</button>
+            <button class="game-button secondary" onclick="checkAnswer()">Comprova</button>
+            <button class="game-button" onclick="resetBuilder()">Reinicia</button>
+        </div>
+        <div id="feedbackMessage" class="feedback-message"></div>
+    </div>
+
+    <script>
+        // Dades dels àtoms del Grup 2 (electrons per capa)
+        const group2Atoms = [
+            {
+                name: 'Beril·li',
+                symbol: 'Be',
+                atomicNumber: 4,
+                shells: [2, 2],
+                electronConfig: '1s² 2s²',
+                properties: 'Metall lleuger, dur i trencadís. Utilitzat en aliatges i components electrònics.'
+            },
+            {
+                name: 'Magnesi',
+                symbol: 'Mg',
+                atomicNumber: 12,
+                shells: [2, 8, 2],
+                electronConfig: '1s² 2s² 2p⁶ 3s²',
+                properties: 'Metall lleuger, platejat i reactiu. Essencial per a la vida i utilitzat en pirotècnia i aliatges.'
+            },
+            {
+                name: 'Calci',
+                symbol: 'Ca',
+                atomicNumber: 20,
+                shells: [2, 8, 8, 2],
+                electronConfig: '1s² 2s² 2p⁶ 3s² 3p⁶ 4s²',
+                properties: 'Metall tou, platejat. Abundant a la Terra, vital per a ossos i dents.'
+            },
+            {
+                name: 'Estronci',
+                symbol: 'Sr',
+                atomicNumber: 38,
+                shells: [2, 8, 18, 8, 2],
+                electronConfig: '1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p⁶ 5s²',
+                properties: 'Metall platejat groguenc, molt reactiu. S\'utilitza en focs artificials per al color vermell.'
+            },
+            {
+                name: 'Bari',
+                symbol: 'Ba',
+                atomicNumber: 56,
+                shells: [2, 8, 18, 18, 8, 2],
+                electronConfig: '1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p⁶ 4d¹⁰ 5s² 5p⁶ 6s²',
+                properties: 'Metall tou, platejat. S\'utilitza en aplicacions mèdiques (contrast de raigs X) i en vidre.'
+            },
+            {
+                name: 'Radi',
+                symbol: 'Ra',
+                atomicNumber: 88,
+                shells: [2, 8, 18, 32, 18, 8, 2],
+                electronConfig: '1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p⁶ 4d¹⁰ 4f¹⁴ 5s² 5p⁶ 5d¹⁰ 6s² 6p⁶ 7s²',
+                properties: 'Element radioactiu, molt inestable. Històricament utilitzat en pintura lluminosa, ara amb ús limitat.'
+            }
+        ];
+
+        let currentGameLevel = 'neutral'; // 'neutral' or 'advanced'
+        let currentTargetAtom = null;
+        let builderShells = []; // Array to store electrons in each shell for the builder
+
+        /**
+         * Sets the game level (neutral or advanced).
+         * @param {string} level - 'neutral' or 'advanced'.
+         */
+        function setGameLevel(level) {
+            currentGameLevel = level;
+            document.getElementById('neutralLevelBtn').classList.remove('active');
+            document.getElementById('advancedLevelBtn').classList.remove('active');
+            document.getElementById(`${level}LevelBtn`).classList.add('active');
+            startGame(); // Start a new game with the selected level
+        }
+
+        /** Starts a new game by selecting a random atom and initializing the builder. */
+        function startGame() {
+            // Select a random atom from the group2Atoms array
+            const randomIndex = Math.floor(Math.random() * group2Atoms.length);
+            const selectedAtom = group2Atoms[randomIndex];
+
+            let targetShellsConfig;
+            let targetSymbol = selectedAtom.symbol;
+            let targetName = selectedAtom.name;
+            let targetCharge = '';
+
+            if (currentGameLevel === 'advanced') {
+                // For Group 2, they typically form +2 cations by losing 2 valence electrons
+                // Create a new shells config for the ion
+                targetShellsConfig = [...selectedAtom.shells];
+                if (targetShellsConfig.length > 0 && targetShellsConfig[targetShellsConfig.length - 1] === 2) {
+                    targetShellsConfig.pop(); // Remove the valence shell
+                    // If after popping, the last shell is empty, remove it too (e.g., Be2+ from [2,2] -> [2])
+                    if (targetShellsConfig.length > 0 && targetShellsConfig[targetShellsConfig.length - 1] === 0) {
+                         targetShellsConfig.pop();
+                    }
+                }
+                // Special case for Beril·li (Be) forming Be2+
+                // If Be (shells: [2, 2]) becomes Be2+, it loses its 2 valence electrons.
+                // The remaining configuration is just the inner 2 electrons.
+                // If the original atom had only one shell (like for Hydrogen, though not in this group),
+                // and it loses all electrons, it would have 0 shells.
+                if (selectedAtom.shells.length === 2 && selectedAtom.shells[1] === 2 && selectedAtom.symbol === 'Be') {
+                    targetShellsConfig = [2]; // Be2+ has 2 electrons in the first shell
+                } else if (selectedAtom.shells.length === 1 && selectedAtom.shells[0] === 2) {
+                    // This case is unlikely for Group 2, but a general safeguard
+                    targetShellsConfig = [];
+                }
+
+
+                targetCharge = '²⁺'; // Indicate +2 charge
+            } else {
+                targetShellsConfig = selectedAtom.shells;
+            }
+
+            currentTargetAtom = {
+                ...selectedAtom,
+                shells: targetShellsConfig,
+                symbol: targetSymbol,
+                name: targetName,
+                charge: targetCharge
+            };
+
+            // Update the target display
+            document.getElementById('targetAtomDisplay').textContent = `Construeix l'àtom de: ${currentTargetAtom.name} (${currentTargetAtom.symbol}${currentTargetAtom.charge})`;
+
+            resetBuilder(); // Reset the builder for the new atom
+            renderBuilderAtom(); // Initial render of the empty builder atom
+            document.getElementById('feedbackMessage').textContent = ''; // Clear feedback
+            document.getElementById('feedbackMessage').className = 'feedback-message';
+        }
+
+        /** Resets the atom builder to an empty state. */
+        function resetBuilder() {
+            if (!currentTargetAtom) return; // Cannot reset if no atom is selected
+
+            // Initialize builderShells with zeros based on the number of shells in the target atom
+            builderShells = new Array(currentTargetAtom.shells.length).fill(0);
+            renderBuilderAtom();
+            document.getElementById('feedbackMessage').textContent = ''; // Clear feedback
+            document.getElementById('feedbackMessage').className = 'feedback-message';
+            // Remove 'full' class from all shells
+            document.querySelectorAll('.builder-shell').forEach(shell => {
+                shell.classList.remove('full');
+            });
+        }
+
+        /**
+         * Adds an electron to a specific shell in the builder.
+         * @param {number} shellIndex - The index of the shell to add the electron to.
+         */
+        function addElectronToShell(shellIndex) {
+            if (!currentTargetAtom) return; // No atom selected for building
+
+            // Max electrons per shell (simplified for first 7 shells: K, L, M, N, O, P, Q)
+            const maxElectronsInShellCapacity = [2, 8, 18, 32, 50, 72, 98]; // Standard maximum capacity
+            const currentShellMax = maxElectronsInShellCapacity[shellIndex];
+
+            if (builderShells[shellIndex] < currentShellMax) {
+                builderShells[shellIndex]++;
+                renderBuilderAtom();
+                document.getElementById('feedbackMessage').textContent = ''; // Clear previous feedback
+                document.getElementById('feedbackMessage').className = 'feedback-message';
+            } else {
+                document.getElementById('feedbackMessage').textContent = `La capa ${shellIndex + 1} ja està plena!`;
+                document.getElementById('feedbackMessage').className = 'feedback-message incorrect';
+            }
+        }
+
+        /**
+         * Removes an electron from a specific shell in the builder.
+         * @param {number} shellIndex - The index of the shell to remove the electron from.
+         */
+        function removeElectronFromShell(shellIndex) {
+            if (builderShells[shellIndex] > 0) {
+                builderShells[shellIndex]--;
+                renderBuilderAtom();
+                document.getElementById('feedbackMessage').textContent = ''; // Clear previous feedback
+                document.getElementById('feedbackMessage').className = 'feedback-message';
+            } else {
+                document.getElementById('feedbackMessage').textContent = `La capa ${shellIndex + 1} ja està buida!`;
+                document.getElementById('feedbackMessage').className = 'feedback-message incorrect';
+            }
+        }
+
+
+        /** Renders the current state of the atom being built by the user. */
+        function renderBuilderAtom() {
+            const builderModelDiv = document.getElementById('builderAtomModel');
+            builderModelDiv.innerHTML = ''; // Clear previous rendering
+
+            if (!currentTargetAtom) {
+                builderModelDiv.textContent = 'Fes clic a "Nou Àtom" per començar!';
+                return;
+            }
+
+            // Nucleus for the builder
+            const nucleus = document.createElement('div');
+            nucleus.className = 'builder-nucleus';
+            nucleus.textContent = `+${currentTargetAtom.atomicNumber}`;
+            builderModelDiv.appendChild(nucleus);
+
+            let currentRadius = 70; // Initial radius for the first shell (increased)
+            const radiusIncrement = 40; // Increment for each subsequent shell (increased)
+
+            // Draw shells and electrons for the builder
+            // We draw shells based on the target atom's number of shells
+            for (let i = 0; i < currentTargetAtom.shells.length; i++) {
+                const shell = document.createElement('div');
+                shell.className = 'builder-shell';
+                shell.style.width = `${currentRadius * 2}px`;
+                shell.style.height = `${currentRadius * 2}px`;
+                shell.dataset.shellIndex = i; // Store index for click event
+
+                // Add click listener to shells to add electrons
+                shell.addEventListener('click', () => addElectronToShell(i));
+
+                // Add electrons currently in this shell of the builder
+                for (let j = 0; j < builderShells[i]; j++) {
+                    const electron = document.createElement('div');
+                    electron.className = 'builder-electron';
+
+                    // Add click listener to electrons to remove them
+                    electron.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent click from bubbling to the shell
+                        removeElectronFromShell(i);
+                    });
+
+                    // Calculate electron position
+                    // Ensure division by zero is avoided if builderShells[i] is 0
+                    const angle = (j / (builderShells[i] || 1)) * 2 * Math.PI;
+                    const x = currentRadius * Math.cos(angle);
+                    const y = currentRadius * Math.sin(angle);
+
+                    electron.style.left = `calc(50% + ${x}px - 7.5px)`; /* 7.5px is half of electron width/height */
+                    electron.style.top = `calc(50% + ${y}px - 7.5px)`;
+                    shell.appendChild(electron);
+                }
+                
+                // Check if shell is full and add 'full' class
+                const maxElectronsInShellCapacity = [2, 8, 18, 32, 50, 72, 98];
+                if (builderShells[i] === maxElectronsInShellCapacity[i]) {
+                    shell.classList.add('full');
+                } else {
+                    shell.classList.remove('full'); // Ensure it's removed if not full
+                }
+
+                builderModelDiv.appendChild(shell);
+                currentRadius += radiusIncrement;
+            }
+        }
+
+        /** Checks if the user's built atom matches the target atom. */
+        function checkAnswer() {
+            if (!currentTargetAtom) {
+                document.getElementById('feedbackMessage').textContent = 'Si us plau, selecciona un àtom primer.';
+                document.getElementById('feedbackMessage').className = 'feedback-message incorrect';
+                return;
+            }
+
+            // Compare the built shells with the target shells
+            let isCorrect = true;
+
+            // First, check if the number of shells matches
+            if (builderShells.length !== currentTargetAtom.shells.length) {
+                isCorrect = false;
+            } else {
+                // Then, check electron distribution per shell
+                for (let i = 0; i < currentTargetAtom.shells.length; i++) {
+                    if (builderShells[i] !== currentTargetAtom.shells[i]) {
+                        isCorrect = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                document.getElementById('feedbackMessage').textContent = 'Correcte! Ho has fet molt bé!';
+                document.getElementById('feedbackMessage').className = 'feedback-message correct';
+            } else {
+                // Provide more specific feedback if possible
+                const targetTotalElectrons = currentTargetAtom.shells.reduce((sum, count) => sum + count, 0);
+                const builderTotalElectrons = builderShells.reduce((sum, count) => sum + count, 0);
+
+                if (builderShells.length !== currentTargetAtom.shells.length) {
+                     document.getElementById('feedbackMessage').textContent = `Incorrecte! El nombre de capes no coincideix. L'àtom de ${currentTargetAtom.name} (${currentTargetAtom.symbol}${currentTargetAtom.charge}) té ${currentTargetAtom.shells.length} capes.`;
+                } else if (targetTotalElectrons !== builderTotalElectrons) {
+                    document.getElementById('feedbackMessage').textContent = `Incorrecte! Has posat ${builderTotalElectrons} electrons, però l'àtom de ${currentTargetAtom.name} (${currentTargetAtom.symbol}${currentTargetAtom.charge}) en té ${targetTotalElectrons}.`;
+                } else {
+                    document.getElementById('feedbackMessage').textContent = 'Incorrecte! El nombre total d\'electrons és correcte, però la distribució per capes no ho és. Revisa les regles de les capes electròniques.';
+                }
+                document.getElementById('feedbackMessage').className = 'feedback-message incorrect';
+            }
+        }
+
+        // --- Inicialització ---
+
+        window.onload = function() {
+            // Initialize the game section
+            startGame();
+        };
+    </script>
+</body>
+</html>
