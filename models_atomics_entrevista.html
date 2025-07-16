@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrevista amb Científics Atòmics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff; /* bg-sky-50 */
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 20px;
+            word-wrap: break-word;
+        }
+        .chat-bubble p { margin-bottom: 0.5rem; }
+        .chat-bubble p:last-child { margin-bottom: 0; }
+        .chat-bubble ul { margin-top: 0.5rem; margin-left: 1rem; list-style-type: disc; }
+        .chat-bubble-user {
+            background-color: #0ea5e9; /* bg-sky-500 */
+            color: white;
+            border-radius: 24px 24px 8px 24px;
+            align-self: flex-end;
+        }
+        .chat-bubble-ai {
+            background-color: #e2e8f0; /* bg-slate-200 */
+            color: #1e293b; /* bg-slate-800 */
+            border-radius: 24px 24px 24px 8px;
+            align-self: flex-start;
+        }
+        #messages::-webkit-scrollbar { width: 8px; }
+        #messages::-webkit-scrollbar-track { background: transparent; }
+        #messages::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        
+        :fullscreen, ::-webkit-full-screen {
+            background-color: #f0f9ff;
+        }
+        #main-container:fullscreen, #main-container::-webkit-full-screen {
+            height: 100vh;
+            width: 100vw;
+            border-radius: 0;
+            max-width: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
+
+    <div id="main-container" class="w-full max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl flex flex-col h-[95vh] sm:h-[90vh] transition-all duration-300 overflow-hidden">
+        <!-- Header -->
+        <header class="flex justify-between items-center p-4 border-b-4 border-sky-100">
+            <div class="flex items-center gap-3">
+                 <button id="fullscreen-btn" title="Maximitzar/Minimitzar" class="text-gray-400 hover:text-sky-500 transition-colors">
+                    <svg id="fullscreen-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                    <svg id="minimize-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+                </button>
+                <h1 id="main-title" class="text-xl md:text-2xl font-extrabold text-slate-700">Entrevista amb Científics</h1>
+            </div>
+            <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-full">
+                <button id="lang-ca" class="px-3 py-1 text-sm font-bold rounded-full">CAT</button>
+                <button id="lang-es" class="px-3 py-1 text-sm font-bold rounded-full">ES</button>
+            </div>
+        </header>
+
+        <!-- Scientist Selector -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200">
+            <label for="scientist-select" id="select-label" class="block mb-2 text-sm font-bold text-slate-500">Tria un científic per començar:</label>
+            <select id="scientist-select" class="bg-white border-2 border-slate-200 text-slate-800 font-semibold text-base rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-3 transition-colors">
+                <option id="select-option-default" value="">-- Selecciona una opció --</option>
+                <option value="dalton">👨🏻‍🔬 John Dalton</option>
+                <option value="thomson">👨🏼‍🔬 J.J. Thomson</option>
+                <option value="rutherford">👨🏽‍🔬 Ernest Rutherford</option>
+                <option value="bohr">👨🏾‍🔬 Niels Bohr</option>
+                <option id="select-option-conclusion" value="conclusion">✍️ La meva Conclusió</option>
+            </select>
+        </div>
+
+        <!-- Chat Container -->
+        <div id="chat-container" class="flex-1 flex flex-col p-4 overflow-hidden hidden bg-white">
+            <div id="messages" class="flex-1 flex flex-col space-y-4 overflow-y-auto pr-2"></div>
+            <div id="loading" class="self-start p-2 hidden">
+                <div class="flex items-center justify-center space-x-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse [animation-delay:-0.3s]"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse [animation-delay:-0.15s]"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></div>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-slate-100">
+                <form id="chat-form" class="flex items-center gap-3">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-100 border-2 border-transparent rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all" placeholder="Escriu la teva pregunta...">
+                    <button type="submit" id="send-button" class="bg-sky-500 hover:bg-sky-600 text-white font-bold p-3 rounded-full flex items-center justify-center transition-transform hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send -rotate-12"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Conclusion Container -->
+        <div id="conclusion-container" class="flex-1 p-6 overflow-y-auto hidden bg-slate-50">
+            <h2 id="conclusion-title" class="text-2xl font-extrabold text-sky-600 mb-4">L'evolució de l'Àtom: La teva Conclusió</h2>
+            <p id="conclusion-intro" class="text-slate-600 mb-6">Després de parlar amb aquests pioners, és el teu torn de reflexionar. Com ha canviat la nostra comprensió de la matèria? Utilitza les preguntes següents com a guia per escriure una breu conclusió.</p>
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <p id="conclusion-q1" class="font-semibold text-slate-700">💡 Com va canviar la idea de l'àtom des de la simple esfera de Dalton fins al model de Bohr?</p>
+                </div>
+                 <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <p id="conclusion-q2" class="font-semibold text-slate-700">🔬 Quina importància tenen els experiments (com el de la làmina d'or) en el progrés científic?</p>
+                </div>
+                 <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <p id="conclusion-q3" class="font-semibold text-slate-700">🤔 Per què creus que un model científic és reemplaçat per un altre en lloc de ser simplement descartat?</p>
+                </div>
+            </div>
+            <textarea id="conclusion-textarea" rows="8" class="mt-6 w-full bg-white border-2 border-slate-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Escriu aquí la teva reflexió..."></textarea>
+        </div>
+        
+        <!-- Initial Message -->
+        <div id="initial-message" class="flex-1 flex flex-col items-center justify-center text-center p-6 bg-white">
+             <div id="initial-loading" class="flex items-center justify-center space-x-2">
+                <div class="w-3 h-3 rounded-full bg-sky-500 animate-pulse [animation-delay:-0.3s]"></div>
+                <div class="w-3 h-3 rounded-full bg-sky-500 animate-pulse [animation-delay:-0.15s]"></div>
+                <div class="w-3 h-3 rounded-full bg-sky-500 animate-pulse"></div>
+            </div>
+             <div id="initial-content" class="hidden">
+                <svg class="w-20 h-20 mx-auto mb-4 text-sky-400" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 25.6667C20.4434 25.6667 25.6667 20.4434 25.6667 14C25.6667 7.55663 20.4434 2.33334 14 2.33334C7.55663 2.33334 2.33334 7.55663 2.33334 14C2.33334 20.4434 7.55663 25.6667 14 25.6667Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.2882 17.0333C21.0432 17.7583 20.6832 18.4383 20.2232 19.0483M6.71153 17.0333C6.95653 17.7583 7.31653 18.4383 7.77653 19.0483M11.6667 21.2333C12.3534 21.5033 13.1234 21.6667 13.9984 21.6667C14.8734 21.6667 15.6434 21.5033 16.3317 21.2333M23.3334 11.6667C20.5334 10.0333 7.46671 10.0333 4.66671 11.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div id="initial-text-container" class="text-slate-600 text-lg"></div>
+             </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const mainContainer = document.getElementById('main-container');
+            const scientistSelect = document.getElementById('scientist-select');
+            const chatContainer = document.getElementById('chat-container');
+            const conclusionContainer = document.getElementById('conclusion-container');
+            const initialMessage = document.getElementById('initial-message');
+            const initialLoading = document.getElementById('initial-loading');
+            const initialContent = document.getElementById('initial-content');
+            const initialTextContainer = document.getElementById('initial-text-container');
+            const messagesDiv = document.getElementById('messages');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
+            const loadingDiv = document.getElementById('loading');
+            const langCaButton = document.getElementById('lang-ca');
+            const langEsButton = document.getElementById('lang-es');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const fullscreenIcon = document.getElementById('fullscreen-icon');
+            const minimizeIcon = document.getElementById('minimize-icon');
+
+            // App state
+            let currentLang = 'ca';
+            let currentScientist = null;
+            let chatHistory = [];
+            const markdownConverter = new showdown.Converter();
+
+            // --- TRANSLATIONS AND DATA ---
+            const translations = {
+                ca: {
+                    mainTitle: "Entrevista amb Científics",
+                    selectLabel: "Tria un científic per començar:",
+                    selectOptionDefault: "-- Selecciona una opció --",
+                    selectOptionConclusion: "✍️ La meva Conclusió",
+                    chatPlaceholder: "Escriu la teva pregunta...",
+                    conclusionTitle: "L'evolució de l'Àtom: La teva Conclusió",
+                    conclusionIntro: "Després de parlar amb aquests pioners, és el teu torn de reflexionar. Com ha canviat la nostra comprensió de la matèria gràcies a les seves contribucions successives? Utilitza les preguntes següents com a guia per escriure una breu conclusió.",
+                    conclusionQ1: "💡 Com va canviar la idea de l'àtom des de la simple esfera de Dalton fins al model de Bohr?",
+                    conclusionQ2: "🔬 Quina importància tenen els experiments (com el de la làmina d'or) en el progrés científic?",
+                    conclusionQ3: "🤔 Per què creus que un model científic és reemplaçat per un altre en lloc de ser simplement descartat?",
+                    conclusionTextarea: "Escriu aquí la teva reflexió...",
+                    initialGreetingPrompt: "Ets un assistent virtual divertit i engrescador per a una activitat educativa. Saluda en català a estudiants de secundària. Fes una pregunta breu i interessant sobre els àtoms per despertar la seva curiositat i anima'ls a triar un científic de la llista per començar una 'entrevista'. Utilitza un to proper i amigable.",
+                    apiError: "Vaja! Sembla que hi ha una interferència en la línia temporal... Podries repetir la pregunta?",
+                    apiEmptyResponse: "M'he quedat en blanc, com un àtom sense electrons! Prova de nou."
+                },
+                es: {
+                    mainTitle: "Entrevista con Científicos",
+                    selectLabel: "Elige un científico para empezar:",
+                    selectOptionDefault: "-- Selecciona una opción --",
+                    selectOptionConclusion: "✍️ Mi Conclusión",
+                    chatPlaceholder: "Escribe tu pregunta...",
+                    conclusionTitle: "La evolución del Átomo: Tu Conclusión",
+                    conclusionIntro: "Después de hablar con estos pioneros, es tu turno de reflexionar. ¿Cómo ha cambiado nuestra comprensión de la materia gracias a sus sucesivas contribuciones? Utiliza las siguientes preguntas como guía para escribir una breve conclusión.",
+                    conclusionQ1: "💡 ¿Cómo cambió la idea del átomo desde la simple esfera de Dalton hasta el modelo de Bohr?",
+                    conclusionQ2: "🔬 ¿Qué importancia tienen los experimentos (como el de la lámina de oro) en el progreso científico?",
+                    conclusionQ3: "¿Por qué crees que un modelo científico es reemplazado por otro en lugar de ser simplemente descartado?",
+                    conclusionTextarea: "Escribe aquí tu reflexión...",
+                    initialGreetingPrompt: "Eres un asistente virtual divertido y motivador para una actividad educativa. Saluda en español a estudiantes de secundaria. Haz una pregunta breve e interesante sobre los átomos para despertar su curiosidad y anímales a elegir un científico de la lista para empezar una 'entrevista'. Usa un tono cercano y amigable.",
+                    apiError: "¡Vaya! Parece que hay una interferencia en la línea temporal... ¿Podrías repetir la pregunta?",
+                    apiEmptyResponse: "¡Me he quedado en blanco, como un átomo sin electrones! Inténtalo de nuevo."
+                }
+            };
+            
+            const scientistData = {
+                dalton: {
+                    name: "John Dalton",
+                    intro: { ca: "Bon dia! Sóc John Dalton. La meva feina amb els gasos em va portar a una idea revolucionària sobre la matèria.", es: "¡Buenos días! Soy John Dalton. Mi trabajo con los gases me llevó a una idea revolucionaria sobre la materia." },
+                    persona: {
+                        ca: "Ets John Dalton. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'Vaig imaginar els àtoms com boles sòlides i indivisibles.'",
+                        es: "Eres John Dalton. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: 'Imaginé los átomos como bolas sólidas e indivisibles.'"
+                    }
+                },
+                thomson: {
+                    name: "J.J. Thomson",
+                    intro: { ca: "Hola! Sóc J.J. Thomson. Al meu laboratori a Cambridge vam fer un descobriment que va canviar la visió de l'àtom per sempre.", es: "¡Hola! Soy J.J. Thomson. En mi laboratorio en Cambridge hicimos un descubrimiento que cambió la visión del átomo para siempre." },
+                    persona: {
+                        ca: "Ets J.J. Thomson. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'Vaig descobrir l'electró! Això va demostrar que l'àtom no era indivisible.'",
+                        es: "Eres J.J. Thomson. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: '¡Descubrí el electrón! Eso demostró que el átomo no era indivisible.'"
+                    }
+                },
+                rutherford: {
+                    name: "Ernest Rutherford",
+                    intro: { ca: "Salutacions! Sóc l'Ernest Rutherford. El meu experiment amb una làmina d'or va donar uns resultats... absolutament increïbles!", es: "¡Saludos! Soy Ernest Rutherford. Mi experimento con una lámina de oro dio unos resultados... ¡absolutamente increíbles!" },
+                    persona: {
+                        ca: "Ets Ernest Rutherford. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'El meu experiment va revelar un nucli diminut i un gran espai buit a l'àtom.'",
+                        es: "Eres Ernest Rutherford. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: 'Mi experimento reveló un núcleo diminuto y un gran espacio vacío en el átomo.'"
+                    }
+                },
+                bohr: {
+                    name: "Niels Bohr",
+                    intro: { ca: "Bon dia. Sóc en Niels Bohr. Vaig veure que al model del professor Rutherford li faltava una peça clau, i això em va fer pensar.", es: "Buenos días. Soy Niels Bohr. Vi que al modelo del profesor Rutherford le faltaba una pieza clave, y eso me hizo pensar." },
+                    persona: {
+                        ca: "Ets Niels Bohr. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'Vaig proposar que els electrons només poden ocupar òrbites específiques, com esglaons d'una escala.'",
+                        es: "Eres Niels Bohr. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: 'Propuse que los electrones solo pueden ocupar órbitas específicas, como peldaños de una escalera.'"
+                    }
+                }
+            };
+            
+            // --- API FUNCTIONS ---
+            async function callGemini(history) {
+                const payload = { contents: history };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+                return null;
+            }
+
+            // --- UI FUNCTIONS ---
+            function setLanguage(lang) {
+                currentLang = lang;
+                document.documentElement.lang = lang;
+                const t = translations[lang];
+
+                if (lang === 'ca') {
+                    langCaButton.classList.add('bg-white', 'text-sky-600');
+                    langCaButton.classList.remove('text-slate-500');
+                    langEsButton.classList.remove('bg-white', 'text-sky-600');
+                    langEsButton.classList.add('text-slate-500');
+                } else {
+                    langEsButton.classList.add('bg-white', 'text-sky-600');
+                    langEsButton.classList.remove('text-slate-500');
+                    langCaButton.classList.remove('bg-white', 'text-sky-600');
+                    langCaButton.classList.add('text-slate-500');
+                }
+
+                document.getElementById('main-title').innerText = t.mainTitle;
+                document.getElementById('select-label').innerText = t.selectLabel;
+                document.getElementById('select-option-default').innerText = t.selectOptionDefault;
+                document.getElementById('select-option-conclusion').innerHTML = t.selectOptionConclusion;
+                document.getElementById('chat-input').placeholder = t.chatPlaceholder;
+                document.getElementById('conclusion-title').innerText = t.conclusionTitle;
+                document.getElementById('conclusion-intro').innerText = t.conclusionIntro;
+                document.querySelector('#conclusion-q1').innerHTML = t.conclusionQ1;
+                document.querySelector('#conclusion-q2').innerHTML = t.conclusionQ2;
+                document.querySelector('#conclusion-q3').innerHTML = t.conclusionQ3;
+                document.getElementById('conclusion-textarea').placeholder = t.conclusionTextarea;
+                
+                if (currentScientist && currentScientist !== 'conclusion') {
+                    messagesDiv.innerHTML = '';
+                    const introText = scientistData[currentScientist].intro[currentLang];
+                    displayMessage(introText, 'ai');
+                } else {
+                    getInitialGreeting();
+                }
+            }
+            
+            function displayMessage(text, sender) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('chat-bubble', sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai');
+                bubble.innerHTML = markdownConverter.makeHtml(text);
+                messagesDiv.appendChild(bubble);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            // --- EVENT HANDLERS ---
+            function handleScientistChange(e) {
+                currentScientist = e.target.value;
+                initialMessage.classList.add('hidden');
+                messagesDiv.innerHTML = '';
+                chatHistory = [];
+
+                if (currentScientist === 'conclusion') {
+                    chatContainer.classList.add('hidden');
+                    conclusionContainer.classList.remove('hidden');
+                } else if (currentScientist) {
+                    conclusionContainer.classList.add('hidden');
+                    chatContainer.classList.remove('hidden');
+                    
+                    const introText = scientistData[currentScientist].intro[currentLang] || "Hola! Pregunta'm el que vulguis.";
+                    displayMessage(introText, 'ai');
+                    
+                    const persona = scientistData[currentScientist].persona[currentLang];
+                    const systemPrompt = `${persona}. Les teves respostes sempre han de ser en ${currentLang === 'ca' ? 'català' : 'español'}, en primera persona. Ara, l'usuari farà la seva primera pregunta.`;
+                    
+                    chatHistory.push({ role: "user", parts: [{ text: systemPrompt }] });
+                    chatHistory.push({ role: "model", parts: [{ text: `Entesos. Estic preparat.` }] });
+
+                } else {
+                    chatContainer.classList.add('hidden');
+                    conclusionContainer.classList.add('hidden');
+                    initialMessage.classList.remove('hidden');
+                    getInitialGreeting();
+                }
+            }
+
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+                const userText = chatInput.value.trim();
+                if (!userText || !currentScientist) return;
+
+                displayMessage(userText, 'user');
+                chatInput.value = '';
+                
+                loadingDiv.classList.remove('hidden');
+                chatInput.disabled = true;
+                sendButton.disabled = true;
+
+                try {
+                    chatHistory.push({ role: "user", parts: [{ text: userText }] });
+                    const aiText = await callGemini(chatHistory);
+                    
+                    if (aiText) {
+                        displayMessage(aiText, 'ai');
+                        chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                    } else {
+                        displayMessage(translations[currentLang].apiEmptyResponse, 'ai');
+                    }
+                } catch (error) {
+                    console.error("Error in chat flow:", error);
+                    displayMessage(translations[currentLang].apiError, 'ai');
+                } finally {
+                    loadingDiv.classList.add('hidden');
+                    chatInput.disabled = false;
+                    sendButton.disabled = false;
+                    chatInput.focus();
+                }
+            }
+            
+            async function getInitialGreeting() {
+                initialLoading.classList.remove('hidden');
+                initialContent.classList.add('hidden');
+                try {
+                    const prompt = translations[currentLang].initialGreetingPrompt;
+                    const greetingText = await callGemini([{ role: "user", parts: [{ text: prompt }] }]);
+                    initialTextContainer.innerHTML = markdownConverter.makeHtml(greetingText || "Benvingut!");
+                } catch (error) {
+                    console.error("Error getting initial greeting:", error);
+                    initialTextContainer.textContent = "Benvingut! Tria un científic per començar.";
+                } finally {
+                    initialLoading.classList.add('hidden');
+                    initialContent.classList.remove('hidden');
+                }
+            }
+
+            function toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    mainContainer.requestFullscreen().catch(err => console.error(`Fullscreen error: ${err.message}`));
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            function detectLanguage() {
+                const browserLang = navigator.language || navigator.userLanguage;
+                setLanguage(browserLang.startsWith('es') ? 'es' : 'ca');
+            }
+            
+            // --- INITIALIZATION ---
+            detectLanguage();
+            scientistSelect.addEventListener('change', handleScientistChange);
+            chatForm.addEventListener('submit', handleFormSubmit);
+            langCaButton.addEventListener('click', () => setLanguage('ca'));
+            langEsButton.addEventListener('click', () => setLanguage('es'));
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            document.addEventListener('fullscreenchange', () => {
+                fullscreenIcon.classList.toggle('hidden');
+                minimizeIcon.classList.toggle('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
+
