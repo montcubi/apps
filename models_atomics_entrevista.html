@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ca">
 <head>
@@ -22,6 +23,14 @@
         .chat-bubble p { margin-bottom: 0.5rem; }
         .chat-bubble p:last-child { margin-bottom: 0; }
         .chat-bubble ul { margin-top: 0.5rem; margin-left: 1rem; list-style-type: disc; }
+        .chat-bubble a {
+            color: #0284c7; /* sky-600 */
+            font-weight: 700;
+            text-decoration: underline;
+        }
+        .chat-bubble a:hover {
+            color: #0369a1; /* sky-700 */
+        }
         .chat-bubble-user {
             background-color: #0ea5e9; /* bg-sky-500 */
             color: white;
@@ -200,34 +209,46 @@
             const scientistData = {
                 dalton: {
                     name: "John Dalton",
-                    intro: { ca: "Bon dia! Sóc John Dalton. La meva feina amb els gasos em va portar a una idea revolucionària sobre la matèria.", es: "¡Buenos días! Soy John Dalton. Mi trabajo con los gases me llevó a una idea revolucionaria sobre la materia." },
+                    introPrompt: {
+                        ca: "Ets John Dalton. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, amable i mencionar la teva teoria atòmica.",
+                        es: "Eres John Dalton. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, amable y mencionar tu teoría atómica."
+                    },
                     persona: {
-                        ca: "Ets John Dalton. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'Vaig imaginar els àtoms com boles sòlides i indivisibles.'",
-                        es: "Eres John Dalton. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: 'Imaginé los átomos como bolas sólidas e indivisibles.'"
+                        ca: "Ets John Dalton. Respon en català. El teu to és el d'un mestre pacient. Explica les coses de manera senzilla i concisa. Si parles del teu model, anima l'estudiant a buscar-ne imatges, dient per exemple: 'Vaig imaginar els àtoms com boles sòlides. Et recomano que busquis 'model atòmic de Dalton' per veure'n un esquema.'",
+                        es: "Eres John Dalton. Responde en español. Tu tono es el de un maestro paciente. Explica las cosas de forma sencilla y concisa. Si hablas de tu modelo, anima al estudiante a buscar imágenes, diciendo por ejemplo: 'Imaginé los átomos como bolas sólidas. Te recomiendo que busques 'modelo atómico de Dalton' para ver un esquema.'"
                     }
                 },
                 thomson: {
                     name: "J.J. Thomson",
-                    intro: { ca: "Hola! Sóc J.J. Thomson. Al meu laboratori a Cambridge vam fer un descobriment que va canviar la visió de l'àtom per sempre.", es: "¡Hola! Soy J.J. Thomson. En mi laboratorio en Cambridge hicimos un descubrimiento que cambió la visión del átomo para siempre." },
+                    introPrompt: {
+                        ca: "Ets J.J. Thomson. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, una mica formal i mostrar orgull pel descobriment de l'electró.",
+                        es: "Eres J.J. Thomson. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, un poco formal y mostrar orgullo por el descubrimiento del electrón."
+                    },
                     persona: {
-                        ca: "Ets J.J. Thomson. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'Vaig descobrir l'electró! Això va demostrar que l'àtom no era indivisible.'",
-                        es: "Eres J.J. Thomson. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: '¡Descubrí el electrón! Eso demostró que el átomo no era indivisible.'"
+                        ca: "Ets J.J. Thomson. Respon en català. El teu to és el d'un professor de Cambridge, orgullós del seu descobriment. Respon de manera concisa. Si parles del teu model, anima l'estudiant a buscar-ne imatges, dient per exemple: 'Vaig proposar un model semblant a un púding de panses. Per què no busques 'model del púding de panses' per fer-te'n una idea?'",
+                        es: "Eres J.J. Thomson. Responde en español. Tu tono es el de un profesor de Cambridge, orgulloso de su descubrimiento. Responde de forma concisa. Si hablas de tu modelo, anima al estudiante a buscar imágenes, diciendo por ejemplo: 'Propuse un modelo parecido a un pudin de pasas. ¿Por qué no buscas 'modelo del pudin de pasas' para hacerte una idea?'"
                     }
                 },
                 rutherford: {
                     name: "Ernest Rutherford",
-                    intro: { ca: "Salutacions! Sóc l'Ernest Rutherford. El meu experiment amb una làmina d'or va donar uns resultats... absolutament increïbles!", es: "¡Saludos! Soy Ernest Rutherford. Mi experimento con una lámina de oro dio unos resultados... ¡absolutamente increíbles!" },
+                    introPrompt: {
+                        ca: "Ets Ernest Rutherford. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, enèrgica i transmetre l'emoció del teu famós experiment.",
+                        es: "Eres Ernest Rutherford. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, enérgico y transmitir la emoción de tu famoso experimento."
+                    },
                     persona: {
-                        ca: "Ets Ernest Rutherford. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'El meu experiment va revelar un nucli diminut i un gran espai buit a l'àtom.'",
-                        es: "Eres Ernest Rutherford. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: 'Mi experimento reveló un núcleo diminuto y un gran espacio vacío en el átomo.'"
+                        ca: "Ets Ernest Rutherford. Respon en català. El teu to és entusiasta i directe. Explica les coses amb passió. Si parles del teu model, explica que té un nucli i una escorça amb electrons girant, com un sistema solar en miniatura. Emfatitza la idea de l'espai buit. Per exemple: 'Vam descobrir un nucli diminut on es concentra tota la massa, i els electrons giren al seu voltant, a l'escorça. Però el més increïble és que entre el nucli i l'escorça no hi ha gairebé res! **La matèria és pràcticament buida!** No et sembla fascinant? Busca 'model atòmic de Rutherford' i ho veuràs.'",
+                        es: "Eres Ernest Rutherford. Responde en español. Tu tono es entusiasta y directo. Explica las cosas con pasión. Si hablas de tu modelo, explica que tiene un núcleo y una corteza con electrones girando, como un sistema solar en miniatura. Enfatiza la idea del espacio vacío. Por ejemplo: 'Descubrimos un núcleo diminuto donde se concentra toda la masa, y los electrones giran a su alrededor, en la corteza. ¡Pero lo más increíble es que entre el núcleo y la corteza no hay casi nada! **¡La materia está prácticamente vacía!** ¿No te parece fascinante? Busca 'modelo atómico de Rutherford' y lo verás.'"
                     }
                 },
                 bohr: {
                     name: "Niels Bohr",
-                    intro: { ca: "Bon dia. Sóc en Niels Bohr. Vaig veure que al model del professor Rutherford li faltava una peça clau, i això em va fer pensar.", es: "Buenos días. Soy Niels Bohr. Vi que al modelo del profesor Rutherford le faltaba una pieza clave, y eso me hizo pensar." },
+                    introPrompt: {
+                        ca: "Ets Niels Bohr. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, reflexiva i mencionar com vas millorar el model de Rutherford.",
+                        es: "Eres Niels Bohr. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, reflexivo y mencionar cómo mejoraste el modelo de Rutherford."
+                    },
                     persona: {
-                        ca: "Ets Niels Bohr. Respon en català. Sigues molt breu (1-2 frases). Només si veus que la conversa s'atura, pots fer una pregunta per guiar l'estudiant. Per exemple: 'Vaig proposar que els electrons només poden ocupar òrbites específiques, com esglaons d'una escala.'",
-                        es: "Eres Niels Bohr. Responde en español. Sé muy breve (1-2 frases). Solo si ves que la conversación se detiene, puedes hacer una pregunta para guiar al estudiante. Por ejemplo: 'Propuse que los electrones solo pueden ocupar órbitas específicas, como peldaños de una escalera.'"
+                        ca: "Ets Niels Bohr. Respon en català. El teu to és més teòric i reflexiu. Connecta les idees. Respon de manera concisa. Si parles del teu model, anima l'estudiant a buscar-ne imatges, dient per exemple: 'Vaig proposar que els electrons només poden ocupar òrbites fixes, com esglaons d'una escala. Busca 'model atòmic de Bohr' a Internet i veuràs esquemes molt clars.'",
+                        es: "Eres Niels Bohr. Responde en español. Tu tono es más teórico y reflexivo. Conecta las ideas. Responde de forma concisa. Si hablas de tu modelo, anima al estudiante a buscar imágenes, diciendo por ejemplo: 'Propuse que los electrones solo pueden ocupar órbitas fijas, como peldaños de una escalera. Busca 'modelo atómico de Bohr' en Internet y verás esquemas muy claros.'"
                     }
                 }
             };
@@ -281,9 +302,7 @@
                 document.getElementById('conclusion-textarea').placeholder = t.conclusionTextarea;
                 
                 if (currentScientist && currentScientist !== 'conclusion') {
-                    messagesDiv.innerHTML = '';
-                    const introText = scientistData[currentScientist].intro[currentLang];
-                    displayMessage(introText, 'ai');
+                   handleScientistChange({ target: { value: currentScientist } });
                 } else {
                     getInitialGreeting();
                 }
@@ -298,7 +317,7 @@
             }
 
             // --- EVENT HANDLERS ---
-            function handleScientistChange(e) {
+            async function handleScientistChange(e) {
                 currentScientist = e.target.value;
                 initialMessage.classList.add('hidden');
                 messagesDiv.innerHTML = '';
@@ -311,14 +330,29 @@
                     conclusionContainer.classList.add('hidden');
                     chatContainer.classList.remove('hidden');
                     
-                    const introText = scientistData[currentScientist].intro[currentLang] || "Hola! Pregunta'm el que vulguis.";
-                    displayMessage(introText, 'ai');
+                    loadingDiv.classList.remove('hidden');
                     
-                    const persona = scientistData[currentScientist].persona[currentLang];
-                    const systemPrompt = `${persona}. Les teves respostes sempre han de ser en ${currentLang === 'ca' ? 'català' : 'español'}, en primera persona. Ara, l'usuari farà la seva primera pregunta.`;
-                    
-                    chatHistory.push({ role: "user", parts: [{ text: systemPrompt }] });
-                    chatHistory.push({ role: "model", parts: [{ text: `Entesos. Estic preparat.` }] });
+                    try {
+                        const introPrompt = scientistData[currentScientist].introPrompt[currentLang];
+                        const introText = await callGemini([{ role: "user", parts: [{ text: introPrompt }] }]);
+                        
+                        if(introText) {
+                            displayMessage(introText, 'ai');
+                        } else {
+                            displayMessage("Hola! Estic a punt per parlar.", 'ai');
+                        }
+
+                        const persona = scientistData[currentScientist].persona[currentLang];
+                        const systemPrompt = `${persona}. Les teves respostes sempre han de ser en ${currentLang === 'ca' ? 'català' : 'español'}, en primera persona. Ara, l'usuari farà la seva primera pregunta.`;
+                        
+                        chatHistory.push({ role: "user", parts: [{ text: systemPrompt }] });
+                        chatHistory.push({ role: "model", parts: [{ text: `Entesos. Estic preparat.` }] });
+                    } catch (error) {
+                        console.error("Error generating intro:", error);
+                        displayMessage(translations[currentLang].apiError, 'ai');
+                    } finally {
+                        loadingDiv.classList.add('hidden');
+                    }
 
                 } else {
                     chatContainer.classList.add('hidden');
@@ -405,4 +439,3 @@
     </script>
 </body>
 </html>
-
