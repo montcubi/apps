@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taula Periòdica Interactiva (Canvas)</title>
+    <style>
+        /* Estils generals del cos de la pàgina */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #212121;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            -webkit-user-select: none; /* Evita la selecció de text */
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Contenidor principal de l'aplicació */
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 10px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        header {
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #1976d2;
+            margin: 0 0 10px 0;
+        }
+
+        /* Controls: botons d'idioma, puntuació i reinici */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .lang-switcher button, #reset-button {
+            padding: 8px 16px;
+            border: 1px solid #1976d2;
+            background-color: white;
+            color: #1976d2;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            font-size: 1em;
+        }
+
+        .lang-switcher button:hover, #reset-button:hover {
+            background-color: #e3f2fd;
+        }
+
+        .lang-switcher button.active {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        .score {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        /* Missatges de feedback (Correcte/Error) */
+        #feedback-message {
+            min-height: 24px;
+            margin: 10px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: opacity 0.3s ease;
+        }
+        #feedback-message.error { color: #f44336; }
+        #feedback-message.success { color: #4caf50; }
+        
+        /* Estil del Canvas */
+        #periodic-table-canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            cursor: default; /* El cursor canviarà amb JS */
+            touch-action: none; /* Essencial per a events tàctils personalitzats */
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>
+                <span data-lang-key="title">Taula Periòdica Interactiva</span>
+            </h1>
+            <p data-lang-key="instructions">
+                Arrossega cada element a la seva posició correcta a la taula periòdica basant-te en la seva configuració electrònica.
+            </p>
+            <div class="controls">
+                <div class="lang-switcher">
+                    <button id="lang-ca" class="active">CAT</button>
+                    <button id="lang-es">ESP</button>
+                </div>
+                <div class="score">
+                    <span data-lang-key="correct">Encerts</span>: <span id="correct-count">0</span> | 
+                    <span data-lang-key="errors">Errors</span>: <span id="error-count">0</span>
+                </div>
+                <button id="reset-button" data-lang-key="reset">Reiniciar</button>
+            </div>
+        </header>
+
+        <div id="feedback-message" aria-live="polite"></div>
+
+        <canvas id="periodic-table-canvas"></canvas>
+    </div>
+
+    <script>
+    // --- 1. DADES I CONFIGURACIÓ INICIAL ---
+
+    const elementsData = [
+        { atomicNumber: 1, symbol: 'H', period: 1, group: 1, config: '1s¹' },
+        { atomicNumber: 2, symbol: 'He', period: 1, group: 18, config: '1s²' },
+        { atomicNumber: 3, symbol: 'Li', period: 2, group: 1, config: '[He] 2s¹' },
+        { atomicNumber: 4, symbol: 'Be', period: 2, group: 2, config: '[He] 2s²' },
+        { atomicNumber: 5, symbol: 'B', period: 2, group: 13, config: '[He] 2s²2p¹' },
+        { atomicNumber: 6, symbol: 'C', period: 2, group: 14, config: '[He] 2s²2p²' },
+        { atomicNumber: 7, symbol: 'N', period: 2, group: 15, config: '[He] 2s²2p³' },
+        { atomicNumber: 8, symbol: 'O', period: 2, group: 16, config: '[He] 2s²2p⁴' },
+        { atomicNumber: 9, symbol: 'F', period: 2, group: 17, config: '[He] 2s²2p⁵' },
+        { atomicNumber: 10, symbol: 'Ne', period: 2, group: 18, config: '[He] 2s²2p⁶' },
+        { atomicNumber: 11, symbol: 'Na', period: 3, group: 1, config: '[Ne] 3s¹' },
+        { atomicNumber: 12, symbol: 'Mg', period: 3, group: 2, config: '[Ne] 3s²' },
+        { atomicNumber: 13, symbol: 'Al', period: 3, group: 13, config: '[Ne] 3s²3p¹' },
+        { atomicNumber: 14, symbol: 'Si', period: 3, group: 14, config: '[Ne] 3s²3p²' },
+        { atomicNumber: 15, symbol: 'P', period: 3, group: 15, config: '[Ne] 3s²3p³' },
+        { atomicNumber: 16, symbol: 'S', period: 3, group: 16, config: '[Ne] 3s²3p⁴' },
+        { atomicNumber: 17, symbol: 'Cl', period: 3, group: 17, config: '[Ne] 3s²3p⁵' },
+        { atomicNumber: 18, symbol: 'Ar', period: 3, group: 18, config: '[Ne] 3s²3p⁶' },
+        { atomicNumber: 19, symbol: 'K', period: 4, group: 1, config: '[Ar] 4s¹' },
+        { atomicNumber: 20, symbol: 'Ca', period: 4, group: 2, config: '[Ar] 4s²' }
+    ];
+
+    const elementNames = {
+        1: { ca: 'Hidrogen', es: 'Hidrógeno' }, 2: { ca: 'Heli', es: 'Helio' },
+        3: { ca: 'Liti', es: 'Litio' }, 4: { ca: 'Beril·li', es: 'Berilio' },
+        5: { ca: 'Bor', es: 'Boro' }, 6: { ca: 'Carboni', es: 'Carbono' },
+        7: { ca: 'Nitrogen', es: 'Nitrógeno' }, 8: { ca: 'Oxigen', es: 'Oxígeno' },
+        9: { ca: 'Fluor', es: 'Flúor' }, 10: { ca: 'Neó', es: 'Neón' },
+        11: { ca: 'Sodi', es: 'Sodio' }, 12: { ca: 'Magnesi', es: 'Magnesio' },
+        13: { ca: 'Alumini', es: 'Aluminio' }, 14: { ca: 'Silici', es: 'Silicio' },
+        15: { ca: 'Fòsfor', es: 'Fósforo' }, 16: { ca: 'Sofre', es: 'Azufre' },
+        17: { ca: 'Clor', es: 'Cloro' }, 18: { ca: 'Argó', es: 'Argón' },
+        19: { ca: 'Potassi', es: 'Potasio' }, 20: { ca: 'Calci', es: 'Calcio' }
+    };
+
+    const uiTexts = {
+        ca: {
+            title: "Taula Periòdica Interactiva",
+            instructions: "Arrossega cada element a la seva posició correcta a la taula periòdica basant-te en la seva configuració electrònica.",
+            cards_title: "Elements per Col·locar",
+            table_title: "Taula Periòdica",
+            correct: "Encerts",
+            errors: "Errors",
+            reset: "Reiniciar",
+            success: "Correcte! Ben fet!",
+            error_group: (g, correctG) => `Incorrecte. Aquest element no pertany al grup ${g}. Hauria de ser el grup ${correctG}.`,
+            error_period: (p, correctP) => `Incorrecte. La configuració no correspon al període ${p}. Hauria de ser el període ${correctP}.`,
+            error_both: (p, g, correctP, correctG) => `Incorrecte. No correspon ni al període ${p} (hauria de ser ${correctP}) ni al grup ${g} (hauria de ser ${correctG}).`
+        },
+        es: {
+            title: "Tabla Periódica Interactiva",
+            instructions: "Arrastra cada elemento a su posición correcta en la tabla periódica basándote en su configuración electrónica.",
+            cards_title: "Elementos para Colocar",
+            table_title: "Tabla Periódica",
+            correct: "Aciertos",
+            errors: "Errores",
+            reset: "Reiniciar",
+            success: "¡Correcto! ¡Bien hecho!",
+            error_group: (g, correctG) => `Incorrecto. Este elemento no pertenece al grupo ${g}. Debería ser el grupo ${correctG}.`,
+            error_period: (p, correctP) => `Incorrecto. La configuración no corresponde al periodo ${p}. Debería ser el periodo ${correctP}.`,
+            error_both: (p, g, correctP, correctG) => `Incorrecto. No corresponde ni al periodo ${p} (debería ser ${correctP}) ni al grupo ${g} (debería ser ${correctG}).`
+        }
+    };
+
+    let currentLang = 'ca';
+    let correctCount = 0;
+    let errorCount = 0;
+    
+    const canvas = document.getElementById('periodic-table-canvas');
+    const ctx = canvas.getContext('2d');
+    let scale = 1;
+    let layout = {};
+
+    let cards = [];
+    let cells = [];
+    let draggedCard = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    
+    // --- 2. INICIALITZACIÓ I CICLE DEL JOC ---
+
+    function main() {
+        addEventListeners();
+        setupGame();
+        window.addEventListener('resize', setupGame);
+    }
+
+    function setupGame() {
+        calculateLayout();
+        canvas.width = layout.canvasWidth;
+        canvas.height = layout.canvasHeight;
+        scale = layout.scale;
+        resetScores();
+        clearFeedback();
+        generateCells();
+        generateRandomCards();
+        draw();
+    }
+    
+    function animationLoop() {
+        let needsRedraw = false;
+        cards.forEach(card => {
+            if (card.isReturning) {
+                needsRedraw = true;
+                const dx = card.startX - card.x;
+                const dy = card.startY - card.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 1) {
+                    card.x = card.startX;
+                    card.y = card.startY;
+                    card.isReturning = false;
+                } else {
+                    card.x += dx * 0.1;
+                    card.y += dy * 0.1;
+                }
+            }
+        });
+        if (needsRedraw) {
+            draw();
+            requestAnimationFrame(animationLoop);
+        }
+    }
+
+    // --- 3. CÀLCULS DE LAYOUT I DIBUIX AL CANVAS ---
+
+    function calculateLayout() {
+        const containerWidth = document.querySelector('.app-container').clientWidth;
+        const isMobile = containerWidth < 700;
+
+        const baseCardW = 65;
+        const baseCardH = 90;
+        const baseCellW = 60;
+        const baseCellH = 95;
+        
+        const tableFullWidth = (baseCellW * 18) + (4 * 17) + 40;
+        scale = containerWidth / tableFullWidth;
+
+        layout = {
+            isMobile: isMobile,
+            scale: scale,
+            cardW: baseCardW * scale,
+            cardH: baseCardH * scale,
+            cellW: baseCellW * scale,
+            cellH: baseCellH * scale,
+            gap: 4 * scale,
+            labelMargin: 30 * scale,
+        };
+        
+        layout.canvasWidth = containerWidth;
+        
+        const cardAreaRows = isMobile ? 2 : 1;
+        layout.cardArea = {
+            y: 30 * scale,
+            h: (layout.cardH + 15 * scale) * cardAreaRows,
+            titleY: 20 * scale
+        };
+
+        layout.tableArea = {
+            x: layout.labelMargin,
+            y: layout.cardArea.y + layout.cardArea.h + layout.labelMargin + 20 * scale,
+        };
+        
+        layout.canvasHeight = layout.tableArea.y + (layout.cellH * 7 + layout.gap * 6) + 20 * scale;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawTitles();
+        drawGridLabels();
+        cells.forEach(cell => drawCell(cell));
+        cards.forEach(card => { if (!card.isDragging) drawCard(card); });
+        if (draggedCard && isDragging) drawCard(draggedCard, true);
+    }
+
+    function drawTitles() {
+        ctx.fillStyle = '#333';
+        ctx.font = `bold ${16 * scale}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(uiTexts[currentLang].cards_title, canvas.width / 2, layout.cardArea.titleY);
+    }
+    
+    function drawGridLabels(){
+        ctx.fillStyle = '#666';
+        ctx.font = `bold ${12 * scale}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < 18; i++) {
+            const label = i + 1;
+            const x = layout.tableArea.x + i * (layout.cellW + layout.gap) + layout.cellW / 2;
+            const y = layout.tableArea.y - 15 * scale;
+            ctx.fillText(label, x, y);
+        }
+        for (let i = 0; i < 7; i++) {
+            const label = i + 1;
+            const x = layout.tableArea.x - 15 * scale;
+            const y = layout.tableArea.y + i * (layout.cellH + layout.gap) + layout.cellH / 2;
+            ctx.fillText(label, x, y);
+        }
+    }
+    
+    function getCellFamilyColor(group, period) {
+        if (period === 1 && group === 1) return { fill: '#f5f5f5' }; 
+        if (group === 1 || group === 2) return { fill: '#ffebee' }; 
+        if (group >= 3 && group <= 12) return { fill: '#e3f2fd' }; 
+        if (group === 18) return { fill: '#fffde7' }; 
+        if (group >= 13 && group <= 17) return { fill: '#e8f5e9' };
+        return { fill: '#ffffff' };
+    }
+
+    function drawCell(cell) {
+        const isInvisible = (cell.period === 1 && cell.group > 1 && cell.group < 18) ||
+                          (cell.period === 2 && cell.group > 2 && cell.group < 13);
+        
+        if (isInvisible) {
+            return;
+        }
+
+        const familyColors = getCellFamilyColor(cell.group, cell.period);
+        ctx.fillStyle = familyColors.fill;
+        ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
+        
+        ctx.strokeStyle = '#bdbdbd';
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(cell.x, cell.y, cell.w, cell.h);
+        ctx.setLineDash([]);
+    }
+    
+    function getElementColor(group, atomicNumber) {
+        if (atomicNumber === 1) return { fill: '#e0e0e0', stroke: '#bdbdbd' }; 
+        if (group === 1 || group === 2) return { fill: '#ff8a80', stroke: '#d32f2f' };
+        if (group >= 3 && group <= 12) return { fill: '#bbdefb', stroke: '#64b5f6' };
+        if (group >= 13 && group <= 17) return { fill: '#c8e6c9', stroke: '#81c784' };
+        if (group === 18) return { fill: '#ffff8d', stroke: '#fbc02d' };
+        return { fill: '#e3f2fd', stroke: '#90caf9' };
+    }
+
+    // ACTUALITZAT: Mida de la font i posició del superíndex ajustades
+    function drawSuperscriptText(ctx, text, x, y, baseFontSize, superFontSize) {
+        const superscripts = '¹²³⁴⁵⁶⁷⁸⁹';
+        let currentX = x;
+        
+        for (const char of text) {
+            if (superscripts.includes(char)) {
+                ctx.font = `normal ${superFontSize}px sans-serif`;
+                // Dibuixa el superíndex una mica elevat respecte a la línia base
+                ctx.fillText(char, currentX, y - baseFontSize * 0.4); 
+            } else {
+                ctx.font = `normal ${baseFontSize}px sans-serif`;
+                ctx.fillText(char, currentX, y);
+            }
+            currentX += ctx.measureText(char).width;
+        }
+    }
+
+    function drawCard(card, isDragged = false) {
+        ctx.save();
+        if(isDragged) {
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 15;
+            ctx.globalAlpha = 0.75;
+        } else {
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 5;
+            ctx.shadowOffsetY = 2;
+        }
+
+        const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#e3f2fd', stroke: '#90caf9' };
+        ctx.fillStyle = colors.fill;
+        ctx.strokeStyle = colors.stroke;
+        ctx.lineWidth = 2;
+
+        const r = 8 * scale;
+        ctx.beginPath();
+        ctx.moveTo(card.x + r, card.y);
+        ctx.lineTo(card.x + card.w - r, card.y);
+        ctx.quadraticCurveTo(card.x + card.w, card.y, card.x + card.w, card.y + r);
+        ctx.lineTo(card.x + card.w, card.y + card.h - r);
+        ctx.quadraticCurveTo(card.x + card.w, card.y + card.h, card.x + card.w - r, card.y + card.h);
+        ctx.lineTo(card.x + r, card.y + card.h);
+        ctx.quadraticCurveTo(card.x, card.y + card.h, card.x, card.y + card.h - r);
+        ctx.lineTo(card.x, card.y + r);
+        ctx.quadraticCurveTo(card.x, card.y, card.x + r, card.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        
+        ctx.fillStyle = '#212121';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.font = `bold ${14 * scale}px sans-serif`;
+        if (card.isPlaced) {
+            const name = elementNames[card.atomicNumber][currentLang];
+            ctx.fillText(name, card.x + card.w / 2, card.y + card.h * 0.25);
+        } else {
+            ctx.fillText('???', card.x + card.w / 2, card.y + card.h * 0.25);
+        }
+        
+        const configParts = card.config.split(' ');
+        const line1 = configParts.length > 1 ? configParts[0] : '';
+        const line2 = configParts.length > 1 ? configParts[1] : configParts[0];
+
+        ctx.textAlign = 'left';
+        
+        // ACTUALITZAT: Mides de font augmentades
+        const baseFontSize = 15 * scale;
+        const superFontSize = 16 * scale; // Augmentat per a millor visibilitat
+
+        if (line1) {
+            const textWidth1 = ctx.measureText(line1).width;
+            drawSuperscriptText(ctx, line1, card.x + (card.w - textWidth1) / 2, card.y + card.h * 0.58, baseFontSize, superFontSize);
+        }
+        
+        const textWidth2 = ctx.measureText(line2.replace(/[¹²³⁴⁵⁶⁷⁸⁹]/g, '')).width;
+        drawSuperscriptText(ctx, line2, card.x + (card.w - textWidth2) / 2, card.y + card.h * 0.83, baseFontSize, superFontSize);
+    }
+    
+    // --- 4. GENERACIÓ D'OBJECTES DEL JOC ---
+
+    function generateCells() {
+        cells = [];
+        for (let row = 0; row < 7; row++) {
+            for (let col = 0; col < 18; col++) {
+                cells.push({
+                    x: layout.tableArea.x + col * (layout.cellW + layout.gap),
+                    y: layout.tableArea.y + row * (layout.cellH + layout.gap),
+                    w: layout.cellW,
+                    h: layout.cellH,
+                    period: row + 1,
+                    group: col + 1
+                });
+            }
+        }
+    }
+
+    function generateRandomCards() {
+        cards = [];
+        const shuffled = [...elementsData].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 10);
+        
+        const cardsPerRow = layout.isMobile ? 5 : 10;
+        const totalRows = Math.ceil(selected.length / cardsPerRow);
+        const totalCardsWidth = cardsPerRow * (layout.cardW + 10 * scale) - (10 * scale);
+        const startX = (canvas.width - totalCardsWidth) / 2;
+
+        selected.forEach((elData, i) => {
+            const row = Math.floor(i / cardsPerRow);
+            const col = i % cardsPerRow;
+            
+            const cardX = startX + col * (layout.cardW + 10 * scale);
+            const cardY = layout.cardArea.y + row * (layout.cardH + 15 * scale);
+            
+            cards.push({
+                ...elData,
+                x: cardX, y: cardY, startX: cardX, startY: cardY,
+                w: layout.cardW, h: layout.cardH,
+                isDragging: false, isPlaced: false, isReturning: false,
+            });
+        });
+    }
+
+    // --- 5. GESTIÓ D'ESDEVENIMENTS D'INTERACCIÓ ---
+    function addEventListeners() {
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mouseup', onMouseUp);
+        canvas.addEventListener('mouseout', onMouseUp);
+        canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+        canvas.addEventListener('touchend', onTouchEnd);
+        document.getElementById('lang-ca').addEventListener('click', () => setLanguage('ca'));
+        document.getElementById('lang-es').addEventListener('click', () => setLanguage('es'));
+        document.getElementById('reset-button').addEventListener('click', setupGame);
+    }
+    function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }
+    function getTouchPos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.touches[0].clientX - rect.left, y: evt.touches[0].clientY - rect.top }; }
+    function isPointInRect(point, rect) { return point.x > rect.x && point.x < rect.x + rect.w && point.y > rect.y && point.y < rect.y + rect.h; }
+    function onMouseDown(e) { startDrag(getMousePos(e)); }
+    function onMouseMove(e) { const pos = getMousePos(e); drag(pos); let onCard = false; for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; if (!card.isPlaced && isPointInRect(pos, card)) { onCard = true; break; } } canvas.style.cursor = onCard ? 'grab' : 'default'; }
+    function onMouseUp(e) { endDrag(); }
+    function onTouchStart(e) { e.preventDefault(); if (e.touches.length === 1) startDrag(getTouchPos(e)); }
+    function onTouchMove(e) { e.preventDefault(); if (e.touches.length === 1) drag(getTouchPos(e)); }
+    function onTouchEnd(e) { endDrag(); }
+
+    // --- 6. LÒGICA DE DRAG & DROP ---
+    function startDrag(pos) { for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; if (!card.isPlaced && isPointInRect(pos, card)) { draggedCard = card; isDragging = true; card.isDragging = true; offsetX = pos.x - card.x; offsetY = pos.y - card.y; cards.splice(i, 1); cards.push(draggedCard); canvas.style.cursor = 'grabbing'; clearFeedback(); break; } } }
+    function drag(pos) { if (isDragging && draggedCard) { draggedCard.x = pos.x - offsetX; draggedCard.y = pos.y - offsetY; draw(); } }
+    function endDrag() { if (isDragging && draggedCard) { let placed = false; for (const cell of cells) { if (isPointInRect({x: draggedCard.x + draggedCard.w/2, y: draggedCard.y + draggedCard.h/2}, cell)) { validatePlacement(draggedCard, cell); placed = true; break; } } if (!placed) { draggedCard.isReturning = true; animationLoop(); } draggedCard.isDragging = false; isDragging = false; draggedCard = null; canvas.style.cursor = 'default'; draw(); } }
+
+    // --- 7. VALIDACIÓ I FEEDBACK ---
+    function validatePlacement(card, cell) {
+        const isPeriodCorrect = card.period === cell.period;
+        const isGroupCorrect = card.group === cell.group;
+        if (isPeriodCorrect && isGroupCorrect) {
+            card.isPlaced = true;
+            card.x = cell.x + (cell.w - card.w) / 2;
+            card.y = cell.y + (cell.h - card.h) / 2;
+            updateScore(true);
+            showFeedback('success');
+        } else {
+            card.isReturning = true;
+            animationLoop();
+            updateScore(false);
+            if (!isPeriodCorrect && !isGroupCorrect) showFeedback('error_both', [cell.period, cell.group, card.period, card.group]);
+            else if (!isPeriodCorrect) showFeedback('error_period', [cell.period, card.period]);
+            else showFeedback('error_group', [cell.group, card.group]);
+        }
+    }
+    function updateScore(isCorrect) { if (isCorrect) { correctCount++; document.getElementById('correct-count').textContent = correctCount; } else { errorCount++; document.getElementById('error-count').textContent = errorCount; } }
+    function showFeedback(type, params = []) { const feedbackEl = document.getElementById('feedback-message'); const messageTemplate = uiTexts[currentLang][type]; feedbackEl.textContent = typeof messageTemplate === 'function' ? messageTemplate(...params) : messageTemplate; feedbackEl.className = type.startsWith('error') ? 'error' : 'success'; }
+    function clearFeedback() { const feedbackEl = document.getElementById('feedback-message'); feedbackEl.textContent = ''; feedbackEl.className = ''; }
+    function resetScores() { correctCount = 0; errorCount = 0; document.getElementById('correct-count').textContent = '0'; document.getElementById('error-count').textContent = '0'; }
+
+    // --- 8. GESTIÓ D'IDIOMES ---
+    function setLanguage(lang) { currentLang = lang; document.documentElement.lang = lang; document.getElementById('lang-ca').classList.toggle('active', lang === 'ca'); document.getElementById('lang-es').classList.toggle('active', lang === 'es'); updateLanguageText(); draw(); }
+    function updateLanguageText() { const texts = uiTexts[currentLang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (texts[key]) el.textContent = texts[key]; }); }
+
+    main();
+    </script>
+</body>
+</html>
