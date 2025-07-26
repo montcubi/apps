@@ -60,56 +60,53 @@
             right: 10px;
         }
 
-        .lang-switcher button, #reset-button, .difficulty-switcher button {
+        .lang-switcher button, #reset-button, .difficulty-switcher button, #explanation-button {
             padding: 8px 16px;
-            border: 1px solid #1976d2;
+            border: 1px solid;
             background-color: white;
-            color: #1976d2;
             cursor: pointer;
             border-radius: 5px;
             transition: all 0.2s ease;
             font-size: 1em;
         }
 
-        .lang-switcher button:hover, #reset-button:hover, .difficulty-switcher button:hover {
-            background-color: #e3f2fd;
+        #reset-button {
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+        #reset-button:hover {
+             background-color: #e3f2fd;
         }
 
-        .lang-switcher button.active, .difficulty-switcher button.active {
-            background-color: #1976d2;
-            color: white;
-        }
+        .lang-switcher button { border-color: #1976d2; color: #1976d2; }
+        .lang-switcher button:hover { background-color: #e3f2fd; }
+        .lang-switcher button.active { background-color: #1976d2; color: white; }
         
         /* Colors per als botons de dificultat */
-        #difficulty-basic {
-            border-color: #4caf50;
-            color: #4caf50;
+        #difficulty-basic { border-color: #4caf50; color: #4caf50; }
+        #difficulty-basic:hover { background-color: #e8f5e9; }
+        #difficulty-basic.active { background-color: #4caf50; color: white; }
+
+        #difficulty-advanced { border-color: #ff9800; color: #ff9800; }
+        #difficulty-advanced:hover { background-color: #fff3e0; }
+        #difficulty-advanced.active { background-color: #ff9800; color: white; }
+
+        #difficulty-exceptions { border-color: #d32f2f; color: #d32f2f; }
+        #difficulty-exceptions:hover { background-color: #ffcdd2; }
+        #difficulty-exceptions.active { background-color: #d32f2f; color: white; }
+
+        #explanation-button {
+            border-color: #00bcd4;
+            color: #00bcd4;
+            font-size: 1.2em;
+            padding: 6px 12px;
+            display: none; /* Ocult per defecte */
         }
-        #difficulty-basic:hover {
-            background-color: #e8f5e9;
-        }
-        #difficulty-basic.active {
-            background-color: #4caf50;
-            color: white;
+        #explanation-button:hover {
+            background-color: #e0f7fa;
         }
 
-        #difficulty-advanced {
-            border-color: #ff9800;
-            color: #ff9800;
-        }
-        #difficulty-advanced:hover {
-            background-color: #fff3e0;
-        }
-        #difficulty-advanced.active {
-            background-color: #ff9800;
-            color: white;
-        }
-
-
-        .score {
-            font-size: 1.1em;
-            font-weight: bold;
-        }
+        .score { font-size: 1.1em; font-weight: bold; }
 
         /* Missatges de feedback (Correcte/Error) */
         #feedback-message {
@@ -127,9 +124,56 @@
             background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            cursor: default; /* El cursor canviarà amb JS */
-            touch-action: none; /* Essencial per a events tàctils personalitzats */
+            cursor: default;
+            touch-action: none;
             max-width: 100%;
+        }
+
+        /* Estils per al Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            color: #00bcd4;
+        }
+        .modal-content button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: 1px solid #00bcd4;
+            background-color: #00bcd4;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -151,11 +195,13 @@
                 <div class="difficulty-switcher">
                     <button id="difficulty-basic" class="active" data-lang-key="basic">Bàsica</button>
                     <button id="difficulty-advanced" data-lang-key="advanced">Avançada</button>
+                    <button id="difficulty-exceptions" data-lang-key="exceptions">Excepcions</button>
                 </div>
                 <div class="score">
                     <span data-lang-key="correct">Encerts</span>: <span id="correct-count">0</span> | 
                     <span data-lang-key="errors">Errors</span>: <span id="error-count">0</span>
                 </div>
+                <button id="explanation-button">💡</button>
                 <button id="reset-button" data-lang-key="reset">Reiniciar</button>
             </div>
         </header>
@@ -163,6 +209,14 @@
         <div id="feedback-message" aria-live="polite"></div>
 
         <canvas id="periodic-table-canvas"></canvas>
+    </div>
+
+    <div class="modal-overlay" id="explanation-modal">
+        <div class="modal-content">
+            <h2 data-lang-key="explanation_title">Excepcions a la Regla</h2>
+            <p id="explanation-text"></p>
+            <button id="close-explanation-modal" data-lang-key="close">Tancar</button>
+        </div>
     </div>
 
     <script>
@@ -196,50 +250,93 @@
         { atomicNumber: 21, symbol: 'Sc', period: 4, group: 3, config: '[Ar] 3d¹4s²' },
         { atomicNumber: 22, symbol: 'Ti', period: 4, group: 4, config: '[Ar] 3d²4s²' },
         { atomicNumber: 23, symbol: 'V', period: 4, group: 5, config: '[Ar] 3d³4s²' },
+        { atomicNumber: 24, symbol: 'Cr', period: 4, group: 6, config: '[Ar] 3d⁵4s¹', isException: true },
         { atomicNumber: 25, symbol: 'Mn', period: 4, group: 7, config: '[Ar] 3d⁵4s²' },
         { atomicNumber: 26, symbol: 'Fe', period: 4, group: 8, config: '[Ar] 3d⁶4s²' },
         { atomicNumber: 27, symbol: 'Co', period: 4, group: 9, config: '[Ar] 3d⁷4s²' },
         { atomicNumber: 28, symbol: 'Ni', period: 4, group: 10, config: '[Ar] 3d⁸4s²' },
+        { atomicNumber: 29, symbol: 'Cu', period: 4, group: 11, config: '[Ar] 3d¹⁰4s¹', isException: true },
         { atomicNumber: 30, symbol: 'Zn', period: 4, group: 12, config: '[Ar] 3d¹⁰4s²' },
         // Període 5
         { atomicNumber: 40, symbol: 'Zr', period: 5, group: 4, config: '[Kr] 4d²5s²' },
+        { atomicNumber: 41, symbol: 'Nb', period: 5, group: 5, config: '[Kr] 4d⁴5s¹', isException: true },
+        { atomicNumber: 42, symbol: 'Mo', period: 5, group: 6, config: '[Kr] 4d⁵5s¹', isException: true },
+        { atomicNumber: 44, symbol: 'Ru', period: 5, group: 8, config: '[Kr] 4d⁷5s¹', isException: true },
+        { atomicNumber: 45, symbol: 'Rh', period: 5, group: 9, config: '[Kr] 4d⁸5s¹', isException: true },
+        { atomicNumber: 46, symbol: 'Pd', period: 5, group: 10, config: '[Kr] 4d¹⁰', isException: true },
         // Període 6
         { atomicNumber: 72, symbol: 'Hf', period: 6, group: 4, config: '[Xe] 4f¹⁴5d²6s²' },
-        { atomicNumber: 74, symbol: 'W', period: 6, group: 6, config: '[Xe] 4f¹⁴5d⁴6s²' }
+        { atomicNumber: 74, symbol: 'W', period: 6, group: 6, config: '[Xe] 4f¹⁴5d⁴6s²' },
+        { atomicNumber: 78, symbol: 'Pt', period: 6, group: 10, config: '[Xe] 4f¹⁴5d⁹6s¹', isException: true }
     ];
 
     const elementNames = {
-        1: { ca: 'Hidrogen', es: 'Hidrógeno' }, 2: { ca: 'Heli', es: 'Helio' },
-        3: { ca: 'Liti', es: 'Litio' }, 4: { ca: 'Beril·li', es: 'Berilio' },
-        5: { ca: 'Bor', es: 'Boro' }, 6: { ca: 'Carboni', es: 'Carbono' },
-        7: { ca: 'Nitrogen', es: 'Nitrógeno' }, 8: { ca: 'Oxigen', es: 'Oxígeno' },
-        9: { ca: 'Fluor', es: 'Flúor' }, 10: { ca: 'Neó', es: 'Neón' },
-        11: { ca: 'Sodi', es: 'Sodio' }, 12: { ca: 'Magnesi', es: 'Magnesio' },
-        13: { ca: 'Alumini', es: 'Aluminio' }, 14: { ca: 'Silici', es: 'Silicio' },
-        15: { ca: 'Fòsfor', es: 'Fósforo' }, 16: { ca: 'Sofre', es: 'Azufre' },
-        17: { ca: 'Clor', es: 'Cloro' }, 18: { ca: 'Argó', es: 'Argón' },
-        19: { ca: 'Potassi', es: 'Potasio' }, 20: { ca: 'Calci', es: 'Calcio' },
-        21: { ca: 'Escandi', es: 'Escandio' }, 22: { ca: 'Titani', es: 'Titanio' },
-        23: { ca: 'Vanadi', es: 'Vanadio' },
-        25: { ca: 'Manganès', es: 'Manganeso' }, 26: { ca: 'Ferro', es: 'Hierro' },
-        27: { ca: 'Cobalt', es: 'Cobalto' }, 28: { ca: 'Níquel', es: 'Níquel' },
-        30: { ca: 'Zinc', es: 'Zinc' },
-        40: { ca: 'Zirconi', es: 'Zirconio' },
-        72: { ca: 'Hafni', es: 'Hafnio' }, 74: { ca: 'Tungstè', es: 'Tungsteno' }
+        1: { ca: 'Hidrogen', es: 'Hidrógeno' }, 2: { ca: 'Heli', es: 'Helio' }, 3: { ca: 'Liti', es: 'Litio' },
+        4: { ca: 'Beril·li', es: 'Berilio' }, 5: { ca: 'Bor', es: 'Boro' }, 6: { ca: 'Carboni', es: 'Carbono' },
+        7: { ca: 'Nitrogen', es: 'Nitrógeno' }, 8: { ca: 'Oxigen', es: 'Oxígeno' }, 9: { ca: 'Fluor', es: 'Flúor' },
+        10: { ca: 'Neó', es: 'Neón' }, 11: { ca: 'Sodi', es: 'Sodio' }, 12: { ca: 'Magnesi', es: 'Magnesio' },
+        13: { ca: 'Alumini', es: 'Aluminio' }, 14: { ca: 'Silici', es: 'Silicio' }, 15: { ca: 'Fòsfor', es: 'Fósforo' },
+        16: { ca: 'Sofre', es: 'Azufre' }, 17: { ca: 'Clor', es: 'Cloro' }, 18: { ca: 'Argó', es: 'Argón' },
+        19: { ca: 'Potassi', es: 'Potasio' }, 20: { ca: 'Calci', es: 'Calcio' }, 21: { ca: 'Escandi', es: 'Escandio' },
+        22: { ca: 'Titani', es: 'Titanio' }, 23: { ca: 'Vanadi', es: 'Vanadio' }, 24: { ca: 'Crom', es: 'Cromo' },
+        25: { ca: 'Manganès', es: 'Manganeso' }, 26: { ca: 'Ferro', es: 'Hierro' }, 27: { ca: 'Cobalt', es: 'Cobalto' },
+        28: { ca: 'Níquel', es: 'Níquel' }, 29: { ca: 'Coure', es: 'Cobre' }, 30: { ca: 'Zinc', es: 'Zinc' },
+        40: { ca: 'Zirconi', es: 'Zirconio' }, 41: { ca: 'Niobi', es: 'Niobio' }, 42: { ca: 'Molibdè', es: 'Molibdeno' },
+        44: { ca: 'Ruteni', es: 'Rutenio' }, 45: { ca: 'Rodeni', es: 'Rodio' }, 46: { ca: 'Pal·ladi', es: 'Paladio' },
+        72: { ca: 'Hafni', es: 'Hafnio' }, 74: { ca: 'Tungstè', es: 'Tungsteno' }, 78: { ca: 'Platí', es: 'Platino' }
+    };
+
+    const hints = {
+        1: { ca: 'És l\'element més lleuger i abundant de l\'univers.', es: 'Es el elemento más ligero y abundante del universo.' },
+        2: { ca: 'S\'utilitza per inflar globus que floten.', es: 'Se utiliza para inflar globos que flotan.' },
+        3: { ca: 'És clau en la fabricació de bateries recarregables.', es: 'Es clave en la fabricación de baterías recargables.' },
+        4: { ca: 'Forma maragdes i aiguamarines.', es: 'Forma esmeraldas y aguamarinas.'},
+        5: { ca: 'S\'usa en vidre resistent a la calor (Pyrex).', es: 'Se usa en vidrio resistente al calor (Pyrex).'},
+        6: { ca: 'És la base de la vida i forma diamants.', es: 'Es la base de la vida y forma diamantes.' },
+        7: { ca: 'És el principal component de l\'aire que respirem.', es: 'Es el principal componente del aire que respiramos.'},
+        8: { ca: 'És essencial per a la respiració.', es: 'Es esencial para la respiración.'},
+        9: { ca: 'És l\'element més electronegatiu.', es: 'Es el elemento más electronegativo.'},
+        10: { ca: 'S\'utilitza en rètols lluminosos de color vermell-taronja.', es: 'Se usa en letreros luminosos de color rojo-anaranjado.' },
+        11: { ca: 'Forma part de la sal de taula comuna (NaCl).', es: 'Forma parte de la sal de mesa común (NaCl).' },
+        12: { ca: 'S\'usa en aliatges lleugers i en focs artificials.', es: 'Se usa en aleaciones ligeras y en fuegos artificiales.'},
+        13: { ca: 'És un metall lleuger utilitzat en llaunes de begudes i avions.', es: 'Es un metal ligero usado en latas de bebidas y aviones.' },
+        14: { ca: 'És el component principal dels xips d\'ordinador.', es: 'Es el componente principal de los chips de ordenador.' },
+        15: { ca: 'Es troba en els llumins i és essencial per a l\'ADN.', es: 'Se encuentra en las cerillas y es esencial para el ADN.'},
+        16: { ca: 'Té una olor característica (ous podrits) en alguns compostos.', es: 'Tiene un olor característico (huevos podridos) en algunos compuestos.'},
+        17: { ca: 'S\'utilitza per desinfectar l\'aigua de les piscines.', es: 'Se utiliza para desinfectar el agua de las piscinas.' },
+        18: { ca: 'És un gas inert usat a l\'interior de les bombetes.', es: 'Es un gas inerte usado en el interior de las bombillas.'},
+        19: { ca: 'És un nutrient important que es troba en els plàtans.', es: 'Es un nutriente importante que se encuentra en los plátanos.'},
+        20: { ca: 'És essencial per a tenir ossos i dents fortes.', es: 'Es esencial para tener huesos y dientes fuertes.' },
+        21: { ca: 'S\'afegeix a l\'alumini per fer aliatges forts per a bicicletes de competició.', es: 'Se añade al aluminio para hacer aleaciones fuertes para bicicletas de competición.'},
+        22: { ca: 'És un metall resistent i lleuger, usat en pròtesis i naus espacials.', es: 'Es un metal resistente y ligero, usado en prótesis y naves espaciales.' },
+        23: { ca: 'S\'afegeix a l\'acer per fer-lo més resistent, usat en eines.', es: 'Se añade al acero para hacerlo más resistente, usado en herramientas.'},
+        24: { ca: 'S\'utilitza per donar un acabat brillant i protector als metalls (cromat).', es: 'Se utiliza para dar un acabado brillante y protector a los metales (cromado).'},
+        25: { ca: 'És essencial per a la producció d\'acer inoxidable.', es: 'Es esencial para la producción de acero inoxidable.'},
+        26: { ca: 'És el metall més comú i s\'utilitza en la construcció (acer).', es: 'Es el metal más común y se utiliza en la construcción (acero).' },
+        27: { ca: 'S\'utilitza per crear imants potents i dóna un color blau al vidre.', es: 'Se utiliza para crear imanes potentes y da un color azul al vidrio.'},
+        28: { ca: 'S\'utilitza en la fabricació de monedes i acer inoxidable.', es: 'Se utiliza en la fabricación de monedas y acero inoxidable.'},
+        29: { ca: 'És un excel·lent conductor elèctric, usat en cables.', es: 'Es un excelente conductor eléctrico, usado en cables.' },
+        30: { ca: 'Recobreix l\'acer per evitar que s\'oxidi (galvanitzat).', es: 'Recubre el acero para evitar que se oxide (galvanizado).' },
+        40: { ca: 'És molt resistent a la corrosió, s\'usa en reactors nuclears.', es: 'Es muy resistente a la corrosión, se usa en reactores nucleares.'},
+        41: { ca: 'S\'utilitza en aliatges per a imants superconductors.', es: 'Se utiliza en aleaciones para imanes superconductores.'},
+        42: { ca: 'És un metall dur que s\'utilitza en aliatges d\'acer d\'alta resistència.', es: 'Es un metal duro que se utiliza en aleaciones de acero de alta resistencia.'},
+        44: { ca: 'És un metall preciós del grup del platí, molt resistent a la corrosió.', es: 'Es un metal precioso del grupo del platino, muy resistente a la corrosión.'},
+        45: { ca: 'S\'utilitza principalment en convertidors catalítics per a cotxes.', es: 'Se utiliza principalmente en convertidores catalíticos para coches.'},
+        46: { ca: 'És un metall preciós que absorbeix grans quantitats d\'hidrogen.', es: 'Es un metal precioso que absorbe grandes cantidades de hidrógeno.'},
+        72: { ca: 'És químicament similar al zirconi i s\'usa en reactors nuclears.', es: 'Es químicamente similar al zirconio y se usa en reactores nucleares.'},
+        74: { ca: 'Té el punt de fusió més alt de tots els metalls, usat en filaments de bombetes.', es: 'Tiene el punto de fusión más alto de todos los metales, usado en filamentos de bombillas.' },
+        78: { ca: 'És un metall preciós molt dens, usat en joieria i convertidors catalítics.', es: 'Es un metal precioso muy denso, usado en joyería y convertidores catalíticos.'}
     };
 
     const uiTexts = {
         ca: {
             title: "Taula Periòdica Interactiva",
             instructions: "Arrossega cada element a la seva posició correcta a la taula periòdica basant-te en la seva configuració electrònica.",
-            cards_title: "Elements per Col·locar",
-            table_title: "Taula Periòdica",
-            correct: "Encerts",
-            errors: "Errors",
-            reset: "Reiniciar",
-            success: "Correcte! Ben fet!",
-            basic: "Bàsica",
-            advanced: "Avançada",
+            cards_title: "Elements per Col·locar", table_title: "Taula Periòdica",
+            correct: "Encerts", errors: "Errors", reset: "Reiniciar", success: "Correcte! Ben fet!",
+            basic: "Bàsica", advanced: "Avançada", exceptions: "Excepcions",
+            explanation_title: "Excepcions a la Regla", close: "Tancar",
+            explanation: "💡 Aquests elements són excepcions a la regla d'Aufbau. Per aconseguir una major estabilitat, promouen un o més electrons per tenir subnivells semiplemerts (com d⁵) o complets (com d¹⁰), ja que aquestes configuracions són energèticament més favorables.",
             error_group: (g, correctG) => `Incorrecte. Aquest element no pertany al grup ${g}. Hauria de ser el grup ${correctG}.`,
             error_period: (p, correctP) => `Incorrecte. La configuració no correspon al període ${p}. Hauria de ser el període ${correctP}.`,
             error_both: (p, g, correctP, correctG) => `Incorrecte. No correspon ni al període ${p} (hauria de ser ${correctP}) ni al grup ${g} (hauria de ser ${correctG}).`
@@ -247,14 +344,11 @@
         es: {
             title: "Tabla Periódica Interactiva",
             instructions: "Arrastra cada elemento a su posición correcta en la tabla periódica basándote en su configuración electrónica.",
-            cards_title: "Elementos para Colocar",
-            table_title: "Tabla Periódica",
-            correct: "Aciertos",
-            errors: "Errores",
-            reset: "Reiniciar",
-            success: "¡Correcto! ¡Bien hecho!",
-            basic: "Básica",
-            advanced: "Avanzada",
+            cards_title: "Elementos para Colocar", table_title: "Tabla Periódica",
+            correct: "Aciertos", errors: "Errores", reset: "Reiniciar", success: "¡Correcto! ¡Bien hecho!",
+            basic: "Básica", advanced: "Avanzada", exceptions: "Excepciones",
+            explanation_title: "Excepciones a la Regla", close: "Cerrar",
+            explanation: "💡 Estos elementos son excepciones a la regla de Aufbau. Para conseguir una mayor estabilidad, promueven uno o más electrones para tener subniveles semilleros (como d⁵) o completos (como d¹⁰), ya que estas configuraciones son energéticamente más favorables.",
             error_group: (g, correctG) => `Incorrecto. Este elemento no pertenece al grupo ${g}. Debería ser el grupo ${correctG}.`,
             error_period: (p, correctP) => `Incorrecto. La configuración no corresponde al periodo ${p}. Debería ser el periodo ${correctP}.`,
             error_both: (p, g, correctP, correctG) => `Incorrecto. No corresponde ni al periodo ${p} (debería ser ${correctP}) ni al grupo ${g} (debería ser ${correctG}).`
@@ -277,6 +371,7 @@
     let offsetX = 0;
     let offsetY = 0;
     let isDragging = false;
+    let activeTooltip = null;
     
     // --- 2. INICIALITZACIÓ I CICLE DEL JOC ---
 
@@ -295,6 +390,7 @@
         clearFeedback();
         generateCells();
         generateRandomCards();
+        updateLanguageText();
         draw();
     }
     
@@ -327,40 +423,20 @@
     function calculateLayout() {
         const containerWidth = document.querySelector('.app-container').clientWidth;
         const isMobile = containerWidth < 700;
-
         const baseCardW = 65;
         const baseCardH = 90;
         const baseCellW = 60;
         const baseCellH = 95;
-        
         const tableFullWidth = (baseCellW * 18) + (4 * 17) + 40;
         scale = containerWidth / tableFullWidth;
-
         layout = {
-            isMobile: isMobile,
-            scale: scale,
-            cardW: baseCardW * scale,
-            cardH: baseCardH * scale,
-            cellW: baseCellW * scale,
-            cellH: baseCellH * scale,
-            gap: 4 * scale,
-            labelMargin: 30 * scale,
+            isMobile: isMobile, scale: scale, cardW: baseCardW * scale, cardH: baseCardH * scale,
+            cellW: baseCellW * scale, cellH: baseCellH * scale, gap: 4 * scale, labelMargin: 30 * scale,
         };
-        
         layout.canvasWidth = containerWidth;
-        
         const cardAreaRows = isMobile ? 2 : 1;
-        layout.cardArea = {
-            y: 30 * scale,
-            h: (layout.cardH + 15 * scale) * cardAreaRows,
-            titleY: 20 * scale
-        };
-
-        layout.tableArea = {
-            x: layout.labelMargin,
-            y: layout.cardArea.y + layout.cardArea.h + layout.labelMargin + 20 * scale,
-        };
-        
+        layout.cardArea = { y: 40 * scale, h: (layout.cardH + 15 * scale) * cardAreaRows, titleY: 25 * scale };
+        layout.tableArea = { x: layout.labelMargin, y: layout.cardArea.y + layout.cardArea.h + layout.labelMargin + 20 * scale };
         layout.canvasHeight = layout.tableArea.y + (layout.cellH * 7 + layout.gap * 6) + 20 * scale;
     }
 
@@ -371,6 +447,7 @@
         cells.forEach(cell => drawCell(cell));
         cards.forEach(card => { if (!card.isDragging) drawCard(card); });
         if (draggedCard && isDragging) drawCard(draggedCard, true);
+        if (activeTooltip) drawTooltip();
     }
 
     function drawTitles() {
@@ -412,14 +489,11 @@
         const isInvisible = (cell.period === 1 && cell.group > 1 && cell.group < 18) ||
                           ((cell.period === 2 || cell.period === 3) && cell.group > 2 && cell.group < 13);
         
-        if (isInvisible) {
-            return;
-        }
+        if (isInvisible) { return; }
 
         const familyColors = getCellFamilyColor(cell.group, cell.period);
         ctx.fillStyle = familyColors.fill;
         ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
-        
         ctx.strokeStyle = '#bdbdbd';
         ctx.setLineDash([5, 3]);
         ctx.strokeRect(cell.x, cell.y, cell.w, cell.h);
@@ -439,7 +513,6 @@
     function drawSuperscriptText(ctx, text, x, y, baseFontSize, superFontSize, maxWidth) {
         const superscripts = '¹²³⁴⁵⁶⁷⁸⁹⁰';
         let currentX = x;
-
         const measureText = (txt, baseSize, superSize) => {
             let totalWidth = 0;
             for (const char of txt) {
@@ -448,17 +521,14 @@
             }
             return totalWidth;
         };
-
         let adjustedBaseSize = baseFontSize;
         let adjustedSuperSize = superFontSize;
         while (measureText(text, adjustedBaseSize, adjustedSuperSize) > maxWidth && adjustedBaseSize > 8) {
             adjustedBaseSize -= 1;
             adjustedSuperSize -= 1;
         }
-
         const totalWidth = measureText(text, adjustedBaseSize, adjustedSuperSize);
         currentX = x + (maxWidth - totalWidth) / 2;
-        
         for (const char of text) {
             if (superscripts.includes(char)) {
                 ctx.font = `normal ${adjustedSuperSize}px sans-serif`;
@@ -474,24 +544,18 @@
     function drawCard(card, isDragged = false) {
         ctx.save();
         if(isDragged) {
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.shadowBlur = 15;
-            ctx.globalAlpha = 0.75;
+            ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 15; ctx.globalAlpha = 0.75;
         } else {
-            ctx.shadowColor = 'rgba(0,0,0,0.1)';
-            ctx.shadowBlur = 5;
-            ctx.shadowOffsetY = 2;
+            ctx.shadowColor = 'rgba(0,0,0,0.1)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
         }
-
         const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#e3f2fd', stroke: '#90caf9' };
+        if (card.isException) { colors.stroke = '#d32f2f'; }
         ctx.fillStyle = colors.fill;
         ctx.strokeStyle = colors.stroke;
         ctx.lineWidth = 2;
-
         const r = 8 * scale;
         ctx.beginPath();
-        ctx.moveTo(card.x + r, card.y);
-        ctx.lineTo(card.x + card.w - r, card.y);
+        ctx.moveTo(card.x + r, card.y); ctx.lineTo(card.x + card.w - r, card.y);
         ctx.quadraticCurveTo(card.x + card.w, card.y, card.x + card.w, card.y + r);
         ctx.lineTo(card.x + card.w, card.y + card.h - r);
         ctx.quadraticCurveTo(card.x + card.w, card.y + card.h, card.x + card.w - r, card.y + card.h);
@@ -503,11 +567,9 @@
         ctx.fill();
         ctx.stroke();
         ctx.restore();
-        
         ctx.fillStyle = '#212121';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
         ctx.font = `bold ${14 * scale}px sans-serif`;
         if (card.isPlaced) {
             const name = elementNames[card.atomicNumber][currentLang];
@@ -515,22 +577,75 @@
         } else {
             ctx.fillText('???', card.x + card.w / 2, card.y + card.h * 0.25);
         }
-        
         const configParts = card.config.split(' ');
         const line1 = configParts.length > 1 ? configParts[0] : '';
         const line2 = configParts.length > 1 ? configParts.slice(1).join(' ') : configParts[0];
-        
         ctx.textAlign = 'left';
-        
         const baseFontSize = 15 * scale;
         const superFontSize = 16 * scale;
         const maxWidth = card.w * 0.9;
-
         if (line1) {
             drawSuperscriptText(ctx, line1, card.x, card.y + card.h * 0.58, baseFontSize, superFontSize, maxWidth);
         }
-        
         drawSuperscriptText(ctx, line2, card.x, card.y + card.h * 0.83, baseFontSize, superFontSize, maxWidth);
+    }
+
+    function drawTooltip() {
+        if (!activeTooltip) return;
+        const card = activeTooltip.card;
+        const text = activeTooltip.text;
+        const fontSize = 14 * scale;
+        ctx.font = `normal ${fontSize}px sans-serif`;
+
+        const lines = [];
+        const maxWidth = 180 * scale;
+        let currentLine = '';
+        const words = text.split(' ');
+        for(const word of words) {
+            const testLine = currentLine + word + ' ';
+            if(ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
+                lines.push(currentLine.trim());
+                currentLine = word + ' ';
+            } else {
+                currentLine = testLine;
+            }
+        }
+        lines.push(currentLine.trim());
+
+        const padding = 10 * scale;
+        const boxWidth = maxWidth + padding * 2;
+        const boxHeight = lines.length * fontSize * 1.2 + padding * 2;
+        const pointerSize = 10 * scale;
+
+        let boxX = card.x + card.w / 2 - boxWidth / 2;
+        let boxY = card.y - boxHeight - pointerSize;
+        if (boxY < 0) { boxY = card.y + card.h + pointerSize; }
+        if (boxX < 0) { boxX = 0; }
+        if (boxX + boxWidth > canvas.width) { boxX = canvas.width - boxWidth; }
+
+        ctx.fillStyle = '#333';
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(boxX, boxY);
+        ctx.lineTo(boxX + boxWidth, boxY);
+        ctx.lineTo(boxX + boxWidth, boxY + boxHeight);
+        if (boxY < card.y) {
+            ctx.lineTo(card.x + card.w / 2 + pointerSize, boxY + boxHeight);
+            ctx.lineTo(card.x + card.w / 2, boxY + boxHeight + pointerSize);
+            ctx.lineTo(card.x + card.w / 2 - pointerSize, boxY + boxHeight);
+        }
+        ctx.lineTo(boxX, boxY + boxHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        lines.forEach((line, i) => {
+            ctx.fillText(line, boxX + padding, boxY + padding + i * fontSize * 1.2);
+        });
     }
     
     // --- 4. GENERACIÓ D'OBJECTES DEL JOC ---
@@ -542,10 +657,7 @@
                 cells.push({
                     x: layout.tableArea.x + col * (layout.cellW + layout.gap),
                     y: layout.tableArea.y + row * (layout.cellH + layout.gap),
-                    w: layout.cellW,
-                    h: layout.cellH,
-                    period: row + 1,
-                    group: col + 1
+                    w: layout.cellW, h: layout.cellH, period: row + 1, group: col + 1
                 });
             }
         }
@@ -553,32 +665,26 @@
 
     function generateRandomCards() {
         cards = [];
-        
-        const availableElements = elementsData.filter(el => {
-            if (currentDifficulty === 'basic') {
-                return el.group <= 2 || el.group >= 13;
-            }
-            return true;
-        });
-
+        let availableElements;
+        if (currentDifficulty === 'basic') {
+            availableElements = elementsData.filter(el => (el.group <= 2 || el.group >= 13) && !el.isException);
+        } else if (currentDifficulty === 'exceptions') {
+            availableElements = elementsData.filter(el => el.isException);
+        } else { // advanced
+            availableElements = elementsData.filter(el => !el.isException);
+        }
         const shuffled = [...availableElements].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, 10);
-        
         const cardsPerRow = layout.isMobile ? 5 : 10;
-        const totalRows = Math.ceil(selected.length / cardsPerRow);
         const totalCardsWidth = cardsPerRow * (layout.cardW + 10 * scale) - (10 * scale);
         const startX = (canvas.width - totalCardsWidth) / 2;
-
         selected.forEach((elData, i) => {
             const row = Math.floor(i / cardsPerRow);
             const col = i % cardsPerRow;
-            
             const cardX = startX + col * (layout.cardW + 10 * scale);
             const cardY = layout.cardArea.y + row * (layout.cardH + 15 * scale);
-            
             cards.push({
-                ...elData,
-                x: cardX, y: cardY, startX: cardX, startY: cardY,
+                ...elData, x: cardX, y: cardY, startX: cardX, startY: cardY,
                 w: layout.cardW, h: layout.cardH,
                 isDragging: false, isPlaced: false, isReturning: false,
             });
@@ -599,14 +705,32 @@
         document.getElementById('reset-button').addEventListener('click', setupGame);
         document.getElementById('difficulty-basic').addEventListener('click', () => setDifficulty('basic'));
         document.getElementById('difficulty-advanced').addEventListener('click', () => setDifficulty('advanced'));
+        document.getElementById('difficulty-exceptions').addEventListener('click', () => setDifficulty('exceptions'));
+        document.getElementById('explanation-button').addEventListener('click', showExplanation);
+        document.getElementById('close-explanation-modal').addEventListener('click', hideExplanation);
     }
     function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }
     function getTouchPos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.touches[0].clientX - rect.left, y: evt.touches[0].clientY - rect.top }; }
     function isPointInRect(point, rect) { return point.x > rect.x && point.x < rect.x + rect.w && point.y > rect.y && point.y < rect.y + rect.h; }
-    function onMouseDown(e) { startDrag(getMousePos(e)); }
+    
+    function onMouseDown(e) { 
+        const pos = getMousePos(e);
+        if (activeTooltip) {
+            activeTooltip = null;
+            draw();
+        }
+        startDrag(pos); 
+    }
     function onMouseMove(e) { const pos = getMousePos(e); drag(pos); let onCard = false; for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; if (!card.isPlaced && isPointInRect(pos, card)) { onCard = true; break; } } canvas.style.cursor = onCard ? 'grab' : 'default'; }
     function onMouseUp(e) { endDrag(); }
-    function onTouchStart(e) { e.preventDefault(); if (e.touches.length === 1) startDrag(getTouchPos(e)); }
+    function onTouchStart(e) { 
+        e.preventDefault(); 
+        if (activeTooltip) {
+            activeTooltip = null;
+            draw();
+        }
+        if (e.touches.length === 1) startDrag(getTouchPos(e)); 
+    }
     function onTouchMove(e) { e.preventDefault(); if (e.touches.length === 1) drag(getTouchPos(e)); }
     function onTouchEnd(e) { endDrag(); }
 
@@ -625,6 +749,9 @@
             card.y = cell.y + (cell.h - card.h) / 2;
             updateScore(true);
             showFeedback('success');
+            if(hints[card.atomicNumber]) {
+                activeTooltip = { card: card, text: hints[card.atomicNumber][currentLang] };
+            }
         } else {
             card.isReturning = true;
             animationLoop();
@@ -639,7 +766,7 @@
     function clearFeedback() { const feedbackEl = document.getElementById('feedback-message'); feedbackEl.textContent = ''; feedbackEl.className = ''; }
     function resetScores() { correctCount = 0; errorCount = 0; document.getElementById('correct-count').textContent = '0'; document.getElementById('error-count').textContent = '0'; }
 
-    // --- 8. GESTIÓ D'IDIOMES I DIFICULTAT ---
+    // --- 8. GESTIÓ D'IDIOMES, DIFICULTAT I PISTES ---
     function setLanguage(lang) { currentLang = lang; document.documentElement.lang = lang; document.getElementById('lang-ca').classList.toggle('active', lang === 'ca'); document.getElementById('lang-es').classList.toggle('active', lang === 'es'); updateLanguageText(); draw(); }
     function updateLanguageText() { const texts = uiTexts[currentLang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (texts[key]) el.textContent = texts[key]; }); }
 
@@ -647,7 +774,19 @@
         currentDifficulty = level;
         document.getElementById('difficulty-basic').classList.toggle('active', level === 'basic');
         document.getElementById('difficulty-advanced').classList.toggle('active', level === 'advanced');
+        document.getElementById('difficulty-exceptions').classList.toggle('active', level === 'exceptions');
+        document.getElementById('explanation-button').style.display = level === 'exceptions' ? 'inline-block' : 'none';
         setupGame();
+    }
+
+    function showExplanation() {
+        const modal = document.getElementById('explanation-modal');
+        document.getElementById('explanation-text').textContent = uiTexts[currentLang].explanation;
+        modal.classList.add('visible');
+    }
+
+    function hideExplanation() {
+        document.getElementById('explanation-modal').classList.remove('visible');
     }
 
     main();
