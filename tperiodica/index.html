@@ -376,6 +376,7 @@
     // --- 2. INICIALITZACIÓ I CICLE DEL JOC ---
 
     function main() {
+        detectAndSetInitialLanguage();
         addEventListeners();
         setupGame();
         window.addEventListener('resize', setupGame);
@@ -767,7 +768,24 @@
     function resetScores() { correctCount = 0; errorCount = 0; document.getElementById('correct-count').textContent = '0'; document.getElementById('error-count').textContent = '0'; }
 
     // --- 8. GESTIÓ D'IDIOMES, DIFICULTAT I PISTES ---
-    function setLanguage(lang) { currentLang = lang; document.documentElement.lang = lang; document.getElementById('lang-ca').classList.toggle('active', lang === 'ca'); document.getElementById('lang-es').classList.toggle('active', lang === 'es'); updateLanguageText(); draw(); }
+    function detectAndSetInitialLanguage() {
+        const browserLang = navigator.language || navigator.userLanguage;
+        const lang = browserLang.startsWith('es') ? 'es' : 'ca';
+        currentLang = lang;
+        document.documentElement.lang = currentLang;
+        document.getElementById('lang-ca').classList.toggle('active', currentLang === 'ca');
+        document.getElementById('lang-es').classList.toggle('active', currentLang === 'es');
+    }
+
+    function setLanguage(lang) { 
+        if (currentLang === lang) return;
+        currentLang = lang; 
+        document.documentElement.lang = lang; 
+        document.getElementById('lang-ca').classList.toggle('active', lang === 'ca'); 
+        document.getElementById('lang-es').classList.toggle('active', lang === 'es'); 
+        updateLanguageText(); 
+        draw(); 
+    }
     function updateLanguageText() { const texts = uiTexts[currentLang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (texts[key]) el.textContent = texts[key]; }); }
 
     function setDifficulty(level) {
