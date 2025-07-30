@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taula Periòdica Interactiva (Canvas)</title>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4A6BFE;
+            --secondary-color: #28a745;
+            --background-color: #f8f9fa;
+            --text-color: #212529;
+            --light-text-color: #6c757d;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+        
+        .settings-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .difficulty-switcher, .lang-switcher {
+            display: flex;
+            gap: 10px;
+        }
+
+        .difficulty-switcher {
+            justify-content: flex-start;
+            flex-grow: 1;
+        }
+
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--card-shadow);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .score-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-item .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .score-item .label {
+            font-size: 12px;
+            color: var(--light-text-color);
+        }
+
+        .score-item .correct { color: #28a745; }
+        .score-item .errors { color: #dc3545; }
+        .score-item .questions { color: #17a2b8; }
+
+
+        .actions-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions-container button, .difficulty-switcher button, .lang-switcher button {
+            padding: 12px 20px;
+            border: 1px solid;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+
+        #reset-button { background-color: var(--primary-color); color: white; border: none; }
+        #reset-button:hover { background-color: #3a58d4; }
+
+        #report-button { background-color: var(--secondary-color); color: white; border: none; }
+        #report-button:hover { background-color: #218838; }
+
+        .lang-switcher button { border-color: #6c757d; color: #6c757d; padding: 8px 16px; }
+        .lang-switcher button:hover { background-color: #e9ecef; }
+        .lang-switcher button.active { background-color: #6c757d; color: white; }
+        
+        #difficulty-basic { border-color: #4caf50; color: #4caf50; }
+        #difficulty-basic:hover { background-color: #e8f5e9; }
+        #difficulty-basic.active { background-color: #4caf50; color: white; }
+
+        #difficulty-advanced { border-color: #ff9800; color: #ff9800; }
+        #difficulty-advanced:hover { background-color: #fff3e0; }
+        #difficulty-advanced.active { background-color: #ff9800; color: white; }
+
+        #difficulty-exceptions { border-color: #d32f2f; color: #d32f2f; }
+        #difficulty-exceptions:hover { background-color: #ffcdd2; }
+        #difficulty-exceptions.active { background-color: #d32f2f; color: white; }
+        
+        #explanation-button {
+            border-color: #00bcd4;
+            color: #00bcd4;
+            font-size: 1.2em;
+            padding: 6px 12px;
+            display: none;
+        }
+        #explanation-button:hover { background-color: #e0f7fa; }
+
+        #periodic-table-canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            cursor: default;
+            touch-action: none;
+            max-width: 100%;
+        }
+        
+        #feedback-message { min-height: 24px; margin: 10px 0; font-size: 1.1em; font-weight: bold; transition: opacity 0.3s ease; }
+        #feedback-message.error { color: #f44336; }
+        #feedback-message.success { color: #4caf50; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { margin-top: 0; color: #00bcd4; }
+        .modal-content button { margin-top: 20px; padding: 10px 20px; border: 1px solid #00bcd4; background-color: #00bcd4; color: white; border-radius: 5px; cursor: pointer; }
+        #question-modal .answers button { display: block; width: 100%; margin: 10px 0; text-align: left; background-color: #f0f4f8; color: #333; border: 1px solid #ccc; }
+        #question-modal .answers button:hover { background-color: #e3f2fd; }
+
+        @media (max-width: 900px) {
+            .top-panel, .settings-bar {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="settings-bar">
+            <div class="difficulty-switcher">
+                <button id="difficulty-basic" class="active" data-lang-key="basic">Bàsica</button>
+                <button id="difficulty-advanced" data-lang-key="advanced">Avançada</button>
+                <button id="difficulty-exceptions" data-lang-key="exceptions">Excepcions</button>
+            </div>
+            <div class="lang-switcher">
+                <button id="lang-ca" class="active">CAT</button>
+                <button id="lang-es">ESP</button>
+            </div>
+        </div>
+        <div class="top-panel">
+            <div class="score-container">
+                 <div class="score-item">
+                    <div class="value correct" id="correct-count">0</div>
+                    <div class="label" data-lang-key="correct">Encerts</div>
+                </div>
+                 <div class="score-item">
+                    <div class="value errors" id="error-count">0</div>
+                    <div class="label" data-lang-key="errors">Errors</div>
+                </div>
+                <div class="score-item">
+                    <div class="value questions" id="questions-score-value">0/0</div>
+                    <div class="label" data-lang-key="questions">Preguntes</div>
+                </div>
+            </div>
+            <div class="actions-container">
+                <button id="explanation-button">💡</button>
+                <button id="reset-button" data-lang-key="reset">Reiniciar</button>
+                <button id="report-button" data-lang-key="report">Generar Informe</button>
+            </div>
+        </div>
+        
+        <div id="feedback-message" aria-live="polite"></div>
+
+        <canvas id="periodic-table-canvas"></canvas>
+    </div>
+
+    <div class="modal-overlay" id="explanation-modal">
+        <div class="modal-content">
+            <h2 data-lang-key="explanation_title">Excepcions a la Regla</h2>
+            <p id="explanation-text"></p>
+            <button id="close-explanation-modal" data-lang-key="close">Tancar</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="question-modal">
+        <div class="modal-content">
+            <h2 data-lang-key="question_title">Pregunta Ràpida!</h2>
+            <p id="question-text"></p>
+            <div class="answers" id="question-answers"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="info-modal">
+        <div class="modal-content">
+            <h2 id="info-title"></h2>
+            <p id="info-text"></p>
+            <button id="close-info-modal" data-lang-key="close">Tancar</button>
+        </div>
+    </div>
+
+    <script>
+    // --- 1. DADES I CONFIGURACIÓ INICIAL ---
+
+    const elementsData = [
+        // Període 1
+        { atomicNumber: 1, symbol: 'H', period: 1, group: 1, config: '1s¹' },
+        { atomicNumber: 2, symbol: 'He', period: 1, group: 18, config: '1s²' },
+        // Període 2
+        { atomicNumber: 3, symbol: 'Li', period: 2, group: 1, config: '[He] 2s¹' },
+        { atomicNumber: 4, symbol: 'Be', period: 2, group: 2, config: '[He] 2s²' },
+        { atomicNumber: 5, symbol: 'B', period: 2, group: 13, config: '[He] 2s²2p¹' },
+        { atomicNumber: 6, symbol: 'C', period: 2, group: 14, config: '[He] 2s²2p²' },
+        { atomicNumber: 7, symbol: 'N', period: 2, group: 15, config: '[He] 2s²2p³' },
+        { atomicNumber: 8, symbol: 'O', period: 2, group: 16, config: '[He] 2s²2p⁴' },
+        { atomicNumber: 9, symbol: 'F', period: 2, group: 17, config: '[He] 2s²2p⁵' },
+        { atomicNumber: 10, symbol: 'Ne', period: 2, group: 18, config: '[He] 2s²2p⁶' },
+        // Període 3
+        { atomicNumber: 11, symbol: 'Na', period: 3, group: 1, config: '[Ne] 3s¹' },
+        { atomicNumber: 12, symbol: 'Mg', period: 3, group: 2, config: '[Ne] 3s²' },
+        { atomicNumber: 13, symbol: 'Al', period: 3, group: 13, config: '[Ne] 3s²3p¹' },
+        { atomicNumber: 14, symbol: 'Si', period: 3, group: 14, config: '[Ne] 3s²3p²' },
+        { atomicNumber: 15, symbol: 'P', period: 3, group: 15, config: '[Ne] 3s²3p³' },
+        { atomicNumber: 16, symbol: 'S', period: 3, group: 16, config: '[Ne] 3s²3p⁴' },
+        { atomicNumber: 17, symbol: 'Cl', period: 3, group: 17, config: '[Ne] 3s²3p⁵' },
+        { atomicNumber: 18, symbol: 'Ar', period: 3, group: 18, config: '[Ne] 3s²3p⁶' },
+        // Període 4
+        { atomicNumber: 19, symbol: 'K', period: 4, group: 1, config: '[Ar] 4s¹' },
+        { atomicNumber: 20, symbol: 'Ca', period: 4, group: 2, config: '[Ar] 4s²' },
+        { atomicNumber: 21, symbol: 'Sc', period: 4, group: 3, config: '[Ar] 3d¹4s²' },
+        { atomicNumber: 22, symbol: 'Ti', period: 4, group: 4, config: '[Ar] 3d²4s²' },
+        { atomicNumber: 23, symbol: 'V', period: 4, group: 5, config: '[Ar] 3d³4s²' },
+        { atomicNumber: 24, symbol: 'Cr', period: 4, group: 6, config: '[Ar] 3d⁵4s¹', isException: true },
+        { atomicNumber: 25, symbol: 'Mn', period: 4, group: 7, config: '[Ar] 3d⁵4s²' },
+        { atomicNumber: 26, symbol: 'Fe', period: 4, group: 8, config: '[Ar] 3d⁶4s²' },
+        { atomicNumber: 27, symbol: 'Co', period: 4, group: 9, config: '[Ar] 3d⁷4s²' },
+        { atomicNumber: 28, symbol: 'Ni', period: 4, group: 10, config: '[Ar] 3d⁸4s²' },
+        { atomicNumber: 29, symbol: 'Cu', period: 4, group: 11, config: '[Ar] 3d¹⁰4s¹', isException: true },
+        { atomicNumber: 30, symbol: 'Zn', period: 4, group: 12, config: '[Ar] 3d¹⁰4s²' },
+        // Període 5
+        { atomicNumber: 40, symbol: 'Zr', period: 5, group: 4, config: '[Kr] 4d²5s²' },
+        { atomicNumber: 41, symbol: 'Nb', period: 5, group: 5, config: '[Kr] 4d⁴5s¹', isException: true },
+        { atomicNumber: 42, symbol: 'Mo', period: 5, group: 6, config: '[Kr] 4d⁵5s¹', isException: true },
+        { atomicNumber: 44, symbol: 'Ru', period: 5, group: 8, config: '[Kr] 4d⁷5s¹', isException: true },
+        { atomicNumber: 45, symbol: 'Rh', period: 5, group: 9, config: '[Kr] 4d⁸5s¹', isException: true },
+        { atomicNumber: 46, symbol: 'Pd', period: 5, group: 10, config: '[Kr] 4d¹⁰', isException: true },
+        // Període 6
+        { atomicNumber: 72, symbol: 'Hf', period: 6, group: 4, config: '[Xe] 4f¹⁴5d²6s²' },
+        { atomicNumber: 74, symbol: 'W', period: 6, group: 6, config: '[Xe] 4f¹⁴5d⁴6s²' },
+        { atomicNumber: 78, symbol: 'Pt', period: 6, group: 10, config: '[Xe] 4f¹⁴5d⁹6s¹', isException: true }
+    ];
+
+    const elementNames = {
+        1: { ca: 'Hidrogen', es: 'Hidrógeno' }, 2: { ca: 'Heli', es: 'Helio' }, 3: { ca: 'Liti', es: 'Litio' },
+        4: { ca: 'Beril·li', es: 'Berilio' }, 5: { ca: 'Bor', es: 'Boro' }, 6: { ca: 'Carboni', es: 'Carbono' },
+        7: { ca: 'Nitrogen', es: 'Nitrógeno' }, 8: { ca: 'Oxigen', es: 'Oxígeno' }, 9: { ca: 'Fluor', es: 'Flúor' },
+        10: { ca: 'Neó', es: 'Neón' }, 11: { ca: 'Sodi', es: 'Sodio' }, 12: { ca: 'Magnesi', es: 'Magnesio' },
+        13: { ca: 'Alumini', es: 'Aluminio' }, 14: { ca: 'Silici', es: 'Silicio' }, 15: { ca: 'Fòsfor', es: 'Fósforo' },
+        16: { ca: 'Sofre', es: 'Azufre' }, 17: { ca: 'Clor', es: 'Cloro' }, 18: { ca: 'Argó', es: 'Argón' },
+        19: { ca: 'Potassi', es: 'Potasio' }, 20: { ca: 'Calci', es: 'Calcio' }, 21: { ca: 'Escandi', es: 'Escandio' },
+        22: { ca: 'Titani', es: 'Titanio' }, 23: { ca: 'Vanadi', es: 'Vanadio' }, 24: { ca: 'Crom', es: 'Cromo' },
+        25: { ca: 'Manganès', es: 'Manganeso' }, 26: { ca: 'Ferro', es: 'Hierro' }, 27: { ca: 'Cobalt', es: 'Cobalto' },
+        28: { ca: 'Níquel', es: 'Níquel' }, 29: { ca: 'Coure', es: 'Cobre' }, 30: { ca: 'Zinc', es: 'Zinc' },
+        40: { ca: 'Zirconi', es: 'Zirconio' }, 41: { ca: 'Niobi', es: 'Niobio' }, 42: { ca: 'Molibdè', es: 'Molibdeno' },
+        44: { ca: 'Ruteni', es: 'Rutenio' }, 45: { ca: 'Rodeni', es: 'Rodio' }, 46: { ca: 'Pal·ladi', es: 'Paladio' },
+        72: { ca: 'Hafni', es: 'Hafnio' }, 74: { ca: 'Tungstè', es: 'Tungsteno' }, 78: { ca: 'Platí', es: 'Platino' }
+    };
+
+    const hints = {
+        1: { ca: 'És l\'element més lleuger i abundant de l\'univers.', es: 'Es el elemento más ligero y abundante del universo.' },
+        2: { ca: 'S\'utilitza per inflar globus que floten.', es: 'Se utiliza para inflar globos que flotan.' },
+        3: { ca: 'És clau en la fabricació de bateries recarregables.', es: 'Es clave en la fabricación de baterías recargables.' },
+        4: { ca: 'Forma maragdes i aiguamarines.', es: 'Forma esmeraldas y aguamarinas.'},
+        5: { ca: 'S\'usa en vidre resistent a la calor (Pyrex).', es: 'Se usa en vidrio resistente al calor (Pyrex).'},
+        6: { ca: 'És la base de la vida i forma diamants.', es: 'Es la base de la vida y forma diamantes.' },
+        7: { ca: 'És el principal component de l\'aire que respirem.', es: 'Es el principal componente del aire que respiramos.'},
+        8: { ca: 'És essencial per a la respiració.', es: 'Es esencial para la respiración.'},
+        9: { ca: 'És l\'element més electronegatiu.', es: 'Es el elemento más electronegativo.'},
+        10: { ca: 'S\'utilitza en rètols lluminosos de color vermell-taronja.', es: 'Se usa en letreros luminosos de color rojo-anaranjado.' },
+        11: { ca: 'Forma part de la sal de taula comuna (NaCl).', es: 'Forma parte de la sal de mesa común (NaCl).' },
+        12: { ca: 'S\'usa en aliatges lleugers i en focs artificials.', es: 'Se usa en aleaciones ligeras y en fuegos artificiales.'},
+        13: { ca: 'És un metall lleuger utilitzat en llaunes de begudes i avions.', es: 'Es un metal ligero usado en latas de bebidas y aviones.' },
+        14: { ca: 'És el component principal dels xips d\'ordinador.', es: 'Es el componente principal de los chips de ordenador.' },
+        15: { ca: 'Es troba en els llumins i és essencial per a l\'ADN.', es: 'Se encuentra en las cerillas y es esencial para el ADN.'},
+        16: { ca: 'Té una olor característica (ous podrits) en alguns compostos.', es: 'Tiene un olor característico (huevos podridos) en algunos compuestos.'},
+        17: { ca: 'S\'utilitza per desinfectar l\'aigua de les piscines.', es: 'Se utiliza para desinfectar el agua de las piscinas.' },
+        18: { ca: 'És un gas inert usat a l\'interior de les bombetes.', es: 'Es un gas inerte usado en el interior de las bombillas.'},
+        19: { ca: 'És un nutrient important que es troba en els plàtans.', es: 'Es un nutriente importante que se encuentra en los plátanos.'},
+        20: { ca: 'És essencial per a tenir ossos i dents fortes.', es: 'Es esencial para tener huesos y dientes fuertes.' },
+        21: { ca: 'S\'afegeix a l\'alumini per fer aliatges forts per a bicicletes de competició.', es: 'Se añade al aluminio para hacer aleaciones fuertes para bicicletas de competición.'},
+        22: { ca: 'És un metall resistent i lleuger, usat en pròtesis i naus espacials.', es: 'Es un metal resistente y ligero, usado en prótesis y naves espaciales.' },
+        23: { ca: 'S\'afegeix a l\'acer per fer-lo més resistent, usat en eines.', es: 'Se añade al acero para hacerlo más resistente, usado en herramientas.'},
+        24: { ca: 'S\'utilitza per donar un acabat brillant i protector als metalls (cromat).', es: 'Se utiliza para dar un acabado brillante y protector a los metales (cromado).'},
+        25: { ca: 'És essencial per a la producció d\'acer inoxidable.', es: 'Es esencial para la producción de acero inoxidable.'},
+        26: { ca: 'És el metall més comú i s\'utilitza en la construcció (acer).', es: 'Es el metal más común y se utiliza en la construcción (acero).' },
+        27: { ca: 'S\'utilitza per crear imants potents i dóna un color blau al vidre.', es: 'Se utiliza para crear imanes potentes y da un color azul al vidrio.'},
+        28: { ca: 'S\'utilitza en la fabricació de monedes i acer inoxidable.', es: 'Se utiliza en la fabricación de monedas y acero inoxidable.'},
+        29: { ca: 'És un excel·lent conductor elèctric, usat en cables.', es: 'Es un excelente conductor eléctrico, usado en cables.' },
+        30: { ca: 'Recobreix l\'acer per evitar que s\'oxidi (galvanitzat).', es: 'Recubre el acero para evitar que se oxide (galvanizado).' },
+        40: { ca: 'És molt resistent a la corrosió, s\'usa en reactors nuclears.', es: 'Es muy resistente a la corrosión, se usa en reactores nucleares.'},
+        41: { ca: 'S\'utilitza en aliatges per a imants superconductors.', es: 'Se utiliza en aleaciones para imanes superconductores.'},
+        42: { ca: 'És un metall dur que s\'utilitza en aliatges d\'acer d\'alta resistència.', es: 'Es un metal duro que se utiliza en aleaciones de acero de alta resistencia.'},
+        44: { ca: 'És un metall preciós del grup del platí, molt resistent a la corrosió.', es: 'Es un metal precioso del grupo del platino, muy resistente a la corrosión.'},
+        45: { ca: 'S\'utilitza principalment en convertidors catalítics per a cotxes.', es: 'Se utiliza principalmente en convertidores catalíticos para coches.'},
+        46: { ca: 'És un metall preciós que absorbeix grans quantitats d\'hidrogen.', es: 'Es un metal precioso que absorbe grandes cantidades de hidrógeno.'},
+        72: { ca: 'És químicament similar al zirconi i s\'usa en reactors nuclears.', es: 'Es químicamente similar al zirconio y se usa en reactores nucleares.'},
+        74: { ca: 'Té el punt de fusió més alt de tots els metalls, usat en filaments de bombetes.', es: 'Tiene el punto de fusión más alto de todos los metales, usado en filamentos de bombillas.' },
+        78: { ca: 'És un metall preciós molt dens, usat en joieria i convertidors catalítics.', es: 'Es un metal precioso muy denso, usado en joyería y convertidores catalíticos.'}
+    };
+
+    const uiTexts = {
+        ca: {
+            title: "Taula Periòdica Interactiva",
+            instructions: "Arrossega cada element a la seva posició correcta a la taula periòdica basant-te en la seva configuració electrònica.",
+            cards_title: "Element per Col·locar", table_title: "Taula Periòdica",
+            correct: "Encerts", errors: "Errors", reset: "Reiniciar", success: "Correcte! Ben fet!",
+            basic: "Bàsica", advanced: "Avançada", exceptions: "Excepcions",
+            explanation_title: "Excepcions a la Regla", close: "Tancar",
+            question_title: "Pregunta Ràpida!", elements: "Elements", questions: "Preguntes", report: "Generar Informe",
+            attention: "Atenció", questions_correct: "Preg. Correctes", questions_errors: "Preg. Errors",
+            student_name_prompt: "Introdueix el teu nom per a l'informe:", student_class_prompt: "Introdueix el teu curs:", report_title: "Informe de Resultats",
+            info_title: "Sabies que...?",
+            explanation: "💡 Aquests elements són excepcions a la regla d'Aufbau. Per aconseguir una major estabilitat, promouen un o més electrons per tenir subnivells semiplemerts (com d⁵) o complets (com d¹⁰), ja que aquestes configuracions són energèticament més favorables.",
+            error_group: (g, correctG) => `Incorrecte. Aquest element no pertany al grup ${g}. Hauria de ser el grup ${correctG}.`,
+            error_period: (p, correctP) => `Incorrecte. La configuració no correspon al període ${p}. Hauria de ser el període ${correctP}.`,
+            error_both: (p, g, correctP, correctG) => `Incorrecte. No correspon ni al període ${p} (hauria de ser ${correctP}) ni al grup ${g} (hauria de ser ${correctG}).`
+        },
+        es: {
+            title: "Tabla Periódica Interactiva",
+            instructions: "Arrastra cada elemento a su posición correcta en la tabla periódica basándote en su configuración electrónica.",
+            cards_title: "Elemento para Colocar", table_title: "Tabla Periódica",
+            correct: "Aciertos", errors: "Errores", reset: "Reiniciar", success: "¡Correcto! ¡Bien hecho!",
+            basic: "Básica", advanced: "Avanzada", exceptions: "Excepciones",
+            explanation_title: "Excepciones a la Regla", close: "Cerrar",
+            question_title: "¡Pregunta Rápida!", elements: "Elementos", questions: "Preguntas", report: "Generar Informe",
+            attention: "Atención", questions_correct: "Preg. Correctas", questions_errors: "Preg. Errores",
+            student_name_prompt: "Introduce tu nombre para el informe:", student_class_prompt: "Introduce tu curso:", report_title: "Informe de Resultados",
+            info_title: "¿Sabías que...?",
+            explanation: "💡 Estos elementos son excepciones a la regla de Aufbau. Para conseguir una mayor estabilidad, promueven uno o más electrones para tener subniveles semilleros (como d⁵) o completos (como d¹⁰), ya que estas configuraciones son energéticamente más favorables.",
+            error_group: (g, correctG) => `Incorrecto. Este elemento no pertenece al grupo ${g}. Debería ser el grupo ${correctG}.`,
+            error_period: (p, correctP) => `Incorrecto. La configuración no corresponde al periodo ${p}. Debería ser el periodo ${correctP}.`,
+            error_both: (p, g, correctP, correctG) => `Incorrecto. No corresponde ni al periodo ${p} (debería ser ${correctP}) ni al grupo ${g} (debería ser ${correctG}).`
+        }
+    };
+
+    let currentLang = 'ca';
+    let currentDifficulty = 'basic';
+    let correctCount = 0;
+    let errorCount = 0;
+    let questionsCorrectCount = 0;
+    let totalQuestionsAsked = 0;
+    
+    const canvas = document.getElementById('periodic-table-canvas');
+    const ctx = canvas.getContext('2d');
+    let scale = 1;
+    let layout = {};
+
+    let cards = [];
+    let cells = [];
+    let draggedCard = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    let currentCardIndex = 0;
+    let sessionElements = [];
+    let correctlyPlacedInSession = [];
+    
+    // --- 2. INICIALITZACIÓ I CICLE DEL JOC ---
+
+    function main() {
+        detectAndSetInitialLanguage();
+        addEventListeners();
+        setupGame(true); // Full reset on initial load
+        window.addEventListener('resize', () => setupGame(false)); // Redraw on resize without resetting scores
+    }
+
+    function setupGame(isFullReset = false) {
+        calculateLayout();
+        canvas.width = layout.canvasWidth;
+        canvas.height = layout.canvasHeight;
+        scale = layout.scale;
+        if (isFullReset) {
+            resetScores();
+        }
+        clearFeedback();
+        generateCells();
+        selectSessionElements();
+        showNextCard();
+        updateLanguageText();
+        draw();
+    }
+    
+    function animationLoop() {
+        let needsRedraw = false;
+        cards.forEach(card => {
+            if (card.isReturning) {
+                needsRedraw = true;
+                const dx = card.startX - card.x;
+                const dy = card.startY - card.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 1) {
+                    card.x = card.startX;
+                    card.y = card.startY;
+                    card.isReturning = false;
+                } else {
+                    card.x += dx * 0.1;
+                    card.y += dy * 0.1;
+                }
+            }
+        });
+        if (needsRedraw) {
+            draw();
+            requestAnimationFrame(animationLoop);
+        }
+    }
+
+    // --- 3. CÀLCULS DE LAYOUT I DIBUIX AL CANVAS ---
+
+    function calculateLayout() {
+        const containerWidth = document.querySelector('.app-container').clientWidth;
+        const isMobile = containerWidth < 700;
+        const baseCardW = 65;
+        const baseCardH = 90;
+        const baseCellW = 60;
+        const baseCellH = 95;
+        const tableFullWidth = (baseCellW * 18) + (4 * 17) + 40;
+        scale = containerWidth / tableFullWidth;
+        layout = {
+            isMobile: isMobile, scale: scale, cardW: baseCardW * scale, cardH: baseCardH * scale,
+            cellW: baseCellW * scale, cellH: baseCellH * scale, gap: 4 * scale, labelMargin: 30 * scale,
+        };
+        layout.canvasWidth = containerWidth;
+        layout.cardArea = {
+            x: (layout.canvasWidth - 200 * scale) / 2,
+            y: 20 * scale,
+            width: 200 * scale,
+            height: 120 * scale,
+            titleY: 20 * scale + 20 * scale,
+        };
+        layout.tableArea = { x: layout.labelMargin, y: layout.cardArea.y + layout.cardArea.height + layout.labelMargin };
+        layout.canvasHeight = layout.tableArea.y + (layout.cellH * 7 + layout.gap * 6) + 20 * scale;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawCardArea();
+        drawGridLabels();
+        cells.forEach(cell => drawCell(cell));
+        cards.forEach(card => { if (!card.isDragging) drawCard(card); });
+        if (draggedCard && isDragging) drawCard(draggedCard, true);
+    }
+    
+    function drawCardArea() {
+        ctx.fillStyle = '#f0f4ff';
+        ctx.strokeStyle = '#d9e2ff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(layout.cardArea.x, layout.cardArea.y, layout.cardArea.width, layout.cardArea.height, 10 * scale);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = 'var(--primary-color)';
+        ctx.font = `bold ${12 * scale}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(uiTexts[currentLang].cards_title, layout.cardArea.x + layout.cardArea.width / 2, layout.cardArea.titleY);
+    }
+    
+    function drawGridLabels(){
+        ctx.fillStyle = '#666';
+        ctx.font = `bold ${12 * scale}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < 18; i++) {
+            const label = i + 1;
+            const x = layout.tableArea.x + i * (layout.cellW + layout.gap) + layout.cellW / 2;
+            const y = layout.tableArea.y - 15 * scale;
+            ctx.fillText(label, x, y);
+        }
+        for (let i = 0; i < 7; i++) {
+            const label = i + 1;
+            const x = layout.tableArea.x - 15 * scale;
+            const y = layout.tableArea.y + i * (layout.cellH + layout.gap) + layout.cellH / 2;
+            ctx.fillText(label, x, y);
+        }
+    }
+    
+    function getCellFamilyColor(group, period) {
+        if (period === 1 && group === 1) return { fill: '#f5f5f5' }; 
+        if (group === 1 || group === 2) return { fill: '#ffebee' }; 
+        if (group >= 3 && group <= 12) return { fill: '#e3f2fd' }; 
+        if (group === 18) return { fill: '#fffde7' }; 
+        if (group >= 13 && group <= 17) return { fill: '#e8f5e9' };
+        return { fill: '#ffffff' };
+    }
+
+    function drawCell(cell) {
+        const isInvisible = (cell.period === 1 && cell.group > 1 && cell.group < 18) ||
+                          ((cell.period === 2 || cell.period === 3) && cell.group > 2 && cell.group < 13);
+        
+        if (isInvisible) { return; }
+
+        const familyColors = getCellFamilyColor(cell.group, cell.period);
+        ctx.fillStyle = familyColors.fill;
+        ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
+        ctx.strokeStyle = '#bdbdbd';
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(cell.x, cell.y, cell.w, cell.h);
+        ctx.setLineDash([]);
+    }
+    
+    function getElementColor(group, atomicNumber) {
+        if (atomicNumber === 1) return { fill: '#e0e0e0', stroke: '#9e9e9e' }; 
+        if (group === 1 || group === 2) return { fill: '#ff8a80', stroke: '#d32f2f' };
+        if (group >= 3 && group <= 12) return { fill: '#64b5f6', stroke: '#1976d2' };
+        if (group >= 13 && group <= 16) return { fill: '#81c784', stroke: '#388e3c' };
+        if (group === 17) return { fill: '#7e57c2', stroke: '#512da8' };
+        if (group === 18) return { fill: '#ffee58', stroke: '#fbc02d' };
+        return { fill: '#e3f2fd', stroke: '#90caf9' };
+    }
+
+    function drawSuperscriptText(ctx, text, x, y, baseFontSize, superFontSize, maxWidth) {
+        const superscripts = '¹²³⁴⁵⁶⁷⁸⁹⁰';
+        let currentX = x;
+        const measureText = (txt, baseSize, superSize) => {
+            let totalWidth = 0;
+            for (const char of txt) {
+                ctx.font = `normal ${superscripts.includes(char) ? superSize : baseSize}px sans-serif`;
+                totalWidth += ctx.measureText(char).width;
+            }
+            return totalWidth;
+        };
+        let adjustedBaseSize = baseFontSize;
+        let adjustedSuperSize = superFontSize;
+        while (measureText(text, adjustedBaseSize, adjustedSuperSize) > maxWidth && adjustedBaseSize > 8) {
+            adjustedBaseSize -= 1;
+            adjustedSuperSize -= 1;
+        }
+        const totalWidth = measureText(text, adjustedBaseSize, adjustedSuperSize);
+        currentX = x + (maxWidth - totalWidth) / 2;
+        for (const char of text) {
+            if (superscripts.includes(char)) {
+                ctx.font = `normal ${adjustedSuperSize}px sans-serif`;
+                ctx.fillText(char, currentX, y - adjustedBaseSize * 0.4); 
+            } else {
+                ctx.font = `normal ${adjustedBaseSize}px sans-serif`;
+                ctx.fillText(char, currentX, y);
+            }
+            currentX += ctx.measureText(char).width;
+        }
+    }
+
+    function drawCard(card, isDragged = false) {
+        ctx.save();
+        if(isDragged) {
+            ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 15; ctx.globalAlpha = 0.75;
+        } else {
+            ctx.shadowColor = 'rgba(0,0,0,0.1)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
+        }
+        const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#ffffff', stroke: '#dddddd' };
+        if (card.isException) { colors.stroke = '#d32f2f'; }
+        ctx.fillStyle = colors.fill;
+        ctx.strokeStyle = colors.stroke;
+        ctx.lineWidth = 2;
+        const r = 8 * scale;
+        ctx.beginPath();
+        ctx.moveTo(card.x + r, card.y); ctx.lineTo(card.x + card.w - r, card.y);
+        ctx.quadraticCurveTo(card.x + card.w, card.y, card.x + card.w, card.y + r);
+        ctx.lineTo(card.x + card.w, card.y + card.h - r);
+        ctx.quadraticCurveTo(card.x + card.w, card.y + card.h, card.x + card.w - r, card.y + card.h);
+        ctx.lineTo(card.x + r, card.y + card.h);
+        ctx.quadraticCurveTo(card.x, card.y + card.h, card.x, card.y + card.h - r);
+        ctx.lineTo(card.x, card.y + r);
+        ctx.quadraticCurveTo(card.x, card.y, card.x + r, card.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle = '#212121';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `bold ${22 * scale}px sans-serif`;
+        if (card.isPlaced) {
+            const name = elementNames[card.atomicNumber][currentLang];
+            ctx.fillText(name, card.x + card.w / 2, card.y + card.h * 0.3);
+        } else {
+            ctx.fillText(card.symbol, card.x + card.w / 2, card.y + card.h * 0.3);
+        }
+        const configParts = card.config.split(' ');
+        const line1 = configParts.length > 1 ? configParts[0] : '';
+        const line2 = configParts.length > 1 ? configParts.slice(1).join(' ') : configParts[0];
+        ctx.textAlign = 'left';
+        const baseFontSize = 14 * scale;
+        const superFontSize = 12 * scale;
+        const maxWidth = card.w * 0.9;
+        if (line1) {
+            drawSuperscriptText(ctx, line1, card.x, card.y + card.h * 0.65, baseFontSize, superFontSize, maxWidth);
+        }
+        drawSuperscriptText(ctx, line2, card.x, card.y + card.h * 0.85, baseFontSize, superFontSize, maxWidth);
+    }
+    
+    // --- 4. GENERACIÓ D'OBJECTES DEL JOC ---
+
+    function generateCells() {
+        cells = [];
+        for (let row = 0; row < 7; row++) {
+            for (let col = 0; col < 18; col++) {
+                cells.push({
+                    x: layout.tableArea.x + col * (layout.cellW + layout.gap),
+                    y: layout.tableArea.y + row * (layout.cellH + layout.gap),
+                    w: layout.cellW, h: layout.cellH, period: row + 1, group: col + 1
+                });
+            }
+        }
+    }
+
+    function selectSessionElements() {
+        let availableElements;
+        if (currentDifficulty === 'basic') {
+            availableElements = elementsData.filter(el => (el.group <= 2 || el.group >= 13) && !el.isException);
+        } else if (currentDifficulty === 'exceptions') {
+            availableElements = elementsData.filter(el => el.isException);
+        } else { // advanced
+            availableElements = elementsData.filter(el => !el.isException);
+        }
+        const shuffled = [...availableElements].sort(() => 0.5 - Math.random());
+        sessionElements = shuffled.slice(0, 10);
+        currentCardIndex = 0;
+        correctlyPlacedInSession = [];
+    }
+
+    function showNextCard() {
+        cards = [];
+        if (currentCardIndex < sessionElements.length) {
+            const elData = sessionElements[currentCardIndex];
+            const cardX = layout.cardArea.x + (layout.cardArea.width - layout.cardW) / 2;
+            const cardY = layout.cardArea.y + (layout.cardArea.height - layout.cardH) / 2 + 10 * scale;
+            
+            cards.push({
+                ...elData, x: cardX, y: cardY, startX: cardX, startY: cardY,
+                w: layout.cardW, h: layout.cardH,
+                isDragging: false, isPlaced: false, isReturning: false,
+            });
+        }
+        draw();
+    }
+
+    // --- 5. GESTIÓ D'ESDEVENIMENTS D'INTERACCIÓ ---
+    function addEventListeners() {
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mouseup', onMouseUp);
+        canvas.addEventListener('mouseout', onMouseUp);
+        canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+        canvas.addEventListener('touchend', onTouchEnd);
+        document.getElementById('lang-ca').addEventListener('click', () => setLanguage('ca'));
+        document.getElementById('lang-es').addEventListener('click', () => setLanguage('es'));
+        document.getElementById('reset-button').addEventListener('click', () => setupGame(true));
+        document.getElementById('difficulty-basic').addEventListener('click', () => setDifficulty('basic'));
+        document.getElementById('difficulty-advanced').addEventListener('click', () => setDifficulty('advanced'));
+        document.getElementById('difficulty-exceptions').addEventListener('click', () => setDifficulty('exceptions'));
+        document.getElementById('explanation-button').addEventListener('click', showExplanation);
+        document.getElementById('close-explanation-modal').addEventListener('click', hideExplanation);
+        document.getElementById('report-button').addEventListener('click', generatePDFReport);
+        document.getElementById('close-info-modal').addEventListener('click', () => {
+            document.getElementById('info-modal').classList.remove('visible');
+            if (correctCount > 0 && correctCount % 5 === 0) {
+                showAttentionQuestion();
+            } else {
+                currentCardIndex++;
+                showNextCard();
+            }
+        });
+    }
+    function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }
+    function getTouchPos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.touches[0].clientX - rect.left, y: evt.touches[0].clientY - rect.top }; }
+    function isPointInRect(point, rect) { return point.x > rect.x && point.x < rect.x + rect.w && point.y > rect.y && point.y < rect.y + rect.h; }
+    
+    function onMouseDown(e) { 
+        startDrag(getMousePos(e)); 
+    }
+    function onMouseMove(e) { const pos = getMousePos(e); drag(pos); let onCard = false; for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; if (!card.isPlaced && isPointInRect(pos, card)) { onCard = true; break; } } canvas.style.cursor = onCard ? 'grab' : 'default'; }
+    function onMouseUp(e) { endDrag(); }
+    function onTouchStart(e) { 
+        e.preventDefault(); 
+        if (e.touches.length === 1) startDrag(getTouchPos(e)); 
+    }
+    function onTouchMove(e) { e.preventDefault(); if (e.touches.length === 1) drag(getTouchPos(e)); }
+    function onTouchEnd(e) { endDrag(); }
+
+    // --- 6. LÒGICA DE DRAG & DROP ---
+    function startDrag(pos) { for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; if (!card.isPlaced && isPointInRect(pos, card)) { draggedCard = card; isDragging = true; card.isDragging = true; offsetX = pos.x - card.x; offsetY = pos.y - card.y; cards.splice(i, 1); cards.push(draggedCard); canvas.style.cursor = 'grabbing'; clearFeedback(); break; } } }
+    function drag(pos) { if (isDragging && draggedCard) { draggedCard.x = pos.x - offsetX; draggedCard.y = pos.y - offsetY; draw(); } }
+    function endDrag() { if (isDragging && draggedCard) { let placed = false; for (const cell of cells) { if (isPointInRect({x: draggedCard.x + draggedCard.w/2, y: draggedCard.y + draggedCard.h/2}, cell)) { validatePlacement(draggedCard, cell); placed = true; break; } } if (!placed) { draggedCard.isReturning = true; animationLoop(); } draggedCard.isDragging = false; isDragging = false; draggedCard = null; canvas.style.cursor = 'default'; draw(); } }
+
+    // --- 7. VALIDACIÓ I FEEDBACK ---
+    function validatePlacement(card, cell) {
+        const isPeriodCorrect = card.period === cell.period;
+        const isGroupCorrect = card.group === cell.group;
+        if (isPeriodCorrect && isGroupCorrect) {
+            card.isPlaced = true;
+            card.x = cell.x + (cell.w - card.w) / 2;
+            card.y = cell.y + (cell.h - card.h) / 2;
+            updateScore(true);
+            showFeedback('success');
+            correctlyPlacedInSession.push(card);
+            if(hints[card.atomicNumber]) {
+                showInfoModal(card);
+            } else if (correctCount > 0 && correctCount % 5 === 0) {
+                showAttentionQuestion();
+            } else {
+                currentCardIndex++;
+                showNextCard();
+            }
+        } else {
+            card.isReturning = true;
+            animationLoop();
+            updateScore(false);
+            if (!isPeriodCorrect && !isGroupCorrect) showFeedback('error_both', [cell.period, cell.group, card.period, card.group]);
+            else if (!isPeriodCorrect) showFeedback('error_period', [cell.period, card.period]);
+            else showFeedback('error_group', [cell.group, card.group]);
+        }
+    }
+    function updateScore(isCorrect) { if (isCorrect) { correctCount++; document.getElementById('correct-count').textContent = correctCount; } else { errorCount++; document.getElementById('error-count').textContent = errorCount; } }
+    function showFeedback(type, params = []) { const feedbackEl = document.getElementById('feedback-message'); const messageTemplate = uiTexts[currentLang][type]; feedbackEl.textContent = typeof messageTemplate === 'function' ? messageTemplate(...params) : messageTemplate; feedbackEl.className = type.startsWith('error') ? 'error' : 'success'; }
+    function clearFeedback() { const feedbackEl = document.getElementById('feedback-message'); if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = ''; } }
+    function resetScores() {
+        correctCount = 0; errorCount = 0; questionsCorrectCount = 0; totalQuestionsAsked = 0;
+        document.getElementById('correct-count').textContent = '0';
+        document.getElementById('error-count').textContent = '0';
+        document.getElementById('questions-score-value').textContent = '0/0';
+    }
+
+    // --- 8. GESTIÓ D'IDIOMES, DIFICULTAT I PISTES ---
+    function detectAndSetInitialLanguage() {
+        const browserLang = navigator.language || navigator.userLanguage;
+        const lang = browserLang.startsWith('es') ? 'es' : 'ca';
+        setLanguage(lang, true);
+    }
+
+    function setLanguage(lang, isInitial = false) { 
+        if (!isInitial && currentLang === lang) return;
+        currentLang = lang; 
+        document.documentElement.lang = lang; 
+        document.getElementById('lang-ca').classList.toggle('active', lang === 'ca'); 
+        document.getElementById('lang-es').classList.toggle('active', lang === 'es'); 
+        updateLanguageText(); 
+        if (!isInitial) {
+            draw(); 
+        }
+    }
+    function updateLanguageText() { const texts = uiTexts[currentLang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (texts[key]) el.textContent = texts[key]; }); }
+
+    function setDifficulty(level) {
+        currentDifficulty = level;
+        document.getElementById('difficulty-basic').classList.toggle('active', level === 'basic');
+        document.getElementById('difficulty-advanced').classList.toggle('active', level === 'advanced');
+        document.getElementById('difficulty-exceptions').classList.toggle('active', level === 'exceptions');
+        document.getElementById('explanation-button').style.display = level === 'exceptions' ? 'inline-block' : 'none';
+        selectSessionElements();
+        showNextCard();
+        draw();
+    }
+
+    function showExplanation() {
+        const modal = document.getElementById('explanation-modal');
+        document.getElementById('explanation-text').textContent = uiTexts[currentLang].explanation;
+        modal.classList.add('visible');
+    }
+
+    function hideExplanation() {
+        document.getElementById('explanation-modal').classList.remove('visible');
+    }
+    
+    function showInfoModal(card) {
+        const modal = document.getElementById('info-modal');
+        document.getElementById('info-title').textContent = elementNames[card.atomicNumber][currentLang];
+        document.getElementById('info-text').textContent = hints[card.atomicNumber][currentLang];
+        modal.classList.add('visible');
+    }
+    
+    // --- 9. PREGUNTES D'ATENCIÓ I INFORMES PDF ---
+    function showAttentionQuestion() {
+        const lastFive = correctlyPlacedInSession.slice(-5);
+        const questionElement = lastFive[Math.floor(Math.random() * lastFive.length)];
+        const correctAnswer = hints[questionElement.atomicNumber][currentLang];
+        
+        let distractors = [];
+        while(distractors.length < 3) {
+            const randomHintKey = Object.keys(hints)[Math.floor(Math.random() * Object.keys(hints).length)];
+            const randomHint = hints[randomHintKey][currentLang];
+            if (randomHint !== correctAnswer && !distractors.includes(randomHint)) {
+                distractors.push(randomHint);
+            }
+        }
+        
+        const answers = [correctAnswer, ...distractors].sort(() => 0.5 - Math.random());
+
+        const modal = document.getElementById('question-modal');
+        document.getElementById('question-text').textContent = `${elementNames[questionElement.atomicNumber][currentLang]}: ${currentLang === 'ca' ? 'Quina és la seva propietat o ús?' : '¿Cuál es su propiedad o uso?'}`;
+        const answersDiv = document.getElementById('question-answers');
+        answersDiv.innerHTML = '';
+        answers.forEach(answer => {
+            const button = document.createElement('button');
+            button.textContent = answer;
+            button.onclick = () => checkAnswer(answer === correctAnswer);
+            answersDiv.appendChild(button);
+        });
+        modal.classList.add('visible');
+    }
+
+    function checkAnswer(isCorrect) {
+        totalQuestionsAsked++;
+        if (isCorrect) {
+            questionsCorrectCount++;
+        }
+        document.getElementById('questions-score-value').textContent = `${questionsCorrectCount}/${totalQuestionsAsked}`;
+        
+        document.getElementById('question-modal').classList.remove('visible');
+        currentCardIndex++;
+        showNextCard();
+    }
+
+    function generatePDFReport() {
+        const studentName = prompt(uiTexts[currentLang].student_name_prompt);
+        if (!studentName) return;
+        const studentClass = prompt(uiTexts[currentLang].student_class_prompt);
+        if (!studentClass) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(22);
+        doc.text(uiTexts[currentLang].report_title, 105, 20, { align: 'center' });
+        
+        doc.setFontSize(16);
+        doc.text(`${currentLang === 'ca' ? 'Alumne/a' : 'Alumno/a'}: ${studentName}`, 20, 40);
+        doc.text(`Curs: ${studentClass}`, 20, 50);
+        doc.text(`Data: ${new Date().toLocaleString(currentLang === 'ca' ? 'ca-ES' : 'es-ES')}`, 20, 60);
+
+        doc.setFontSize(18);
+        doc.text("Resultats", 105, 80, { align: 'center' });
+
+        doc.setFontSize(12);
+        let y = 90;
+        const results = [
+            `Elements Correctes: ${correctCount}`,
+            `Elements Incorrectes: ${errorCount}`,
+            `Preguntes d'Atenció: ${questionsCorrectCount} / ${totalQuestionsAsked}`
+        ];
+        results.forEach(line => {
+            doc.text(line, 20, y);
+            y += 10;
+        });
+
+        doc.save(`informe_${studentName.replace(/ /g, '_')}.pdf`);
+    }
+
+    document.addEventListener('DOMContentLoaded', main);
+    </script>
+</body>
+</html>
