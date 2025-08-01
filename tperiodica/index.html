@@ -10,6 +10,8 @@
         :root {
             --primary-color: #4A6BFE;
             --secondary-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
             --background-color: #f8f9fa;
             --text-color: #212529;
             --light-text-color: #6c757d;
@@ -38,70 +40,31 @@
             text-align: center;
         }
         
-        .settings-bar {
+        .header-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 15px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px var(--card-shadow);
         }
 
-        .difficulty-switcher, .lang-switcher {
+        .difficulty-switcher, .actions-container, .lang-container {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .difficulty-switcher {
-            justify-content: flex-start;
             flex-grow: 1;
         }
 
-        .top-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px var(--card-shadow);
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .score-container {
-            display: flex;
-            gap: 30px;
-            justify-content: center;
-            flex-grow: 1;
-        }
-
-        .score-item {
-            text-align: center;
-        }
-
-        .score-item .value {
-            font-size: 28px;
-            font-weight: bold;
-        }
-        
-        .score-item .label {
-            font-size: 12px;
-            color: var(--light-text-color);
-        }
-
-        .score-item .correct { color: #28a745; }
-        .score-item .errors { color: #dc3545; }
-        .score-item .questions { color: #17a2b8; }
-
-
-        .actions-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        .actions-container button, .difficulty-switcher button, .lang-switcher button {
-            padding: 12px 20px;
+        .actions-container button, .difficulty-switcher button, .lang-switcher button, #instructions-link {
+            padding: 10px 18px;
             border: 1px solid;
             border-radius: 8px;
             font-size: 14px;
@@ -109,6 +72,10 @@
             cursor: pointer;
             transition: all 0.2s ease;
             background-color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
         }
 
         #reset-button { background-color: var(--primary-color); color: white; border: none; }
@@ -117,8 +84,8 @@
         #report-button { background-color: var(--secondary-color); color: white; border: none; }
         #report-button:hover { background-color: #218838; }
 
-        .lang-switcher button { border-color: #6c757d; color: #6c757d; padding: 8px 16px; }
-        .lang-switcher button:hover { background-color: #e9ecef; }
+        .lang-switcher button, #instructions-link { border-color: #6c757d; color: #6c757d; padding: 8px 12px; }
+        .lang-switcher button:hover, #instructions-link:hover { background-color: #e9ecef; }
         .lang-switcher button.active { background-color: #6c757d; color: white; }
         
         #difficulty-basic { border-color: #4caf50; color: #4caf50; }
@@ -133,15 +100,6 @@
         #difficulty-exceptions:hover { background-color: #ffcdd2; }
         #difficulty-exceptions.active { background-color: #d32f2f; color: white; }
         
-        #explanation-button {
-            border-color: #00bcd4;
-            color: #00bcd4;
-            font-size: 1.2em;
-            padding: 6px 12px;
-            display: none;
-        }
-        #explanation-button:hover { background-color: #e0f7fa; }
-
         #periodic-table-canvas {
             background-color: #ffffff;
             border-radius: 8px;
@@ -152,8 +110,8 @@
         }
         
         #feedback-message { min-height: 24px; margin: 10px 0; font-size: 1.1em; font-weight: bold; transition: opacity 0.3s ease; }
-        #feedback-message.error { color: #f44336; }
-        #feedback-message.success { color: #4caf50; }
+        #feedback-message.error { color: var(--error-color); }
+        #feedback-message.success { color: var(--secondary-color); }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
@@ -187,8 +145,8 @@
         }
 
 
-        @media (max-width: 900px) {
-            .top-panel, .settings-bar {
+        @media (max-width: 1100px) {
+            .header-panel {
                 flex-direction: column;
                 gap: 20px;
             }
@@ -198,36 +156,26 @@
 <body>
 
     <div class="app-container">
-        <div class="settings-bar">
+        <div class="header-panel">
             <div class="difficulty-switcher">
                 <button id="difficulty-basic" class="active" data-lang-key="basic">Bàsica</button>
                 <button id="difficulty-advanced" data-lang-key="advanced">Avançada</button>
                 <button id="difficulty-exceptions" data-lang-key="exceptions">Excepcions</button>
             </div>
-            <div class="lang-switcher">
-                <button id="lang-ca" class="active">CAT</button>
-                <button id="lang-es">ESP</button>
-            </div>
-        </div>
-        <div class="top-panel">
-            <div class="score-container">
-                 <div class="score-item">
-                    <div class="value correct" id="correct-count">0</div>
-                    <div class="label" data-lang-key="correct">Encerts</div>
-                </div>
-                 <div class="score-item">
-                    <div class="value errors" id="error-count">0</div>
-                    <div class="label" data-lang-key="errors">Errors</div>
-                </div>
-                <div class="score-item">
-                    <div class="value questions" id="questions-score-value">0/0</div>
-                    <div class="label" data-lang-key="questions">Preguntes</div>
-                </div>
-            </div>
             <div class="actions-container">
-                <button id="explanation-button">💡</button>
                 <button id="reset-button" data-lang-key="reset">Reiniciar</button>
                 <button id="report-button" data-lang-key="report">Generar Informe</button>
+            </div>
+            <div class="lang-container">
+                <div class="lang-switcher">
+                    <button id="lang-ca" class="active">CAT</button>
+                    <button id="lang-es">ESP</button>
+                </div>
+                <a href="Instruccions.html" target="_blank" id="instructions-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 20px; width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </a>
             </div>
         </div>
         
@@ -395,6 +343,7 @@
             student_class_placeholder: "Curs",
             report_title: "Informe de Resultats",
             info_title: "Sabies que...?",
+            instructions_button: "Instruccions",
             explanation: "💡 Aquests elements són excepcions a la regla d'Aufbau. Per aconseguir una major estabilitat, promouen un o més electrons per tenir subnivells semiplemerts (com d⁵) o complets (com d¹⁰), ja que aquestes configuracions són energèticament més favorables.",
             error_group: (g, correctG) => `Incorrecte. Aquest element no pertany al grup ${g}. Hauria de ser el grup ${correctG}.`,
             error_period: (p, correctP) => `Incorrecte. La configuració no correspon al període ${p}. Hauria de ser el període ${correctP}.`,
@@ -408,6 +357,7 @@
             basic: "Básica", advanced: "Avanzada", exceptions: "Excepciones",
             explanation_title: "Excepciones a la Regla", close: "Cerrar",
             question_title: "¡Pregunta Rápida!", elements: "Elementos", questions: "Preguntas", report: "Generar Informe",
+            instructions_button: "Instrucciones",
             attention: "Atención", questions_correct: "Preg. Correctas", questions_errors: "Preg. Errores",
             student_info_prompt: "Introduce tus datos:",
             student_name_placeholder: "Nombre y apellidos",
@@ -501,54 +451,90 @@
     function calculateLayout() {
         const containerWidth = document.querySelector('.app-container').clientWidth;
         const isMobile = containerWidth < 700;
-        const baseCardW = 65;
-        const baseCardH = 90;
         const baseCellW = 60;
-        const baseCellH = isMobile ? 65 : 75; // Alçada de fila reduïda
         const tableFullWidth = (baseCellW * 18) + (4 * 17) + 40;
         scale = containerWidth / tableFullWidth;
+        
+        const baseCellH = isMobile ? 65 : 75;
+
         layout = {
-            isMobile: isMobile, scale: scale, cardW: baseCardW * scale, cardH: baseCardH * scale,
-            cellW: baseCellW * scale, cellH: baseCellH * scale, gap: 4 * scale, labelMargin: 30 * scale,
+            isMobile: isMobile, scale: scale, 
+            cellW: baseCellW * scale, cellH: baseCellH * scale, 
+            gap: 4 * scale, labelMargin: 30 * scale,
         };
+
+        const cardAspectRatio = layout.cellH / layout.cellW;
+        layout.cardW = isMobile ? (2.2 * 0.5) * layout.cellW : (2.5 * 0.5) * layout.cellW;
+        layout.cardH = layout.cardW * cardAspectRatio;
+        
         layout.canvasWidth = containerWidth;
+        const scoreAreaHeight = 60 * scale;
+        layout.scoreArea = { y: 0, height: scoreAreaHeight };
+        layout.tableArea = { x: layout.labelMargin, y: layout.labelMargin + scoreAreaHeight };
+        
         layout.cardArea = {
-            x: (layout.canvasWidth - 200 * scale) / 2,
-            y: 20 * scale,
-            width: 200 * scale,
-            height: 120 * scale,
-            titleY: 20 * scale + 20 * scale,
+            x: layout.tableArea.x + (2 * (layout.cellW + layout.gap)),
+            y: layout.tableArea.y + (1 * (layout.cellH + layout.gap)),
+            width: (10 * (layout.cellW + layout.gap)) - layout.gap,
+            height: (2 * (layout.cellH + layout.gap)) - layout.gap
         };
-        layout.tableArea = { x: layout.labelMargin, y: layout.cardArea.y + layout.cardArea.height + layout.labelMargin };
+
         layout.canvasHeight = layout.tableArea.y + (layout.cellH * 7 + layout.gap * 6) + 20 * scale;
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawCardArea();
         drawGridLabels();
         cells.forEach(cell => drawCell(cell));
+        drawCardArea();
         
         placedCards.forEach(card => drawCard(card));
 
         cards.forEach(card => { if (!card.isDragging) drawCard(card); });
         
         if (draggedCard && isDragging) drawCard(draggedCard, true);
+
+        drawScore();
     }
     
     function drawCardArea() {
-        ctx.fillStyle = '#f0f4ff';
-        ctx.strokeStyle = '#d9e2ff';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#e0e0e0';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.roundRect(layout.cardArea.x, layout.cardArea.y, layout.cardArea.width, layout.cardArea.height, 10 * scale);
         ctx.fill();
         ctx.stroke();
-
-        ctx.fillStyle = 'var(--primary-color)';
-        ctx.font = `bold ${12 * scale}px sans-serif`;
+    }
+    
+    function drawScore() {
+        const scoreY = layout.scoreArea.height / 1.5;
+        const scoreGap = layout.canvasWidth / 4;
+        
+        // Encerts
+        ctx.fillStyle = 'var(--secondary-color)';
+        ctx.font = `bold ${24 * scale}px sans-serif`;
         ctx.textAlign = 'center';
-        ctx.fillText(uiTexts[currentLang].cards_title, layout.cardArea.x + layout.cardArea.width / 2, layout.cardArea.titleY);
+        ctx.fillText(correctCount, scoreGap * 1, scoreY);
+        ctx.fillStyle = 'var(--light-text-color)';
+        ctx.font = `normal ${12 * scale}px sans-serif`;
+        ctx.fillText(uiTexts[currentLang].correct, scoreGap * 1, scoreY + 20 * scale);
+
+        // Errors
+        ctx.fillStyle = 'var(--error-color)';
+        ctx.font = `bold ${24 * scale}px sans-serif`;
+        ctx.fillText(errorCount, scoreGap * 2, scoreY);
+        ctx.fillStyle = 'var(--light-text-color)';
+        ctx.font = `normal ${12 * scale}px sans-serif`;
+        ctx.fillText(uiTexts[currentLang].errors, scoreGap * 2, scoreY + 20 * scale);
+
+        // Preguntes
+        ctx.fillStyle = 'var(--warning-color)';
+        ctx.font = `bold ${24 * scale}px sans-serif`;
+        ctx.fillText(`${questionsCorrectCount}/${totalQuestionsAsked}`, scoreGap * 3, scoreY);
+        ctx.fillStyle = 'var(--light-text-color)';
+        ctx.font = `normal ${12 * scale}px sans-serif`;
+        ctx.fillText(uiTexts[currentLang].questions, scoreGap * 3, scoreY + 20 * scale);
     }
     
     function drawGridLabels(){
@@ -604,35 +590,48 @@
         return { fill: '#e3f2fd', stroke: '#90caf9' };
     }
 
-    function drawSuperscriptText(ctx, text, x, y, baseFontSize, superFontSize, maxWidth) {
+    function drawConfigText(ctx, text, x, y, baseFontSize, superFontSize, smallFontSize, maxWidth) {
         const superscripts = '¹²³⁴⁵⁶⁷⁸⁹⁰';
-        let currentX = x;
-        const measureText = (txt, baseSize, superSize) => {
+        
+        const measureComplexText = (txt) => {
             let totalWidth = 0;
-            for (const char of txt) {
-                ctx.font = `normal ${superscripts.includes(char) ? superSize : baseSize}px sans-serif`;
-                totalWidth += ctx.measureText(char).width;
-            }
+            const parts = txt.split(/(\[.*?\])/g).filter(Boolean);
+            parts.forEach(part => {
+                if (part.startsWith('[') && part.endsWith(']')) {
+                    ctx.font = `normal ${smallFontSize}px sans-serif`;
+                    totalWidth += ctx.measureText(part).width;
+                } else {
+                    for (const char of part) {
+                        ctx.font = `normal ${superscripts.includes(char) ? superFontSize : baseFontSize}px sans-serif`;
+                        totalWidth += ctx.measureText(char).width;
+                    }
+                }
+            });
             return totalWidth;
         };
-        let adjustedBaseSize = baseFontSize;
-        let adjustedSuperSize = superFontSize;
-        while (measureText(text, adjustedBaseSize, adjustedSuperSize) > maxWidth && adjustedBaseSize > 8) {
-            adjustedBaseSize -= 1;
-            adjustedSuperSize -= 1;
-        }
-        const totalWidth = measureText(text, adjustedBaseSize, adjustedSuperSize);
-        currentX = x + (maxWidth - totalWidth) / 2;
-        for (const char of text) {
-            if (superscripts.includes(char)) {
-                ctx.font = `normal ${adjustedSuperSize}px sans-serif`;
-                ctx.fillText(char, currentX, y - adjustedBaseSize * 0.4); 
+
+        const totalWidth = measureComplexText(text);
+        let currentX = x + (maxWidth - totalWidth) / 2;
+
+        const parts = text.split(/(\[.*?\])/g).filter(Boolean);
+        parts.forEach(part => {
+            if (part.startsWith('[') && part.endsWith(']')) {
+                ctx.font = `normal ${smallFontSize}px sans-serif`;
+                ctx.fillText(part, currentX, y);
+                currentX += ctx.measureText(part).width;
             } else {
-                ctx.font = `normal ${adjustedBaseSize}px sans-serif`;
-                ctx.fillText(char, currentX, y);
+                for (const char of part) {
+                    if (superscripts.includes(char)) {
+                        ctx.font = `normal ${superFontSize}px sans-serif`;
+                        ctx.fillText(char, currentX, y - baseFontSize * 0.4);
+                    } else {
+                        ctx.font = `normal ${baseFontSize}px sans-serif`;
+                        ctx.fillText(char, currentX, y);
+                    }
+                    currentX += ctx.measureText(char).width;
+                }
             }
-            currentX += ctx.measureText(char).width;
-        }
+        });
     }
 
     function drawCard(card, isDragged = false) {
@@ -642,7 +641,7 @@
         } else {
             ctx.shadowColor = 'rgba(0,0,0,0.1)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
         }
-        const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#ffffff', stroke: '#dddddd' };
+        const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#eef2ff', stroke: '#c7d2fe' };
         if (card.isException) { colors.stroke = '#d32f2f'; }
         ctx.fillStyle = colors.fill;
         ctx.strokeStyle = colors.stroke;
@@ -663,46 +662,51 @@
         ctx.restore();
         
         ctx.fillStyle = '#212121';
-        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        const configParts = card.config.split(' ');
-        const line1 = configParts.length > 1 ? configParts[0] : '';
-        const line2 = configParts.length > 1 ? configParts.slice(1).join(' ') : configParts[0];
         const baseFontSize = 16 * scale;
         const superFontSize = 16 * scale;
+        const smallFontSize = 13 * scale; 
         const maxWidth = card.w * 0.9;
         
         if (card.isPlaced) {
             const name = elementNames[card.atomicNumber][currentLang];
             
-            // Calcular mida de font automàticament segons l’amplada
             let fontSize = 18 * scale;
             ctx.font = `bold ${fontSize}px sans-serif`;
             let textWidth = ctx.measureText(name).width;
 
-            // Reduir la mida si el text és massa llarg
             while (textWidth > card.w * 0.9 && fontSize > 10) {
                 fontSize -= 1;
                 ctx.font = `bold ${fontSize}px sans-serif`;
                 textWidth = ctx.measureText(name).width;
             }
-
-            // Finalment, dibuixa el nom centrat
+            ctx.textAlign = 'center';
             ctx.fillText(name, card.x + card.w / 2, card.y + card.h * 0.25);
 
-            // Dibuixa la configuració electrònica amb un millor espaiat
-            drawSuperscriptText(ctx, line1, card.x, card.y + card.h * 0.55, baseFontSize, superFontSize, maxWidth);
-            drawSuperscriptText(ctx, line2, card.x, card.y + card.h * 0.80, baseFontSize, superFontSize, maxWidth);
+            const configParts = card.config.split(' ');
+            const line1 = configParts.length > 1 ? configParts[0] : '';
+            const line2 = configParts.length > 1 ? configParts.slice(1).join(' ') : configParts[0];
+            
+            const drawAreaX = card.x + (card.w - maxWidth) / 2;
+            
+            drawConfigText(ctx, line1, drawAreaX, card.y + card.h * 0.55, baseFontSize, superFontSize, smallFontSize, maxWidth);
+            drawConfigText(ctx, line2, drawAreaX, card.y + card.h * 0.80, baseFontSize, superFontSize, smallFontSize, maxWidth);
+
         } else {
-            ctx.textAlign = 'left';
+            const configParts = card.config.split(' ');
+            const line1 = configParts.length > 1 ? configParts[0] : '';
+            const line2 = configParts.length > 1 ? configParts.slice(1).join(' ') : configParts[0];
+
             const configY1 = line1 ? card.y + card.h * 0.4 : card.y + card.h * 0.5;
             const configY2 = line1 ? card.y + card.h * 0.6 : configY1;
             
+            const drawAreaX = card.x + (card.w - maxWidth) / 2;
+
             if (line1) {
-                drawSuperscriptText(ctx, line1, card.x, configY1, baseFontSize, superFontSize, maxWidth);
+                drawConfigText(ctx, line1, drawAreaX, configY1, baseFontSize, superFontSize, smallFontSize, maxWidth);
             }
-            drawSuperscriptText(ctx, line2, card.x, configY2, baseFontSize, superFontSize, maxWidth);
+            drawConfigText(ctx, line2, drawAreaX, configY2, baseFontSize, superFontSize, smallFontSize, maxWidth);
         }
     }
     
@@ -731,7 +735,6 @@
             potentialElements = elementsData.filter(el => !el.isException);
         }
 
-        // Filtra els elements que ja s'han col·locat correctament en tota la partida
         const unplacedElements = potentialElements.filter(el => 
             !allCorrectlyPlacedElements.some(placed => placed.atomicNumber === el.atomicNumber)
         );
@@ -758,7 +761,7 @@
 
         const elData = sessionElements[currentCardIndex];
         const cardX = layout.cardArea.x + (layout.cardArea.width - layout.cardW) / 2;
-        const cardY = layout.cardArea.y + (layout.cardArea.height - layout.cardH) / 2 + 10 * scale;
+        const cardY = layout.cardArea.y + (layout.cardArea.height - layout.cardH) / 2;
         
         cards.push({
             ...elData, x: cardX, y: cardY, startX: cardX, startY: cardY,
@@ -784,8 +787,6 @@
         document.getElementById('difficulty-basic').addEventListener('click', () => setDifficulty('basic'));
         document.getElementById('difficulty-advanced').addEventListener('click', () => setDifficulty('advanced'));
         document.getElementById('difficulty-exceptions').addEventListener('click', () => setDifficulty('exceptions'));
-        document.getElementById('explanation-button').addEventListener('click', showExplanation);
-        document.getElementById('close-explanation-modal').addEventListener('click', hideExplanation);
         document.getElementById('report-button').addEventListener('click', promptForReportDetails);
         document.getElementById('close-info-modal').addEventListener('click', () => {
             document.getElementById('info-modal').classList.remove('visible');
@@ -833,7 +834,6 @@
         const isGroupCorrect = card.group === cell.group;
         if (isPeriodCorrect && isGroupCorrect) {
             card.isPlaced = true;
-            // MODIFICACIÓ: Reduir la mida de la targeta un cop col·locada per a que càpiga a la cel·la
             card.w = cell.w - (4 * scale);
             card.h = cell.h - (4 * scale);
             card.x = cell.x + (cell.w - card.w) / 2;
@@ -841,7 +841,6 @@
             
             placedCards.push(card);
             correctlyPlacedInSession.push(card);
-            // Afegeix a la llista global si no hi és
             if (!allCorrectlyPlacedElements.some(el => el.atomicNumber === card.atomicNumber)) {
                 allCorrectlyPlacedElements.push(card);
             }
@@ -864,7 +863,7 @@
             else showFeedback('error_group', [cell.group, card.group]);
         }
     }
-    function updateScore(isCorrect) { if (isCorrect) { correctCount++; document.getElementById('correct-count').textContent = correctCount; } else { errorCount++; document.getElementById('error-count').textContent = errorCount; } }
+    function updateScore(isCorrect) { if (isCorrect) { correctCount++; } else { errorCount++; } draw(); }
     function showFeedback(type, params = []) { const feedbackEl = document.getElementById('feedback-message'); const messageTemplate = uiTexts[currentLang][type]; feedbackEl.textContent = typeof messageTemplate === 'function' ? messageTemplate(...params) : messageTemplate; feedbackEl.className = type.startsWith('error') ? 'error' : 'success'; }
     function clearFeedback() { const feedbackEl = document.getElementById('feedback-message'); if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = ''; } }
     
@@ -872,10 +871,7 @@
         correctCount = 0; errorCount = 0; questionsCorrectCount = 0; totalQuestionsAsked = 0;
         placedCards = [];
         correctlyPlacedInSession = [];
-        allCorrectlyPlacedElements = []; // Neteja la llista global
-        document.getElementById('correct-count').textContent = '0';
-        document.getElementById('error-count').textContent = '0';
-        document.getElementById('questions-score-value').textContent = '0/0';
+        allCorrectlyPlacedElements = []; 
     }
 
     // --- 8. GESTIÓ D'IDIOMES, DIFICULTAT I PISTES ---
@@ -913,22 +909,10 @@
         document.getElementById('difficulty-basic').classList.toggle('active', level === 'basic');
         document.getElementById('difficulty-advanced').classList.toggle('active', level === 'advanced');
         document.getElementById('difficulty-exceptions').classList.toggle('active', level === 'exceptions');
-        document.getElementById('explanation-button').style.display = level === 'exceptions' ? 'inline-block' : 'none';
         
-        // Reinicia la sessió sense esborrar les puntuacions globals
         selectSessionElements();
         showNextCard();
         draw();
-    }
-
-    function showExplanation() {
-        const modal = document.getElementById('explanation-modal');
-        document.getElementById('explanation-text').textContent = uiTexts[currentLang].explanation;
-        modal.classList.add('visible');
-    }
-
-    function hideExplanation() {
-        document.getElementById('explanation-modal').classList.remove('visible');
     }
     
     function showInfoModal(card) {
@@ -946,11 +930,10 @@
             return;
         }
 
-        // Tria un element aleatori dels que s'han col·locat correctament en AQUESTA ronda
         const randomIndex = Math.floor(Math.random() * correctlyPlacedInSession.length);
         const randomElement = correctlyPlacedInSession[randomIndex];
 
-        if (!randomElement) { // Comprovació extra
+        if (!randomElement) { 
             showEndOfSessionOptions();
             return;
         }
@@ -988,7 +971,7 @@
         if (isCorrect) {
             questionsCorrectCount++;
         }
-        document.getElementById('questions-score-value').textContent = `${questionsCorrectCount}/${totalQuestionsAsked}`;
+        draw();
         
         document.getElementById('question-modal').classList.remove('visible');
         showEndOfSessionOptions();
