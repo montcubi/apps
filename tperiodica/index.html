@@ -1,89 +1,126 @@
-
 <!DOCTYPE html>
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taula Periòdica Interactiva (Canvas)</title>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Estils generals del cos de la pàgina */
+        :root {
+            --primary-color: #4A6BFE;
+            --secondary-color: #28a745;
+            --background-color: #f8f9fa;
+            --text-color: #212529;
+            --light-text-color: #6c757d;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0, 0, 0, 0.05);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f4f8;
-            color: #212121;
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            -webkit-user-select: none; /* Evita la selecció de text */
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
 
-        /* Contenidor principal de l'aplicació */
         .app-container {
             width: 100%;
             max-width: 1200px;
-            padding: 10px;
-            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        .settings-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .difficulty-switcher, .lang-switcher {
+            display: flex;
+            gap: 10px;
+        }
+
+        .difficulty-switcher {
+            justify-content: flex-start;
+            flex-grow: 1;
+        }
+
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--card-shadow);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .score-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .score-item {
             text-align: center;
         }
 
-        header {
-            margin-bottom: 10px;
-            position: relative; /* Context de posicionament per al selector d'idioma */
-            padding-top: 10px;
+        .score-item .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .score-item .label {
+            font-size: 12px;
+            color: var(--light-text-color);
         }
 
-        h1 {
-            color: #1976d2;
-            margin: 0 0 10px 0;
-        }
+        .score-item .correct { color: #28a745; }
+        .score-item .errors { color: #dc3545; }
+        .score-item .questions { color: #17a2b8; }
 
-        /* Controls: botons d'idioma, puntuació i reinici */
-        .controls {
+
+        .actions-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-        
-        /* Posicionament del selector d'idioma a la cantonada */
-        .lang-switcher {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+            gap: 10px;
         }
 
-        .lang-switcher button, #reset-button, .difficulty-switcher button, #explanation-button {
-            padding: 8px 16px;
+        .actions-container button, .difficulty-switcher button, .lang-switcher button {
+            padding: 12px 20px;
             border: 1px solid;
-            background-color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 5px;
             transition: all 0.2s ease;
-            font-size: 1em;
+            background-color: white;
         }
 
-        #reset-button {
-            border-color: #1976d2;
-            color: #1976d2;
-        }
-        #reset-button:hover {
-             background-color: #e3f2fd;
-        }
+        #reset-button { background-color: var(--primary-color); color: white; border: none; }
+        #reset-button:hover { background-color: #3a58d4; }
 
-        .lang-switcher button { border-color: #1976d2; color: #1976d2; }
-        .lang-switcher button:hover { background-color: #e3f2fd; }
-        .lang-switcher button.active { background-color: #1976d2; color: white; }
+        #report-button { background-color: var(--secondary-color); color: white; border: none; }
+        #report-button:hover { background-color: #218838; }
+
+        .lang-switcher button { border-color: #6c757d; color: #6c757d; padding: 8px 16px; }
+        .lang-switcher button:hover { background-color: #e9ecef; }
+        .lang-switcher button.active { background-color: #6c757d; color: white; }
         
-        /* Colors per als botons de dificultat */
         #difficulty-basic { border-color: #4caf50; color: #4caf50; }
         #difficulty-basic:hover { background-color: #e8f5e9; }
         #difficulty-basic.active { background-color: #4caf50; color: white; }
@@ -95,118 +132,105 @@
         #difficulty-exceptions { border-color: #d32f2f; color: #d32f2f; }
         #difficulty-exceptions:hover { background-color: #ffcdd2; }
         #difficulty-exceptions.active { background-color: #d32f2f; color: white; }
-
+        
         #explanation-button {
             border-color: #00bcd4;
             color: #00bcd4;
             font-size: 1.2em;
             padding: 6px 12px;
-            display: none; /* Ocult per defecte */
+            display: none;
         }
-        #explanation-button:hover {
-            background-color: #e0f7fa;
-        }
+        #explanation-button:hover { background-color: #e0f7fa; }
 
-        .score { font-size: 1.1em; font-weight: bold; }
-
-        /* Missatges de feedback (Correcte/Error) */
-        #feedback-message {
-            min-height: 24px;
-            margin: 10px 0;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: opacity 0.3s ease;
-        }
-        #feedback-message.error { color: #f44336; }
-        #feedback-message.success { color: #4caf50; }
-        
-        /* Estil del Canvas */
         #periodic-table-canvas {
             background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             cursor: default;
             touch-action: none;
             max-width: 100%;
         }
+        
+        #feedback-message { min-height: 24px; margin: 10px 0; font-size: 1.1em; font-weight: bold; transition: opacity 0.3s ease; }
+        #feedback-message.error { color: #f44336; }
+        #feedback-message.success { color: #4caf50; }
 
-        /* Estils per al Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { margin-top: 0; color: #00bcd4; }
+        .modal-content button { margin-top: 20px; padding: 10px 20px; border: 1px solid #00bcd4; background-color: #00bcd4; color: white; border-radius: 5px; cursor: pointer; }
+        #question-modal .answers button, .end-session-options button, #report-modal button { 
+            display: block;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            margin: 10px 0 !important;
+            background-color: #f0f4f8 !important;
+            color: #333 !important;
+            border: 1px solid #ccc !important;
         }
-        .modal-overlay.visible {
-            opacity: 1;
-            visibility: visible;
+        #question-modal .answers button:hover, .end-session-options button:hover, #report-modal button:hover {
+            background-color: #e3f2fd !important;
         }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-        .modal-overlay.visible .modal-content {
-            transform: scale(1);
-        }
-        .modal-content h2 {
-            margin-top: 0;
-            color: #00bcd4;
-        }
-        .modal-content button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            border: 1px solid #00bcd4;
-            background-color: #00bcd4;
-            color: white;
+        #report-modal input {
+            display: block;
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            cursor: pointer;
+        }
+        #cancel-report-button {
+            background-color: #f44336 !important;
+            color: white !important;
+            border-color: #f44336 !important;
+        }
+
+
+        @media (max-width: 900px) {
+            .top-panel, .settings-bar {
+                flex-direction: column;
+                gap: 20px;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <header>
+        <div class="settings-bar">
+            <div class="difficulty-switcher">
+                <button id="difficulty-basic" class="active" data-lang-key="basic">Bàsica</button>
+                <button id="difficulty-advanced" data-lang-key="advanced">Avançada</button>
+                <button id="difficulty-exceptions" data-lang-key="exceptions">Excepcions</button>
+            </div>
             <div class="lang-switcher">
                 <button id="lang-ca" class="active">CAT</button>
                 <button id="lang-es">ESP</button>
             </div>
-            <h1>
-                <span data-lang-key="title">Taula Periòdica Interactiva</span>
-            </h1>
-            <p data-lang-key="instructions">
-                Arrossega cada element a la seva posició correcta a la taula periòdica basant-te en la seva configuració electrònica.
-            </p>
-            <div class="controls">
-                <div class="difficulty-switcher">
-                    <button id="difficulty-basic" class="active" data-lang-key="basic">Bàsica</button>
-                    <button id="difficulty-advanced" data-lang-key="advanced">Avançada</button>
-                    <button id="difficulty-exceptions" data-lang-key="exceptions">Excepcions</button>
+        </div>
+        <div class="top-panel">
+            <div class="score-container">
+                 <div class="score-item">
+                    <div class="value correct" id="correct-count">0</div>
+                    <div class="label" data-lang-key="correct">Encerts</div>
                 </div>
-                <div class="score">
-                    <span data-lang-key="correct">Encerts</span>: <span id="correct-count">0</span> | 
-                    <span data-lang-key="errors">Errors</span>: <span id="error-count">0</span>
+                 <div class="score-item">
+                    <div class="value errors" id="error-count">0</div>
+                    <div class="label" data-lang-key="errors">Errors</div>
                 </div>
+                <div class="score-item">
+                    <div class="value questions" id="questions-score-value">0/0</div>
+                    <div class="label" data-lang-key="questions">Preguntes</div>
+                </div>
+            </div>
+            <div class="actions-container">
                 <button id="explanation-button">💡</button>
                 <button id="reset-button" data-lang-key="reset">Reiniciar</button>
+                <button id="report-button" data-lang-key="report">Generar Informe</button>
             </div>
-        </header>
-
+        </div>
+        
         <div id="feedback-message" aria-live="polite"></div>
 
         <canvas id="periodic-table-canvas"></canvas>
@@ -217,6 +241,33 @@
             <h2 data-lang-key="explanation_title">Excepcions a la Regla</h2>
             <p id="explanation-text"></p>
             <button id="close-explanation-modal" data-lang-key="close">Tancar</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="question-modal">
+        <div class="modal-content">
+            <h2 data-lang-key="question_title">Pregunta Ràpida!</h2>
+            <p id="question-text"></p>
+            <div class="answers" id="question-answers"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="info-modal">
+        <div class="modal-content">
+            <h2 id="info-title"></h2>
+            <div id="info-text"></div>
+            <button id="close-info-modal" data-lang-key="close">Tancar</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal-content">
+            <h2 data-lang-key="report_title">Informe de Resultats</h2>
+            <p data-lang-key="student_info_prompt">Introdueix les teves dades:</p>
+            <input type="text" id="student-name" data-lang-placeholder="student_name_placeholder">
+            <input type="text" id="student-class" data-lang-placeholder="student_class_placeholder">
+            <button id="generate-pdf-button" data-lang-key="report">Generar Informe</button>
+            <button id="cancel-report-button" data-lang-key="close">Tancar</button>
         </div>
     </div>
 
@@ -333,10 +384,17 @@
         ca: {
             title: "Taula Periòdica Interactiva",
             instructions: "Arrossega cada element a la seva posició correcta a la taula periòdica basant-te en la seva configuració electrònica.",
-            cards_title: "Elements per Col·locar", table_title: "Taula Periòdica",
+            cards_title: "Element per Col·locar", table_title: "Taula Periòdica",
             correct: "Encerts", errors: "Errors", reset: "Reiniciar", success: "Correcte! Ben fet!",
             basic: "Bàsica", advanced: "Avançada", exceptions: "Excepcions",
             explanation_title: "Excepcions a la Regla", close: "Tancar",
+            question_title: "Pregunta Ràpida!", elements: "Elements", questions: "Preguntes", report: "Generar Informe",
+            attention: "Atenció", questions_correct: "Preg. Correctes", questions_errors: "Preg. Errores",
+            student_info_prompt: "Introdueix les teves dades:",
+            student_name_placeholder: "Nom i cognoms",
+            student_class_placeholder: "Curs",
+            report_title: "Informe de Resultats",
+            info_title: "Sabies que...?",
             explanation: "💡 Aquests elements són excepcions a la regla d'Aufbau. Per aconseguir una major estabilitat, promouen un o més electrons per tenir subnivells semiplemerts (com d⁵) o complets (com d¹⁰), ja que aquestes configuracions són energèticament més favorables.",
             error_group: (g, correctG) => `Incorrecte. Aquest element no pertany al grup ${g}. Hauria de ser el grup ${correctG}.`,
             error_period: (p, correctP) => `Incorrecte. La configuració no correspon al període ${p}. Hauria de ser el període ${correctP}.`,
@@ -345,10 +403,17 @@
         es: {
             title: "Tabla Periódica Interactiva",
             instructions: "Arrastra cada elemento a su posición correcta en la tabla periódica basándote en su configuración electrónica.",
-            cards_title: "Elementos para Colocar", table_title: "Tabla Periódica",
+            cards_title: "Elemento para Colocar", table_title: "Tabla Periódica",
             correct: "Aciertos", errors: "Errores", reset: "Reiniciar", success: "¡Correcto! ¡Bien hecho!",
             basic: "Básica", advanced: "Avanzada", exceptions: "Excepciones",
             explanation_title: "Excepciones a la Regla", close: "Cerrar",
+            question_title: "¡Pregunta Rápida!", elements: "Elementos", questions: "Preguntas", report: "Generar Informe",
+            attention: "Atención", questions_correct: "Preg. Correctas", questions_errors: "Preg. Errores",
+            student_info_prompt: "Introduce tus datos:",
+            student_name_placeholder: "Nombre y apellidos",
+            student_class_placeholder: "Curso",
+            report_title: "Informe de Resultados",
+            info_title: "¿Sabías que...?",
             explanation: "💡 Estos elementos son excepciones a la regla de Aufbau. Para conseguir una mayor estabilidad, promueven uno o más electrones para tener subniveles semilleros (como d⁵) o completos (como d¹⁰), ya que estas configuraciones son energéticamente más favorables.",
             error_group: (g, correctG) => `Incorrecto. Este elemento no pertenece al grupo ${g}. Debería ser el grupo ${correctG}.`,
             error_period: (p, correctP) => `Incorrecto. La configuración no corresponde al periodo ${p}. Debería ser el periodo ${correctP}.`,
@@ -360,6 +425,8 @@
     let currentDifficulty = 'basic';
     let correctCount = 0;
     let errorCount = 0;
+    let questionsCorrectCount = 0;
+    let totalQuestionsAsked = 0;
     
     const canvas = document.getElementById('periodic-table-canvas');
     const ctx = canvas.getContext('2d');
@@ -372,26 +439,35 @@
     let offsetX = 0;
     let offsetY = 0;
     let isDragging = false;
-    let activeTooltip = null;
+    let currentCardIndex = 0;
+    let sessionElements = [];
+    let correctlyPlacedInSession = [];
+    let placedCards = [];
+    let allCorrectlyPlacedElements = []; // Acumula tots els elements correctes
     
     // --- 2. INICIALITZACIÓ I CICLE DEL JOC ---
 
     function main() {
-        detectAndSetInitialLanguage();
         addEventListeners();
-        setupGame();
-        window.addEventListener('resize', setupGame);
+        setupGame(true); 
+        detectAndSetInitialLanguage(); 
+        window.addEventListener('resize', () => setupGame(false));
     }
 
-    function setupGame() {
+    function setupGame(isFullReset = false) {
         calculateLayout();
         canvas.width = layout.canvasWidth;
         canvas.height = layout.canvasHeight;
         scale = layout.scale;
-        resetScores();
+        if (isFullReset) {
+            resetScores();
+        }
         clearFeedback();
         generateCells();
-        generateRandomCards();
+        
+        selectSessionElements();
+        showNextCard();
+        
         updateLanguageText();
         draw();
     }
@@ -428,7 +504,7 @@
         const baseCardW = 65;
         const baseCardH = 90;
         const baseCellW = 60;
-        const baseCellH = 95;
+        const baseCellH = isMobile ? 65 : 75; // Alçada de fila reduïda
         const tableFullWidth = (baseCellW * 18) + (4 * 17) + 40;
         scale = containerWidth / tableFullWidth;
         layout = {
@@ -436,27 +512,43 @@
             cellW: baseCellW * scale, cellH: baseCellH * scale, gap: 4 * scale, labelMargin: 30 * scale,
         };
         layout.canvasWidth = containerWidth;
-        const cardAreaRows = isMobile ? 2 : 1;
-        layout.cardArea = { y: 40 * scale, h: (layout.cardH + 15 * scale) * cardAreaRows, titleY: 25 * scale };
-        layout.tableArea = { x: layout.labelMargin, y: layout.cardArea.y + layout.cardArea.h + layout.labelMargin + 20 * scale };
+        layout.cardArea = {
+            x: (layout.canvasWidth - 200 * scale) / 2,
+            y: 20 * scale,
+            width: 200 * scale,
+            height: 120 * scale,
+            titleY: 20 * scale + 20 * scale,
+        };
+        layout.tableArea = { x: layout.labelMargin, y: layout.cardArea.y + layout.cardArea.height + layout.labelMargin };
         layout.canvasHeight = layout.tableArea.y + (layout.cellH * 7 + layout.gap * 6) + 20 * scale;
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawTitles();
+        drawCardArea();
         drawGridLabels();
         cells.forEach(cell => drawCell(cell));
-        cards.forEach(card => { if (!card.isDragging) drawCard(card); });
-        if (draggedCard && isDragging) drawCard(draggedCard, true);
-        if (activeTooltip) drawTooltip();
-    }
+        
+        placedCards.forEach(card => drawCard(card));
 
-    function drawTitles() {
-        ctx.fillStyle = '#333';
-        ctx.font = `bold ${16 * scale}px sans-serif`;
+        cards.forEach(card => { if (!card.isDragging) drawCard(card); });
+        
+        if (draggedCard && isDragging) drawCard(draggedCard, true);
+    }
+    
+    function drawCardArea() {
+        ctx.fillStyle = '#f0f4ff';
+        ctx.strokeStyle = '#d9e2ff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(layout.cardArea.x, layout.cardArea.y, layout.cardArea.width, layout.cardArea.height, 10 * scale);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = 'var(--primary-color)';
+        ctx.font = `bold ${12 * scale}px sans-serif`;
         ctx.textAlign = 'center';
-        ctx.fillText(uiTexts[currentLang].cards_title, canvas.width / 2, layout.cardArea.titleY);
+        ctx.fillText(uiTexts[currentLang].cards_title, layout.cardArea.x + layout.cardArea.width / 2, layout.cardArea.titleY);
     }
     
     function drawGridLabels(){
@@ -550,7 +642,7 @@
         } else {
             ctx.shadowColor = 'rgba(0,0,0,0.1)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
         }
-        const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#e3f2fd', stroke: '#90caf9' };
+        const colors = card.isPlaced ? getElementColor(card.group, card.atomicNumber) : { fill: '#ffffff', stroke: '#dddddd' };
         if (card.isException) { colors.stroke = '#d32f2f'; }
         ctx.fillStyle = colors.fill;
         ctx.strokeStyle = colors.stroke;
@@ -569,85 +661,49 @@
         ctx.fill();
         ctx.stroke();
         ctx.restore();
+        
         ctx.fillStyle = '#212121';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = `bold ${14 * scale}px sans-serif`;
-        if (card.isPlaced) {
-            const name = elementNames[card.atomicNumber][currentLang];
-            ctx.fillText(name, card.x + card.w / 2, card.y + card.h * 0.25);
-        } else {
-            ctx.fillText('???', card.x + card.w / 2, card.y + card.h * 0.25);
-        }
+
         const configParts = card.config.split(' ');
         const line1 = configParts.length > 1 ? configParts[0] : '';
         const line2 = configParts.length > 1 ? configParts.slice(1).join(' ') : configParts[0];
-        ctx.textAlign = 'left';
-        const baseFontSize = 15 * scale;
+        const baseFontSize = 16 * scale;
         const superFontSize = 16 * scale;
         const maxWidth = card.w * 0.9;
-        if (line1) {
-            drawSuperscriptText(ctx, line1, card.x, card.y + card.h * 0.58, baseFontSize, superFontSize, maxWidth);
-        }
-        drawSuperscriptText(ctx, line2, card.x, card.y + card.h * 0.83, baseFontSize, superFontSize, maxWidth);
-    }
+        
+        if (card.isPlaced) {
+            const name = elementNames[card.atomicNumber][currentLang];
+            
+            // Calcular mida de font automàticament segons l’amplada
+            let fontSize = 18 * scale;
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            let textWidth = ctx.measureText(name).width;
 
-    function drawTooltip() {
-        if (!activeTooltip) return;
-        const card = activeTooltip.card;
-        const text = activeTooltip.text;
-        const fontSize = 14 * scale;
-        ctx.font = `normal ${fontSize}px sans-serif`;
-
-        const lines = [];
-        const maxWidth = 180 * scale;
-        let currentLine = '';
-        const words = text.split(' ');
-        for(const word of words) {
-            const testLine = currentLine + word + ' ';
-            if(ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
-                lines.push(currentLine.trim());
-                currentLine = word + ' ';
-            } else {
-                currentLine = testLine;
+            // Reduir la mida si el text és massa llarg
+            while (textWidth > card.w * 0.9 && fontSize > 10) {
+                fontSize -= 1;
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                textWidth = ctx.measureText(name).width;
             }
+
+            // Finalment, dibuixa el nom centrat
+            ctx.fillText(name, card.x + card.w / 2, card.y + card.h * 0.25);
+
+            // Dibuixa la configuració electrònica amb un millor espaiat
+            drawSuperscriptText(ctx, line1, card.x, card.y + card.h * 0.55, baseFontSize, superFontSize, maxWidth);
+            drawSuperscriptText(ctx, line2, card.x, card.y + card.h * 0.80, baseFontSize, superFontSize, maxWidth);
+        } else {
+            ctx.textAlign = 'left';
+            const configY1 = line1 ? card.y + card.h * 0.4 : card.y + card.h * 0.5;
+            const configY2 = line1 ? card.y + card.h * 0.6 : configY1;
+            
+            if (line1) {
+                drawSuperscriptText(ctx, line1, card.x, configY1, baseFontSize, superFontSize, maxWidth);
+            }
+            drawSuperscriptText(ctx, line2, card.x, configY2, baseFontSize, superFontSize, maxWidth);
         }
-        lines.push(currentLine.trim());
-
-        const padding = 10 * scale;
-        const boxWidth = maxWidth + padding * 2;
-        const boxHeight = lines.length * fontSize * 1.2 + padding * 2;
-        const pointerSize = 10 * scale;
-
-        let boxX = card.x + card.w / 2 - boxWidth / 2;
-        let boxY = card.y - boxHeight - pointerSize;
-        if (boxY < 0) { boxY = card.y + card.h + pointerSize; }
-        if (boxX < 0) { boxX = 0; }
-        if (boxX + boxWidth > canvas.width) { boxX = canvas.width - boxWidth; }
-
-        ctx.fillStyle = '#333';
-        ctx.strokeStyle = '#222';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(boxX, boxY);
-        ctx.lineTo(boxX + boxWidth, boxY);
-        ctx.lineTo(boxX + boxWidth, boxY + boxHeight);
-        if (boxY < card.y) {
-            ctx.lineTo(card.x + card.w / 2 + pointerSize, boxY + boxHeight);
-            ctx.lineTo(card.x + card.w / 2, boxY + boxHeight + pointerSize);
-            ctx.lineTo(card.x + card.w / 2 - pointerSize, boxY + boxHeight);
-        }
-        ctx.lineTo(boxX, boxY + boxHeight);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        lines.forEach((line, i) => {
-            ctx.fillText(line, boxX + padding, boxY + padding + i * fontSize * 1.2);
-        });
     }
     
     // --- 4. GENERACIÓ D'OBJECTES DEL JOC ---
@@ -665,32 +721,52 @@
         }
     }
 
-    function generateRandomCards() {
-        cards = [];
-        let availableElements;
+    function selectSessionElements() {
+        let potentialElements;
         if (currentDifficulty === 'basic') {
-            availableElements = elementsData.filter(el => (el.group <= 2 || el.group >= 13) && !el.isException);
+            potentialElements = elementsData.filter(el => (el.group <= 2 || el.group >= 13) && !el.isException);
         } else if (currentDifficulty === 'exceptions') {
-            availableElements = elementsData.filter(el => el.isException);
+            potentialElements = elementsData.filter(el => el.isException);
         } else { // advanced
-            availableElements = elementsData.filter(el => !el.isException);
+            potentialElements = elementsData.filter(el => !el.isException);
         }
-        const shuffled = [...availableElements].sort(() => 0.5 - Math.random());
-        const selected = shuffled.slice(0, 10);
-        const cardsPerRow = layout.isMobile ? 5 : 10;
-        const totalCardsWidth = cardsPerRow * (layout.cardW + 10 * scale) - (10 * scale);
-        const startX = (canvas.width - totalCardsWidth) / 2;
-        selected.forEach((elData, i) => {
-            const row = Math.floor(i / cardsPerRow);
-            const col = i % cardsPerRow;
-            const cardX = startX + col * (layout.cardW + 10 * scale);
-            const cardY = layout.cardArea.y + row * (layout.cardH + 15 * scale);
-            cards.push({
-                ...elData, x: cardX, y: cardY, startX: cardX, startY: cardY,
-                w: layout.cardW, h: layout.cardH,
-                isDragging: false, isPlaced: false, isReturning: false,
-            });
+
+        // Filtra els elements que ja s'han col·locat correctament en tota la partida
+        const unplacedElements = potentialElements.filter(el => 
+            !allCorrectlyPlacedElements.some(placed => placed.atomicNumber === el.atomicNumber)
+        );
+
+        const shuffled = [...unplacedElements].sort(() => 0.5 - Math.random());
+        
+        sessionElements = shuffled.slice(0, 5);
+        currentCardIndex = 0;
+        correctlyPlacedInSession = []; 
+        placedCards = [...allCorrectlyPlacedElements]; 
+    }
+
+    function showNextCard() {
+        cards = [];
+
+        if (currentCardIndex >= sessionElements.length) {
+            if (correctlyPlacedInSession.length > 0) {
+                 showAttentionQuestion();
+            } else { 
+                 showEndOfSessionOptions();
+            }
+            return;
+        }
+
+        const elData = sessionElements[currentCardIndex];
+        const cardX = layout.cardArea.x + (layout.cardArea.width - layout.cardW) / 2;
+        const cardY = layout.cardArea.y + (layout.cardArea.height - layout.cardH) / 2 + 10 * scale;
+        
+        cards.push({
+            ...elData, x: cardX, y: cardY, startX: cardX, startY: cardY,
+            w: layout.cardW, h: layout.cardH,
+            isDragging: false, isPlaced: false, isReturning: false,
         });
+        
+        draw();
     }
 
     // --- 5. GESTIÓ D'ESDEVENIMENTS D'INTERACCIÓ ---
@@ -704,33 +780,43 @@
         canvas.addEventListener('touchend', onTouchEnd);
         document.getElementById('lang-ca').addEventListener('click', () => setLanguage('ca'));
         document.getElementById('lang-es').addEventListener('click', () => setLanguage('es'));
-        document.getElementById('reset-button').addEventListener('click', setupGame);
+        document.getElementById('reset-button').addEventListener('click', () => setupGame(true));
         document.getElementById('difficulty-basic').addEventListener('click', () => setDifficulty('basic'));
         document.getElementById('difficulty-advanced').addEventListener('click', () => setDifficulty('advanced'));
         document.getElementById('difficulty-exceptions').addEventListener('click', () => setDifficulty('exceptions'));
         document.getElementById('explanation-button').addEventListener('click', showExplanation);
         document.getElementById('close-explanation-modal').addEventListener('click', hideExplanation);
+        document.getElementById('report-button').addEventListener('click', promptForReportDetails);
+        document.getElementById('close-info-modal').addEventListener('click', () => {
+            document.getElementById('info-modal').classList.remove('visible');
+            currentCardIndex++;
+            showNextCard();
+        });
+        document.getElementById('generate-pdf-button').addEventListener('click', () => {
+            const studentName = document.getElementById('student-name').value;
+            const studentClass = document.getElementById('student-class').value;
+            if (studentName && studentClass) {
+                document.getElementById('report-modal').classList.remove('visible');
+                createPDF(studentName, studentClass);
+            } else {
+                alert(currentLang === 'ca' ? 'Si us plau, omple tots els camps.' : 'Por favor, rellena todos los campos.');
+            }
+        });
+        document.getElementById('cancel-report-button').addEventListener('click', () => {
+            document.getElementById('report-modal').classList.remove('visible');
+        });
     }
     function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }
     function getTouchPos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.touches[0].clientX - rect.left, y: evt.touches[0].clientY - rect.top }; }
     function isPointInRect(point, rect) { return point.x > rect.x && point.x < rect.x + rect.w && point.y > rect.y && point.y < rect.y + rect.h; }
     
     function onMouseDown(e) { 
-        const pos = getMousePos(e);
-        if (activeTooltip) {
-            activeTooltip = null;
-            draw();
-        }
-        startDrag(pos); 
+        startDrag(getMousePos(e)); 
     }
     function onMouseMove(e) { const pos = getMousePos(e); drag(pos); let onCard = false; for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; if (!card.isPlaced && isPointInRect(pos, card)) { onCard = true; break; } } canvas.style.cursor = onCard ? 'grab' : 'default'; }
     function onMouseUp(e) { endDrag(); }
     function onTouchStart(e) { 
         e.preventDefault(); 
-        if (activeTooltip) {
-            activeTooltip = null;
-            draw();
-        }
         if (e.touches.length === 1) startDrag(getTouchPos(e)); 
     }
     function onTouchMove(e) { e.preventDefault(); if (e.touches.length === 1) drag(getTouchPos(e)); }
@@ -747,12 +833,27 @@
         const isGroupCorrect = card.group === cell.group;
         if (isPeriodCorrect && isGroupCorrect) {
             card.isPlaced = true;
+            // MODIFICACIÓ: Reduir la mida de la targeta un cop col·locada per a que càpiga a la cel·la
+            card.w = cell.w - (4 * scale);
+            card.h = cell.h - (4 * scale);
             card.x = cell.x + (cell.w - card.w) / 2;
             card.y = cell.y + (cell.h - card.h) / 2;
+            
+            placedCards.push(card);
+            correctlyPlacedInSession.push(card);
+            // Afegeix a la llista global si no hi és
+            if (!allCorrectlyPlacedElements.some(el => el.atomicNumber === card.atomicNumber)) {
+                allCorrectlyPlacedElements.push(card);
+            }
+
             updateScore(true);
             showFeedback('success');
+            
             if(hints[card.atomicNumber]) {
-                activeTooltip = { card: card, text: hints[card.atomicNumber][currentLang] };
+                showInfoModal(card);
+            } else {
+                currentCardIndex++;
+                showNextCard();
             }
         } else {
             card.isReturning = true;
@@ -765,29 +866,47 @@
     }
     function updateScore(isCorrect) { if (isCorrect) { correctCount++; document.getElementById('correct-count').textContent = correctCount; } else { errorCount++; document.getElementById('error-count').textContent = errorCount; } }
     function showFeedback(type, params = []) { const feedbackEl = document.getElementById('feedback-message'); const messageTemplate = uiTexts[currentLang][type]; feedbackEl.textContent = typeof messageTemplate === 'function' ? messageTemplate(...params) : messageTemplate; feedbackEl.className = type.startsWith('error') ? 'error' : 'success'; }
-    function clearFeedback() { const feedbackEl = document.getElementById('feedback-message'); feedbackEl.textContent = ''; feedbackEl.className = ''; }
-    function resetScores() { correctCount = 0; errorCount = 0; document.getElementById('correct-count').textContent = '0'; document.getElementById('error-count').textContent = '0'; }
+    function clearFeedback() { const feedbackEl = document.getElementById('feedback-message'); if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = ''; } }
+    
+    function resetScores() {
+        correctCount = 0; errorCount = 0; questionsCorrectCount = 0; totalQuestionsAsked = 0;
+        placedCards = [];
+        correctlyPlacedInSession = [];
+        allCorrectlyPlacedElements = []; // Neteja la llista global
+        document.getElementById('correct-count').textContent = '0';
+        document.getElementById('error-count').textContent = '0';
+        document.getElementById('questions-score-value').textContent = '0/0';
+    }
 
     // --- 8. GESTIÓ D'IDIOMES, DIFICULTAT I PISTES ---
     function detectAndSetInitialLanguage() {
         const browserLang = navigator.language || navigator.userLanguage;
         const lang = browserLang.startsWith('es') ? 'es' : 'ca';
-        currentLang = lang;
-        document.documentElement.lang = currentLang;
-        document.getElementById('lang-ca').classList.toggle('active', currentLang === 'ca');
-        document.getElementById('lang-es').classList.toggle('active', currentLang === 'es');
+        setLanguage(lang, true);
     }
 
-    function setLanguage(lang) { 
-        if (currentLang === lang) return;
+    function setLanguage(lang, isInitial = false) { 
+        if (!isInitial && currentLang === lang) return;
         currentLang = lang; 
         document.documentElement.lang = lang; 
         document.getElementById('lang-ca').classList.toggle('active', lang === 'ca'); 
         document.getElementById('lang-es').classList.toggle('active', lang === 'es'); 
         updateLanguageText(); 
-        draw(); 
+        if (!isInitial) {
+            draw(); 
+        }
     }
-    function updateLanguageText() { const texts = uiTexts[currentLang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (texts[key]) el.textContent = texts[key]; }); }
+    function updateLanguageText() { 
+        const texts = uiTexts[currentLang]; 
+        document.querySelectorAll('[data-lang-key]').forEach(el => { 
+            const key = el.dataset.langKey; 
+            if (texts[key]) el.textContent = texts[key]; 
+        }); 
+        document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+            const key = el.dataset.langPlaceholder;
+            if(texts[key]) el.placeholder = texts[key];
+        });
+    }
 
     function setDifficulty(level) {
         currentDifficulty = level;
@@ -795,7 +914,11 @@
         document.getElementById('difficulty-advanced').classList.toggle('active', level === 'advanced');
         document.getElementById('difficulty-exceptions').classList.toggle('active', level === 'exceptions');
         document.getElementById('explanation-button').style.display = level === 'exceptions' ? 'inline-block' : 'none';
-        setupGame();
+        
+        // Reinicia la sessió sense esborrar les puntuacions globals
+        selectSessionElements();
+        showNextCard();
+        draw();
     }
 
     function showExplanation() {
@@ -807,8 +930,217 @@
     function hideExplanation() {
         document.getElementById('explanation-modal').classList.remove('visible');
     }
+    
+    function showInfoModal(card) {
+        const modal = document.getElementById('info-modal');
+        document.getElementById('info-title').textContent = uiTexts[currentLang].info_title;
+        document.getElementById('info-text').innerHTML = `<p>${hints[card.atomicNumber][currentLang]}</p>`;
+        document.getElementById('close-info-modal').style.display = 'block';
+        modal.classList.add('visible');
+    }
+    
+    // --- 9. PREGUNTES D'ATENCIÓ, INFORMES I FINAL DE SESSIÓ ---
+    function showAttentionQuestion() {
+        if (correctlyPlacedInSession.length === 0) {
+            showEndOfSessionOptions();
+            return;
+        }
 
-    main();
+        // Tria un element aleatori dels que s'han col·locat correctament en AQUESTA ronda
+        const randomIndex = Math.floor(Math.random() * correctlyPlacedInSession.length);
+        const randomElement = correctlyPlacedInSession[randomIndex];
+
+        if (!randomElement) { // Comprovació extra
+            showEndOfSessionOptions();
+            return;
+        }
+
+        const correctAnswer = hints[randomElement.atomicNumber][currentLang];
+        let distractors = [];
+        const hintKeys = Object.keys(hints);
+        while(distractors.length < 3) {
+            const randomHintKey = hintKeys[Math.floor(Math.random() * hintKeys.length)];
+            if (randomHintKey != randomElement.atomicNumber) {
+                const randomHint = hints[randomHintKey][currentLang];
+                if (!distractors.includes(randomHint)) {
+                    distractors.push(randomHint);
+                }
+            }
+        }
+        
+        const answers = [correctAnswer, ...distractors].sort(() => 0.5 - Math.random());
+
+        const modal = document.getElementById('question-modal');
+        document.getElementById('question-text').textContent = `${elementNames[randomElement.atomicNumber][currentLang]}: ${currentLang === 'ca' ? 'Quina és la seva propietat o ús?' : '¿Cuál es su propiedad o uso?'}`;
+        const answersDiv = document.getElementById('question-answers');
+        answersDiv.innerHTML = '';
+        answers.forEach(answer => {
+            const button = document.createElement('button');
+            button.textContent = answer;
+            button.onclick = () => checkAnswer(answer === correctAnswer);
+            answersDiv.appendChild(button);
+        });
+        modal.classList.add('visible');
+    }
+
+    function checkAnswer(isCorrect) {
+        totalQuestionsAsked++;
+        if (isCorrect) {
+            questionsCorrectCount++;
+        }
+        document.getElementById('questions-score-value').textContent = `${questionsCorrectCount}/${totalQuestionsAsked}`;
+        
+        document.getElementById('question-modal').classList.remove('visible');
+        showEndOfSessionOptions();
+    }
+
+    function promptForReportDetails() {
+        document.getElementById('info-modal').classList.remove('visible');
+        document.getElementById('report-modal').classList.add('visible');
+    }
+
+    function createPDF(studentName, studentClass) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // --- Títol i dades de l'alumne ---
+        doc.setFontSize(22);
+        doc.text(uiTexts[currentLang].report_title, 105, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.text(`${currentLang === 'ca' ? 'Alumne/a' : 'Alumno/a'}: ${studentName}`, 20, 40);
+        doc.text(`${currentLang === 'ca' ? 'Curs' : 'Curso'}: ${studentClass}`, 20, 50);
+        doc.text(`${currentLang === 'ca' ? 'Data' : 'Fecha'}: ${new Date().toLocaleString(currentLang === 'ca' ? 'ca-ES' : 'es-ES')}`, 20, 60);
+
+        // --- Resum de resultats ---
+        doc.setFontSize(16);
+        doc.text(currentLang === 'ca' ? 'Resultats' : 'Resultados', 105, 75, { align: 'center' });
+
+        doc.setFontSize(11);
+        let y = 85;
+        const results = [
+            `${uiTexts[currentLang].correct}: ${correctCount}`,
+            `${uiTexts[currentLang].errors}: ${errorCount}`,
+            `${uiTexts[currentLang].questions}: ${questionsCorrectCount} / ${totalQuestionsAsked}`
+        ];
+        results.forEach(line => {
+            doc.text(line, 20, y);
+            y += 8;
+        });
+
+        // --- Dibuix de la Taula Periòdica ---
+        doc.setFontSize(16);
+        doc.text(currentLang === 'ca' ? 'Elements Col·locats' : 'Elementos Colocados', 105, y + 10, { align: 'center' });
+        
+        const tableStartX = 15;
+        const tableStartY = y + 20;
+        const cellW = 9.5;
+        const cellH = 12;
+        const gap = 0.5;
+
+        // Dibuixar etiquetes de grups i períodes
+        doc.setFontSize(7);
+        doc.setTextColor(100);
+        for (let i = 0; i < 18; i++) { // Grups
+            doc.text(String(i + 1), tableStartX + i * (cellW + gap) + cellW / 2, tableStartY - 2, { align: 'center' });
+        }
+        for (let i = 0; i < 7; i++) { // Períodes
+            doc.text(String(i + 1), tableStartX - 3, tableStartY + i * (cellH + gap) + cellH / 2, { align: 'center' });
+        }
+
+        // Dibuixar la graella i els elements col·locats
+        for (let row = 0; row < 7; row++) {
+            for (let col = 0; col < 18; col++) {
+                const period = row + 1;
+                const group = col + 1;
+
+                const isInvisible = (period === 1 && group > 1 && group < 18) ||
+                                  ((period === 2 || period === 3) && group > 2 && group < 13);
+                if (isInvisible) continue;
+
+                const cellX = tableStartX + col * (cellW + gap);
+                const cellY = tableStartY + row * (cellH + gap);
+                
+                const placedElement = allCorrectlyPlacedElements.find(el => el.period === period && el.group === group);
+
+                if (placedElement) {
+                    const colors = getElementColor(group, placedElement.atomicNumber);
+                    doc.setFillColor(colors.fill);
+                    doc.setDrawColor(colors.stroke);
+                    doc.rect(cellX, cellY, cellW, cellH, 'FD'); 
+
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(8);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(placedElement.symbol, cellX + cellW / 2, cellY + cellH / 2, { align: 'center' });
+                    
+                    doc.setFontSize(5);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(String(placedElement.atomicNumber), cellX + 2, cellY + 2.5);
+
+                } else {
+                    const familyColors = getCellFamilyColor(group, period);
+                    doc.setFillColor(familyColors.fill);
+                    doc.setDrawColor("#bdbdbd");
+                    doc.rect(cellX, cellY, cellW, cellH, 'FD');
+                }
+            }
+        }
+        
+        doc.save(`informe_${studentName.replace(/ /g, '_')}.pdf`);
+    }
+
+
+    function showEndOfSessionOptions() {
+        const modal = document.getElementById('info-modal');
+        document.getElementById('info-title').textContent = currentLang === 'ca' ? 'Ronda completada!' : '¡Ronda completada!';
+        
+        const nextLevelKey = getNextLevelKey();
+        const nextLevelButtonHTML = nextLevelKey 
+            ? `<button onclick="startNextLevel()">${getNextLevelLabel()}</button>` 
+            : '';
+
+        const optionsHTML = `
+            <div class="end-session-options">
+                <p>${currentLang === 'ca' ? 'Molt bé! Què vols fer ara?' : '¡Muy bien! ¿Qué quieres hacer ahora?'}</p>
+                <button onclick="startSameLevel()">${currentLang === 'ca' ? 'Jugar una altra ronda (' + uiTexts[currentLang][currentDifficulty] + ')' : 'Jugar otra ronda (' + uiTexts[currentLang][currentDifficulty] + ')'}</button>
+                ${nextLevelButtonHTML}
+                <button onclick="promptForReportDetails()">${uiTexts[currentLang].report}</button>
+            </div>
+        `;
+        
+        document.getElementById('info-text').innerHTML = optionsHTML;
+        document.getElementById('close-info-modal').style.display = 'none';
+        modal.classList.add('visible');
+    }
+
+    function startSameLevel() {
+        document.getElementById('info-modal').classList.remove('visible');
+        selectSessionElements();
+        showNextCard();
+        draw();
+    }
+
+    function startNextLevel() {
+        document.getElementById('info-modal').classList.remove('visible');
+        const nextKey = getNextLevelKey();
+        if (nextKey) {
+            setDifficulty(nextKey);
+        }
+    }
+
+    function getNextLevelKey() {
+        if (currentDifficulty === 'basic') return 'advanced';
+        if (currentDifficulty === 'advanced') return 'exceptions';
+        return null;
+    }
+
+    function getNextLevelLabel() {
+        const nextKey = getNextLevelKey();
+        return nextKey ? (currentLang === 'ca' ? 'Següent nivell (' + uiTexts[currentLang][nextKey] + ')' : 'Siguiente nivel (' + uiTexts[currentLang][nextKey] + ')') : '';
+    }
+
+    document.addEventListener('DOMContentLoaded', main);
     </script>
 </body>
 </html>
