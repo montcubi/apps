@@ -172,9 +172,8 @@
                     <button id="lang-es">ESP</button>
                 </div>
                 <a href="Instruccions.html" target="_blank" id="instructions-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 20px; width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <a href="Instruccions.html" target="_blank" id="instructions-link" style="font-size: 20px;">💡</a>
+
                 </a>
             </div>
         </div>
@@ -507,35 +506,32 @@
         ctx.stroke();
     }
     
-    function drawScore() {
-        const scoreY = layout.scoreArea.height / 1.5;
-        const scoreGap = layout.canvasWidth / 4;
-        
-        // Encerts
-        ctx.fillStyle = 'var(--secondary-color)';
-        ctx.font = `bold ${24 * scale}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(correctCount, scoreGap * 1, scoreY);
-        ctx.fillStyle = 'var(--light-text-color)';
-        ctx.font = `normal ${12 * scale}px sans-serif`;
-        ctx.fillText(uiTexts[currentLang].correct, scoreGap * 1, scoreY + 20 * scale);
+   function drawScore() {
+    const scoreY = layout.scoreArea.height / 1.5;
+    const scoreGap = layout.canvasWidth / 3.5;
 
-        // Errors
-        ctx.fillStyle = 'var(--error-color)';
-        ctx.font = `bold ${24 * scale}px sans-serif`;
-        ctx.fillText(errorCount, scoreGap * 2, scoreY);
-        ctx.fillStyle = 'var(--light-text-color)';
-        ctx.font = `normal ${12 * scale}px sans-serif`;
-        ctx.fillText(uiTexts[currentLang].errors, scoreGap * 2, scoreY + 20 * scale);
+    // Encerts (verd viu)
+    ctx.fillStyle = '#00cc44';
+    ctx.font = `bold ${28 * scale}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(correctCount, scoreGap * 1, scoreY);
+    ctx.font = `normal ${14 * scale}px sans-serif`;
+    ctx.fillText(uiTexts[currentLang].correct, scoreGap * 1, scoreY + 22 * scale);
 
-        // Preguntes
-        ctx.fillStyle = 'var(--warning-color)';
-        ctx.font = `bold ${24 * scale}px sans-serif`;
-        ctx.fillText(`${questionsCorrectCount}/${totalQuestionsAsked}`, scoreGap * 3, scoreY);
-        ctx.fillStyle = 'var(--light-text-color)';
-        ctx.font = `normal ${12 * scale}px sans-serif`;
-        ctx.fillText(uiTexts[currentLang].questions, scoreGap * 3, scoreY + 20 * scale);
-    }
+    // Errors (vermell viu)
+    ctx.fillStyle = '#ff1a1a';
+    ctx.font = `bold ${28 * scale}px sans-serif`;
+    ctx.fillText(errorCount, scoreGap * 2, scoreY);
+    ctx.font = `normal ${14 * scale}px sans-serif`;
+    ctx.fillText(uiTexts[currentLang].errors, scoreGap * 2, scoreY + 22 * scale);
+
+    // Preguntes (groc viu)
+    ctx.fillStyle = '#ffcc00';
+    ctx.font = `bold ${28 * scale}px sans-serif`;
+    ctx.fillText(`${questionsCorrectCount}/${totalQuestionsAsked}`, scoreGap * 3, scoreY);
+    ctx.font = `normal ${14 * scale}px sans-serif`;
+    ctx.fillText(uiTexts[currentLang].questions, scoreGap * 3, scoreY + 22 * scale);
+}
     
     function drawGridLabels(){
         ctx.fillStyle = '#666';
