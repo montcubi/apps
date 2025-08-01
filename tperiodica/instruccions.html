@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instruccions - Taula Periòdica Interactiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+        }
+        [lang="es"] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+
+        <header class="text-center mb-10">
+            <div class="flex justify-center gap-2 mb-6">
+                <button id="lang-ca-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md shadow font-semibold">Català</button>
+                <button id="lang-es-btn" class="px-4 py-2 bg-white text-gray-700 rounded-md shadow font-semibold">Español</button>
+            </div>
+            <h1 class="text-4xl font-bold text-blue-600">
+                <span lang="ca">Com Jugar a la Taula Periòdica</span>
+                <span lang="es">Cómo Jugar a la Tabla Periódica</span>
+            </h1>
+            <p class="mt-2 text-lg text-gray-600">
+                <span lang="ca">Una guia ràpida per dominar el joc.</span>
+                <span lang="es">Una guía rápida para dominar el juego.</span>
+            </p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Pas 1: L'Objectiu -->
+            <div class="card flex flex-col items-center text-center">
+                <div class="icon text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold mb-2">
+                    <span lang="ca">1. L'Objectiu</span>
+                    <span lang="es">1. El Objetivo</span>
+                </h2>
+                <p class="text-gray-600">
+                    <span lang="ca">Arrossega cada element a la seva posició correcta a la taula periòdica. <strong>Fixa't en la seva configuració electrònica</strong> per saber on va!</span>
+                    <span lang="es">Arrastra cada elemento a su posición correcta en la tabla periódica. ¡<strong>Fíjate en su configuración electrónica</strong> para saber dónde va!</span>
+                </p>
+            </div>
+
+            <!-- Pas 2: Nivells de Dificultat -->
+            <div class="card flex flex-col items-center text-center">
+                <div class="icon text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold mb-2">
+                    <span lang="ca">2. Nivells de Dificultat</span>
+                    <span lang="es">2. Niveles de Dificultad</span>
+                </h2>
+                <p class="text-gray-600">
+                    <span lang="ca">Pots triar entre tres nivells: <strong>Bàsic</strong> (elements representatius), <strong>Avançat</strong> (metalls de transició) i <strong>Excepcions</strong> (els més complicats).</span>
+                    <span lang="es">Puedes elegir entre tres niveles: <strong>Básico</strong> (elementos representativos), <strong>Avanzado</strong> (metales de transición) y <strong>Excepciones</strong> (los más complicados).</span>
+                </p>
+            </div>
+
+            <!-- Pas 3: Rondes de Joc -->
+            <div class="card flex flex-col items-center text-center">
+                <div class="icon text-yellow-500">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.092 1.21-.138 2.43-.138 3.662v.513a5.25 5.25 0 005.25 5.25h1.5a5.25 5.25 0 005.25-5.25v-.513z" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold mb-2">
+                    <span lang="ca">3. Rodes de Joc i Preguntes</span>
+                    <span lang="es">3. Rondas de Juego y Preguntas</span>
+                </h2>
+                <p class="text-gray-600">
+                    <span lang="ca">El joc va per rondes de 5 elements. Al final de cada ronda, hi haurà una <strong>pregunta sorpresa</strong> sobre un dels elements que has col·locat!</span>
+                    <span lang="es">El juego va por rondas de 5 elementos. ¡Al final de cada ronda, habrá una <strong>pregunta sorpresa</strong> sobre uno de los elementos que has colocado!</span>
+                </p>
+            </div>
+
+            <!-- Pas 4: Puntuació i Informe -->
+            <div class="card flex flex-col items-center text-center">
+                <div class="icon text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold mb-2">
+                    <span lang="ca">4. Puntuació i Informe</span>
+                    <span lang="es">4. Puntuación e Informe</span>
+                </h2>
+                <p class="text-gray-600">
+                    <span lang="ca">Els teus encerts i errors s'acumulen. Pots generar un <strong>informe en PDF</strong> amb els teus resultats. El botó <strong>Reiniciar</strong> esborra tot el progrés.</span>
+                    <span lang="es">Tus aciertos y errores se acumulan. Puedes generar un <strong>informe en PDF</strong> con tus resultados. El botón <strong>Reiniciar</strong> borra todo el progreso.</span>
+                </p>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const btnCa = document.getElementById('lang-ca-btn');
+        const btnEs = document.getElementById('lang-es-btn');
+        const elementsCa = document.querySelectorAll('[lang="ca"]');
+        const elementsEs = document.querySelectorAll('[lang="es"]');
+        const htmlEl = document.documentElement;
+
+        function setLanguage(lang) {
+            if (lang === 'ca') {
+                htmlEl.lang = 'ca';
+                elementsCa.forEach(el => el.style.display = 'revert');
+                elementsEs.forEach(el => el.style.display = 'none');
+                btnCa.classList.add('bg-blue-600', 'text-white');
+                btnCa.classList.remove('bg-white', 'text-gray-700');
+                btnEs.classList.add('bg-white', 'text-gray-700');
+                btnEs.classList.remove('bg-blue-600', 'text-white');
+            } else if (lang === 'es') {
+                htmlEl.lang = 'es';
+                elementsCa.forEach(el => el.style.display = 'none');
+                elementsEs.forEach(el => el.style.display = 'revert');
+                btnEs.classList.add('bg-blue-600', 'text-white');
+                btnEs.classList.remove('bg-white', 'text-gray-700');
+                btnCa.classList.add('bg-white', 'text-gray-700');
+                btnCa.classList.remove('bg-blue-600', 'text-white');
+            }
+        }
+
+        btnCa.addEventListener('click', () => setLanguage('ca'));
+        btnEs.addEventListener('click', () => setLanguage('es'));
+
+        // Set initial language based on browser preference if available
+        const userLang = navigator.language || navigator.userLanguage;
+        if (userLang.startsWith('es')) {
+            setLanguage('es');
+        } else {
+            setLanguage('ca');
+        }
+    </script>
+
+</body>
+</html>
