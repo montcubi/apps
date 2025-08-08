@@ -13,6 +13,7 @@
             font-family: 'Inter', sans-serif;
         }
         .input-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 0.25rem; /* 4px */
@@ -58,6 +59,30 @@
         .hint-trigger:hover {
             opacity: 1;
         }
+        .hint-popup {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 0.5rem;
+            background-color: #1f2937; /* gray-800 */
+            color: #f9fafb; /* gray-50 */
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem; /* 12px */
+            width: max-content;
+            max-width: 220px;
+            text-align: center;
+            z-index: 30;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .hint-popup.visible {
+            opacity: 1;
+            visibility: visible;
+        }
         #map-wrapper {
             position: relative;
             width: 100%;
@@ -80,24 +105,12 @@
         .correct { border-color: #16a34a !important; }
         .incorrect { border-color: #dc2626 !important; }
 
-        /* Estils per a la impressió */
         @media print {
-            body { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact;
-                background-color: #fff !important;
-            }
-            #map-wrapper {
-                page-break-inside: avoid; /* LA CORRECCIÓ CLAU ESTÀ AQUÍ */
-            }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #fff !important; }
+            #map-wrapper { page-break-inside: avoid; }
             .no-print { display: none; }
-            .fill-in-title, .fill-in { 
-                border-color: #000 !important; 
-                color: #000 !important; 
-            }
-            .bg-blue-100, .bg-purple-100, .bg-orange-100, .bg-teal-100, .bg-green-100, .bg-white { 
-                background-color: #fff !important; 
-            }
+            .fill-in-title, .fill-in { border-color: #000 !important; color: #000 !important; }
+            .bg-blue-100, .bg-purple-100, .bg-orange-100, .bg-teal-100, .bg-green-100, .bg-white { background-color: #fff !important; }
             .shadow-md, .shadow-lg { box-shadow: none !important; }
         }
     </style>
@@ -130,19 +143,19 @@
                     </div>
                     <div id="branch-1-sub-blocks" class="w-full flex flex-col items-center space-y-3">
                         <div id="sub-block-1" class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
-                            <div class="input-wrapper"><input type="text" id="input-grup-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="input-grup-titol">💡</span></div> <span class="font-normal text-xs text-gray-500">(Col.)</span>
-                            <p class="mt-2 text-xs">Mateix nº d'<span class="input-wrapper"><input type="text" id="input-grup-prop1" class="fill-in text-xs" placeholder=""><span class="hint-trigger" data-target="input-grup-prop1">💡</span></span> a l'últim <span class="input-wrapper"><input type="text" id="input-grup-prop2" class="fill-in text-xs" placeholder=""><span class="hint-trigger" data-target="input-grup-prop2">💡</span></span></p>
+                            <div class="input-wrapper"><input type="text" id="input-grup-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="hint-grup-titol">💡</span><div id="hint-grup-titol" class="hint-popup"></div></div> <span class="font-normal text-xs text-gray-500">(Col.)</span>
+                            <p class="mt-2 text-xs">Mateix nº d'<span class="input-wrapper"><input type="text" id="input-grup-prop1" class="fill-in text-xs" placeholder=""><span class="hint-trigger" data-target="hint-grup-prop1">💡</span><div id="hint-grup-prop1" class="hint-popup"></div></span> a l'últim <span class="input-wrapper"><input type="text" id="input-grup-prop2" class="fill-in text-xs" placeholder=""><span class="hint-trigger" data-target="hint-grup-prop2">💡</span><div id="hint-grup-prop2" class="hint-popup"></div></span></p>
                         </div>
                         <div id="sub-block-2" class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
-                           <div class="input-wrapper"><input type="text" id="input-periode-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="input-periode-titol">💡</span></div> <span class="font-normal text-xs text-gray-500">(Files)</span>
-                            <p class="mt-2 text-xs">Mateix nº de <span class="input-wrapper"><input type="text" id="input-periode-prop" class="fill-in text-xs" placeholder=""><span class="hint-trigger" data-target="input-periode-prop">💡</span></span></p>
+                           <div class="input-wrapper"><input type="text" id="input-periode-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="hint-periode-titol">💡</span><div id="hint-periode-titol" class="hint-popup"></div></div> <span class="font-normal text-xs text-gray-500">(Files)</span>
+                            <p class="mt-2 text-xs">Mateix nº de <span class="input-wrapper"><input type="text" id="input-periode-prop" class="fill-in text-xs" placeholder=""><span class="hint-trigger" data-target="hint-periode-prop">💡</span><div id="hint-periode-prop" class="hint-popup"></div></span></p>
                         </div>
                          <div class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
                             <p class="font-bold text-sm">Grups Representatius</p>
                             <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-2 text-xs">
-                                <span class="text-right">G1:</span><div class="input-wrapper"><input type="text" id="input-grup-1" class="fill-in text-xs"><span class="hint-trigger" data-target="input-grup-1">💡</span></div>
-                                <span class="text-right">G17:</span><div class="input-wrapper"><input type="text" id="input-grup-17" class="fill-in text-xs"><span class="hint-trigger" data-target="input-grup-17">💡</span></div>
-                                <span class="text-right">G18:</span><div class="input-wrapper"><input type="text" id="input-grup-18" class="fill-in text-xs"><span class="hint-trigger" data-target="input-grup-18">💡</span></div>
+                                <span class="text-right">G1:</span><div class="input-wrapper"><input type="text" id="input-grup-1" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-grup-1">💡</span><div id="hint-grup-1" class="hint-popup"></div></div>
+                                <span class="text-right">G17:</span><div class="input-wrapper"><input type="text" id="input-grup-17" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-grup-17">💡</span><div id="hint-grup-17" class="hint-popup"></div></div>
+                                <span class="text-right">G18:</span><div class="input-wrapper"><input type="text" id="input-grup-18" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-grup-18">💡</span><div id="hint-grup-18" class="hint-popup"></div></div>
                             </div>
                         </div>
                     </div>
@@ -157,12 +170,12 @@
                 </div>
                 <div class="w-full flex flex-col items-center space-y-3">
                      <div class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
-                        <div class="input-wrapper"><input type="text" id="input-metall-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="input-metall-titol">💡</span></div>
-                        <p class="mt-2 text-xs">Situats a l'<span class="input-wrapper"><input type="text" id="input-metall-prop1" class="fill-in text-xs"><span class="hint-trigger" data-target="input-metall-prop1">💡</span></span> i centre. Tendeixen a <span class="input-wrapper"><input type="text" id="input-metall-prop2" class="fill-in text-xs"><span class="hint-trigger" data-target="input-metall-prop2">💡</span></span> e⁻</p>
+                        <div class="input-wrapper"><input type="text" id="input-metall-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="hint-metall-titol">💡</span><div id="hint-metall-titol" class="hint-popup"></div></div>
+                        <p class="mt-2 text-xs">Situats a l'<span class="input-wrapper"><input type="text" id="input-metall-prop1" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-metall-prop1">💡</span><div id="hint-metall-prop1" class="hint-popup"></div></span> i centre. Tendeixen a <span class="input-wrapper"><input type="text" id="input-metall-prop2" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-metall-prop2">💡</span><div id="hint-metall-prop2" class="hint-popup"></div></span> e⁻</p>
                     </div>
                     <div class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
-                        <div class="input-wrapper"><input type="text" id="input-nometall-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="input-nometall-titol">💡</span></div>
-                        <p class="mt-2 text-xs">Situats a la <span class="input-wrapper"><input type="text" id="input-nometall-prop1" class="fill-in text-xs"><span class="hint-trigger" data-target="input-nometall-prop1">💡</span></span> superior. Tendeixen a <span class="input-wrapper"><input type="text" id="input-nometall-prop2" class="fill-in text-xs"><span class="hint-trigger" data-target="input-nometall-prop2">💡</span></span> e⁻</p>
+                        <div class="input-wrapper"><input type="text" id="input-nometall-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="hint-nometall-titol">💡</span><div id="hint-nometall-titol" class="hint-popup"></div></div>
+                        <p class="mt-2 text-xs">Situats a la <span class="input-wrapper"><input type="text" id="input-nometall-prop1" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-nometall-prop1">💡</span><div id="hint-nometall-prop1" class="hint-popup"></div></span> superior. Tendeixen a <span class="input-wrapper"><input type="text" id="input-nometall-prop2" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-nometall-prop2">💡</span><div id="hint-nometall-prop2" class="hint-popup"></div></span> e⁻</p>
                     </div>
                 </div>
             </div>
@@ -179,8 +192,8 @@
                         <p class="text-xs text-center">(Ex: Fe, O, Ag)</p>
                     </div>
                     <div class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
-                        <div class="input-wrapper"><input type="text" id="input-numatomic-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="input-numatomic-titol">💡</span></div>
-                        <p class="mt-2 text-xs">Indica el nombre de <span class="input-wrapper"><input type="text" id="input-numatomic-prop" class="fill-in text-xs"><span class="hint-trigger" data-target="input-numatomic-prop">💡</span></span></p>
+                        <div class="input-wrapper"><input type="text" id="input-numatomic-titol" class="fill-in-title" placeholder=""><span class="hint-trigger" data-target="hint-numatomic-titol">💡</span><div id="hint-numatomic-titol" class="hint-popup"></div></div>
+                        <p class="mt-2 text-xs">Indica el nombre de <span class="input-wrapper"><input type="text" id="input-numatomic-prop" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-numatomic-prop">💡</span><div id="hint-numatomic-prop" class="hint-popup"></div></span></p>
                     </div>
                 </div>
             </div>
@@ -194,11 +207,11 @@
                 <div class="w-full flex flex-col items-center space-y-3">
                      <div class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
                         <p class="font-bold text-sm">Radi Atòmic</p>
-                        <p class="mt-2 text-xs">Període (→): <span class="input-wrapper"><input type="text" id="input-radi-periode" class="fill-in text-xs"><span class="hint-trigger" data-target="input-radi-periode">💡</span></span> Grup (↓): <span class="input-wrapper"><input type="text" id="input-radi-grup" class="fill-in text-xs"><span class="hint-trigger" data-target="input-radi-grup">💡</span></span></p>
+                        <p class="mt-2 text-xs">Període (→): <span class="input-wrapper"><input type="text" id="input-radi-periode" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-radi-periode">💡</span><div id="hint-radi-periode" class="hint-popup"></div></span> Grup (↓): <span class="input-wrapper"><input type="text" id="input-radi-grup" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-radi-grup">💡</span><div id="hint-radi-grup" class="hint-popup"></div></span></p>
                     </div>
                     <div class="bg-white rounded-lg p-3 shadow-md w-full flex flex-col items-center">
                         <p class="font-bold text-sm">Caràcter Metàl·lic</p>
-                        <p class="mt-2 text-xs">Període (→): <span class="input-wrapper"><input type="text" id="input-caracter-periode" class="fill-in text-xs"><span class="hint-trigger" data-target="input-caracter-periode">💡</span></span> Grup (↓): <span class="input-wrapper"><input type="text" id="input-caracter-grup" class="fill-in text-xs"><span class="hint-trigger" data-target="input-caracter-grup">💡</span></span></p>
+                        <p class="mt-2 text-xs">Període (→): <span class="input-wrapper"><input type="text" id="input-caracter-periode" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-caracter-periode">💡</span><div id="hint-caracter-periode" class="hint-popup"></div></span> Grup (↓): <span class="input-wrapper"><input type="text" id="input-caracter-grup" class="fill-in text-xs"><span class="hint-trigger" data-target="hint-caracter-grup">💡</span><div id="hint-caracter-grup" class="hint-popup"></div></span></p>
                     </div>
                 </div>
             </div>
@@ -245,14 +258,36 @@
             'input-caracter-periode': 'És més fàcil guanyar e⁻', 'input-caracter-grup': 'L\'e⁻ de valència està més lluny'
         };
 
+        // --- Lògica per mostrar/amagar pistes individuals ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate hint popups
+            for (const id in clues) {
+                const hintPopup = document.getElementById(`hint-${id.replace('input-', '')}`);
+                if(hintPopup) {
+                    hintPopup.textContent = clues[id];
+                }
+            }
+        });
+        
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('hint-trigger')) {
                 const targetId = e.target.dataset.target;
-                const input = document.getElementById(targetId);
-                if (input) {
-                    if (input.placeholder) { input.placeholder = ''; } 
-                    else { input.placeholder = clues[targetId] || ''; }
+                const hintPopup = document.getElementById(targetId);
+                
+                // Hide all other popups
+                document.querySelectorAll('.hint-popup').forEach(p => {
+                    if (p.id !== targetId) {
+                        p.classList.remove('visible');
+                    }
+                });
+
+                // Toggle the current one
+                if (hintPopup) {
+                    hintPopup.classList.toggle('visible');
                 }
+            } else if (!e.target.closest('.input-wrapper')) {
+                // Hide all popups if clicking outside an input area
+                document.querySelectorAll('.hint-popup').forEach(p => p.classList.remove('visible'));
             }
         });
 
@@ -280,10 +315,10 @@
             const inputs = document.querySelectorAll('.fill-in, .fill-in-title');
             inputs.forEach(input => {
                 input.value = '';
-                input.placeholder = '';
                 input.classList.remove('correct', 'incorrect');
             });
             document.getElementById('score').textContent = '';
+            document.querySelectorAll('.hint-popup').forEach(p => p.classList.remove('visible'));
         });
 
         function getElementCoords(element) {
@@ -341,4 +376,3 @@
 
 </body>
 </html>
-
