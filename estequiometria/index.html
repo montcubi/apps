@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratori d'Estequiometria</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Modal d'Instruccions -->
+    <div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instructionsModalLabel">📖 Instruccions del Laboratori d'Estequiometria</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>👋 Benvingut/da al Laboratori d'Estequiometria! Aquest joc t'ajudarà a practicar l'ajust de reaccions químiques i els càlculs estequiomètrics.</p>
+                    <h6>🎮 Modes de Joc:</h6>
+                    <ul>
+                        <li><strong>🎲 Mode Aleatori:</strong> El joc et proposarà una reacció química a l'atzar de la nostra base de dades. És ideal per practicar amb diferents tipus de reaccions.</li>
+                        <li><strong>✏️ Mode Personalitzat:</strong> Aquí pots crear la teva pròpia reacció química introduint els reactius i els productes.</li>
+                    </ul>
+                    <h6>🎯 Fases del Joc:</h6>
+                    <ol>
+                        <li>
+                            <strong>⚖️ Ajusta la Reacció:</strong>
+                            <ul>
+                                <li>Introdueix els coeficients estequiomètrics (els números que van davant de cada fórmula) als requadres per tal que la reacció estigui correctament ajustada.</li>
+                                <li>Recorda la <strong>Llei de Lavoisier</strong>: el nombre d'àtoms de cada element ha de ser el mateix als reactius (esquerra) i als productes (dreta).</li>
+                                <li>Un cop hagis introduït tots els coeficients, fes clic a <strong>"Verifica l'Ajust"</strong>.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>🧮 Fes el Càlcul Estequiomètric:</strong>
+                            <ul>
+                                <li>Si l'ajust és correcte, s'activarà la segona fase.</li>
+                                <li><strong>Substància de Partida:</strong> Tria la substància de la qual coneixes la quantitat inicial, introdueix el valor i selecciona la unitat (grams, mols o molècules).</li>
+                                <li><strong>Substància Desitjada:</strong> Tria la substància de la qual vols calcular la quantitat i selecciona en quines unitats vols el resultat.</li>
+                                <li>Fes clic a <strong>"Escriure la Resposta"</strong>, introdueix el teu resultat i comprova'l!</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    <h6>📄 Generar Informe:</h6>
+                    <p>En qualsevol moment, pots fer clic al botó <strong>"Generar Informe"</strong>. Se't demanarà el teu nom i es crearà un arxiu PDF amb totes les reaccions i càlculs que has fet durant la sessió. Ideal per entregar al teu professor/a! 🎓</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tancar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="text-center mb-4">
+            <div class="emoticon-header">⚗️⚛️</div>
+            <h1 class="display-4">Laboratori d'Estequiometria</h1>
+            <p class="lead">Practica l'ajust de reaccions i els càlculs químics de forma interactiva.</p>
+            <div>
+                <button class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#instructionsModal">
+                    ℹ️ Mostra Instruccions
+                </button>
+                <button id="btn-generar-informe" class="btn btn-success">
+                    📄 Generar Informe
+                </button>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Configuració de la Reacció</h2>
+            </div>
+            <div class="card-body">
+                <!-- Pas 1: Tria de Mode -->
+                <div class="text-center mb-4 border-bottom pb-4">
+                    <h5>1. Tria un mode de joc</h5>
+                    <div class="btn-group" role="group">
+                        <button id="btn-mode-aleatori" class="btn btn-primary active">Mode Aleatori</button>
+                        <button id="btn-mode-personalitzat" class="btn btn-primary">Mode Personalitzat</button>
+                    </div>
+                </div>
+
+                <!-- Pas 2: Comença -->
+                <div class="text-center">
+                    <h5>2. Comença la pràctica</h5>
+                    <!-- Zona de Reacció Aleatòria -->
+                    <div id="zona-aleatoria">
+                        <button id="btn-nova-reaccio" class="btn btn-secondary mt-2">Carrega una Nova Reacció</button>
+                    </div>
+
+                    <!-- Zona de Creació de Reacció Personalitzada (oculta) -->
+                    <div id="zona-creacio" style="display: none;">
+                        <h3 class="h5 mt-3">Crea la teva pròpia reacció</h3>
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6>Reactius</h6>
+                                <div id="reactius-creacio-container">
+                                    <input type="text" class="form-control mb-2 formula-input" placeholder="p. ex. H2O">
+                                </div>
+                                <button id="btn-add-reactiu" class="btn btn-outline-secondary btn-sm">+ Afegeix Reactiu</button>
+                            </div>
+                            <div class="col-md-2 text-center align-self-center fs-2">
+                                →
+                            </div>
+                            <div class="col-md-5">
+                                <h6>Productes</h6>
+                                <div id="productes-creacio-container">
+                                    <input type="text" class="form-control mb-2 formula-input" placeholder="p. ex. H2">
+                                </div>
+                                <button id="btn-add-producte" class="btn btn-outline-secondary btn-sm">+ Afegeix Producte</button>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button id="btn-confirma-reaccio" class="btn btn-info">Confirma i Ajusta la Reacció</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Puntuació (oculta inicialment) -->
+                <div id="puntuacio-container" class="text-center my-4" style="display: none;">
+                    <h4 class="h5">Puntuació: <span id="puntuacio" class="badge bg-info">0 / 0</span></h4>
+                    <small>(Encerts al primer intent / Total de càlculs)</small>
+                </div>
+
+                <!-- Fase 1: Ajust de la Reacció -->
+                <div id="zona-ajust" class="mt-4" style="display: none;">
+                    <hr>
+                    <h3 class="h5">Fase 1: Ajusta la següent reacció química</h3>
+                    <div id="reaccio-container" class="d-flex align-items-center justify-content-center flex-wrap my-3 fs-4">
+                        <!-- La reacció es generarà aquí amb JavaScript -->
+                    </div>
+                    <div class="text-center">
+                        <button id="btn-verifica" class="btn btn-warning">Verifica l'Ajust</button>
+                    </div>
+                    <p id="missatge-ajust" class="text-center mt-3 fw-bold"></p>
+                </div>
+
+                <!-- Fase 2: Càlcul Estequiomètric (oculta per defecte) -->
+                <div id="zona-calcul" class="mt-4 pt-4 border-top" style="display: none;">
+                    <h3 class="h5">Fase 2: Fes el càlcul estequiomètric</h3>
+                    <div class="row g-3">
+                        <!-- Columna de Dades de Partida -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Substància de Partida</div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="select-partida" class="form-label">Fórmula:</label>
+                                        <select id="select-partida" class="form-select"></select>
+                                    </div>
+                                    <div>
+                                        <label for="massa-partida" class="form-label">Quantitat de partida:</label>
+                                        <div class="input-group">
+                                            <input type="number" id="massa-partida" class="form-control" placeholder="p. ex. 10">
+                                            <select id="select-unitat-partida" class="form-select">
+                                                <option value="g">g (grams)</option>
+                                                <option value="mols">mols</option>
+                                                <option value="molecules">molècules</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Columna de Substància Desitjada -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Substància Desitjada</div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="select-desitjada" class="form-label">Fórmula:</label>
+                                        <select id="select-desitjada" class="form-select"></select>
+                                    </div>
+                                    <div>
+                                        <label for="select-unitat-desitjada" class="form-label">Unitat del resultat:</label>
+                                        <select id="select-unitat-desitjada" class="form-select">
+                                            <option value="g">g (grams)</option>
+                                            <option value="mols">mols</option>
+                                            <option value="molecules">molècules</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="btn-preparar-calcul" class="btn btn-success">Escriure la Resposta</button>
+                    </div>
+                </div>
+
+                <!-- Zona de Resposta de l'Usuari (oculta) -->
+                <div id="zona-resposta-usuari" class="mt-4" style="display: none;">
+                    <div id="missatge-calcul" class="text-center fw-bold mb-3"></div>
+                    <h4 class="h6">Introdueix el teu resultat (utilitza '.' per als decimals)</h4>
+                    <div class="input-group mb-3">
+                        <input type="number" id="resposta-usuari" class="form-control" placeholder="Escriu la teva resposta...">
+                        <button id="btn-comprova-resposta" class="btn btn-primary">Comprova</button>
+                    </div>
+                    <div id="opcions-calcul-incorrecte" class="text-center" style="display: none;">
+                        <button id="btn-reintentar-calcul" class="btn btn-secondary btn-sm">Reintentar</button>
+                        <button id="btn-veure-solucio" class="btn btn-danger btn-sm">Veure la Solució (penalitzat)</button>
+                    </div>
+                </div>
+
+                <!-- Secció de Resultats -->
+                <div id="resultat" class="mt-4"></div>
+
+                <!-- Zona d'Accions Post-Resultat (oculta) -->
+                <div id="zona-accions-final" class="text-center mt-4 pt-4 border-top" style="display: none;">
+                    <h4 class="h5">Següent Pas</h4>
+                    <button id="btn-seguent-reaccio-aleatoria" class="btn btn-danger mt-2">Carrega una Nova Reacció</button>
+                    <button id="btn-anar-a-personalitzat" class="btn btn-success mt-2">Crea una Reacció Personalitzada</button>
+                    <hr>
+                    <button id="btn-generar-informe-final" class="btn btn-warning text-dark">📄 Generar Informe Final</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>

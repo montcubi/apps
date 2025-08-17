@@ -1,0 +1,189 @@
+/* Estils generals */
+body {
+    background-color: #f0f2f5;
+}
+
+/* Estil de la targeta principal */
+.card {
+    border-radius: 15px;
+}
+
+.card-header {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+/* Contenidor de la reacció */
+#reaccio-container {
+    gap: 0.5rem; /* Espai entre elements de la reacció */
+    min-height: 50px;
+}
+
+/* Estil dels inputs per als coeficients */
+.coeficient-input {
+    width: 60px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+/* Estil per als missatges de feedback */
+/* Estils generals */
+body {
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Emoticones de la capçalera */
+.emoticon-header {
+    font-size: 6rem; /* Fa les emoticones molt més grans */
+    margin-bottom: 1rem;
+}
+
+/* Estil de la targeta principal */
+.card {
+    border-radius: 15px;
+    border: none;
+}
+
+.card-header {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-weight: 500;
+}
+
+/* Contenidor de la reacció */
+#reaccio-container {
+    gap: 0.5rem; /* Espai entre elements de la reacció */
+    min-height: 50px;
+    font-size: 1.3rem; /* Mida de la font per a la reacció */
+}
+
+/* Estil dels inputs per als coeficients */
+.coeficient-input {
+    width: 65px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.coeficient-input:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    outline: none;
+}
+
+
+/* Estil per als missatges de feedback */
+#missatge-ajust.correcte, #missatge-calcul.correcte {
+    color: #198754; /* Verd de Bootstrap */
+    font-weight: bold;
+}
+
+#missatge-ajust.incorrecte, #missatge-calcul.incorrecte {
+    color: #dc3545; /* Vermell de Bootstrap */
+    font-weight: bold;
+}
+
+/* Secció de resultats */
+#resultat {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+}
+
+#resultat h3 {
+    color: #0d6efd; /* Blau de Bootstrap */
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#resultat ol {
+    padding-left: 2rem;
+}
+
+#resultat ol li {
+    margin-bottom: 0.5rem;
+}
+
+
+/* Estil per a les fórmules químiques */
+.formula {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+
+/* Inputs per crear reaccions */
+.formula-input {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Botons de canvi de mode */
+.btn-group .btn {
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+    border-color: #0d6efd;
+}
+
+.btn-group .btn:not(.active) {
+    background-color: #e9ecef;
+    color: #495057;
+    border-color: #e9ecef;
+}
+
+.btn-group .btn:not(.active):hover {
+    background-color: #d3d9df;
+}
+
+
+/* Secció de resultats */
+#resultat {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+#resultat h3 {
+    color: #0d6efd; /* Blau de Bootstrap */
+}
+
+
+/* Estil per a les fórmules químiques */
+.formula {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+
+/* Inputs per crear reaccions */
+.formula-input {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Colors personalitzats per a botons */
+#btn-nova-reaccio {
+    background-color: #dc3545; /* Vermell */
+    border-color: #dc3545;
+    color: white;
+}
+
+#btn-mode-personalitzat {
+    background-color: #28a745; /* Verd més viu */
+    border-color: #28a745;
+    color: white;
+}
+
+#btn-generar-informe {
+    background-color: #ffc107; /* Groc (warning) */
+    border-color: #ffc107;
+    color: #000; /* Text negre per contrast */
+}
