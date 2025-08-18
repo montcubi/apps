@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ca">
 <head>
@@ -43,6 +42,19 @@
             border-radius: 24px 24px 24px 8px;
             align-self: flex-start;
         }
+        .image-container {
+            align-self: flex-start;
+            margin-top: 8px;
+            max-width: 80%;
+            background-color: #e2e8f0;
+            border-radius: 24px;
+            padding: 8px;
+        }
+        .image-container img {
+            border-radius: 18px;
+            max-width: 100%;
+            height: auto;
+        }
         #messages::-webkit-scrollbar { width: 8px; }
         #messages::-webkit-scrollbar-track { background: transparent; }
         #messages::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
@@ -56,6 +68,18 @@
             border-radius: 0;
             max-width: none;
             box-shadow: none;
+        }
+        .quiz-loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -71,9 +95,15 @@
                 </button>
                 <h1 id="main-title" class="text-xl md:text-2xl font-extrabold text-slate-700">Entrevista amb Científics</h1>
             </div>
-            <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-full">
-                <button id="lang-ca" class="px-3 py-1 text-sm font-bold rounded-full">CAT</button>
-                <button id="lang-es" class="px-3 py-1 text-sm font-bold rounded-full">ES</button>
+            <div class="flex items-center gap-4">
+                 <button id="quiz-btn" class="bg-amber-400 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    <span id="quiz-btn-text" class="hidden sm:inline">Comprova el que has après</span>
+                </button>
+                <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-full">
+                    <button id="lang-ca" class="px-3 py-1 text-sm font-bold rounded-full">CAT</button>
+                    <button id="lang-es" class="px-3 py-1 text-sm font-bold rounded-full">ES</button>
+                </div>
             </div>
         </header>
 
@@ -142,6 +172,22 @@
         </div>
     </div>
 
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <h2 id="quiz-title" class="text-2xl font-bold text-slate-800 mb-4">Comprova el que has après</h2>
+            <div id="quiz-content" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <!-- Quiz questions will be injected here -->
+            </div>
+            <div id="quiz-result" class="mt-4 font-bold"></div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="quiz-close-btn" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300">Tancar</button>
+                <button id="quiz-check-btn" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-semibold hover:bg-sky-600">Verifica</button>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // DOM Elements
@@ -163,11 +209,20 @@
             const fullscreenBtn = document.getElementById('fullscreen-btn');
             const fullscreenIcon = document.getElementById('fullscreen-icon');
             const minimizeIcon = document.getElementById('minimize-icon');
+            const quizBtn = document.getElementById('quiz-btn');
+            const quizModal = document.getElementById('quiz-modal');
+            const quizTitle = document.getElementById('quiz-title');
+            const quizContent = document.getElementById('quiz-content');
+            const quizResult = document.getElementById('quiz-result');
+            const quizCloseBtn = document.getElementById('quiz-close-btn');
+            const quizCheckBtn = document.getElementById('quiz-check-btn');
 
             // App state
             let currentLang = 'ca';
             let currentScientist = null;
             let chatHistory = [];
+            let pendingImageOfferUrl = null;
+            let currentQuizQuestions = [];
             const markdownConverter = new showdown.Converter();
 
             // --- TRANSLATIONS AND DATA ---
@@ -186,7 +241,14 @@
                     conclusionTextarea: "Escriu aquí la teva reflexió...",
                     initialGreetingPrompt: "Ets un assistent virtual divertit i engrescador per a una activitat educativa. Saluda en català a estudiants de secundària. Fes una pregunta breu i interessant sobre els àtoms per despertar la seva curiositat i anima'ls a triar un científic de la llista per començar una 'entrevista'. Utilitza un to proper i amigable.",
                     apiError: "Vaja! Sembla que hi ha una interferència en la línia temporal... Podries repetir la pregunta?",
-                    apiEmptyResponse: "M'he quedat en blanc, com un àtom sense electrons! Prova de nou."
+                    apiEmptyResponse: "M'he quedat en blanc, com un àtom sense electrons! Prova de nou.",
+                    quizTitle: "Comprova el que has après",
+                    quizCheckBtn: "Verifica",
+                    quizCloseBtn: "Tancar",
+                    quizResultCorrect: "Molt bé! Totes les respostes són correctes.",
+                    quizResultIncorrect: "Algunes respostes no són correctes. Revisa-les!",
+                    quizGenerating: "Un moment, estic preparant les teves preguntes...",
+                    quizBtnText: "Comprova el que has après",
                 },
                 es: {
                     mainTitle: "Entrevista con Científicos",
@@ -202,60 +264,63 @@
                     conclusionTextarea: "Escribe aquí tu reflexión...",
                     initialGreetingPrompt: "Eres un asistente virtual divertido y motivador para una actividad educativa. Saluda en español a estudiantes de secundaria. Haz una pregunta breve e interesante sobre los átomos para despertar su curiosidad y anímales a elegir un científico de la lista para empezar una 'entrevista'. Usa un tono cercano y amigable.",
                     apiError: "¡Vaya! Parece que hay una interferencia en la línea temporal... ¿Podrías repetir la pregunta?",
-                    apiEmptyResponse: "¡Me he quedado en blanco, como un átomo sin electrones! Inténtalo de nuevo."
+                    apiEmptyResponse: "¡Me he quedado en blanco, como un átomo sin electrones! Inténtalo de nuevo.",
+                    quizTitle: "Comprueba lo que has aprendido",
+                    quizCheckBtn: "Verifica",
+                    quizCloseBtn: "Cerrar",
+                    quizResultCorrect: "¡Muy bien! Todas las respuestas son correctas.",
+                    quizResultIncorrect: "Algunas respuestas no son correctas. ¡Repásalas!",
+                    quizGenerating: "Un momento, estoy preparando tus preguntas...",
+                    quizBtnText: "Comprueba lo aprendido",
                 }
             };
             
+            const imageBaseUrl = "https://montcubi.github.io/imatges/models_atomics/";
+
             const scientistData = {
                 dalton: {
                     name: "John Dalton",
-                    introPrompt: {
-                        ca: "Ets John Dalton. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, amable i mencionar la teva teoria atòmica.",
-                        es: "Eres John Dalton. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, amable y mencionar tu teoría atómica."
-                    },
+                    introPrompt: { ca: "ACTUA com a John Dalton. Saluda en català un estudiant de 15 anys tractant-lo de 'tu'. La teva salutació ha de ser breu, amable i mencionar la teva teoria atòmica.", es: "ACTÚA como John Dalton. Saluda en español a un estudiante de 15 años tratándolo de 'tú'. Tu saludo debe ser breve, amable y mencionar tu teoría atómica." },
                     persona: {
-                        ca: "Ets John Dalton. Respon en català. El teu to és el d'un mestre pacient. Explica les coses de manera senzilla i concisa. Si parles del teu model, anima l'estudiant a buscar-ne imatges, dient per exemple: 'Vaig imaginar els àtoms com boles sòlides. Et recomano que busquis 'model atòmic de Dalton' per veure'n un esquema.'",
-                        es: "Eres John Dalton. Responde en español. Tu tono es el de un maestro paciente. Explica las cosas de forma sencilla y concisa. Si hablas de tu modelo, anima al estudiante a buscar imágenes, diciendo por ejemplo: 'Imaginé los átomos como bolas sólidas. Te recomiendo que busques 'modelo atómico de Dalton' para ver un esquema.'"
+                        ca: `REGLA D'OR: Has d'actuar SEMPRE com a John Dalton. Parla en català i tracta l'estudiant de 'tu'. El teu to és el d'un mestre pacient. Fes servir explicacions senzilles i molt concises (MÀXIM 100 PARAULES). Si parles del teu model, pregunta si vol veure un esquema amb l'etiqueta [OFEREIX_IMATGE:${imageBaseUrl}08.png]. De tant en tant, si la conversa s'atura, pots suggerir preguntes com: 'Potser et preguntes sobre els meus postulats, o com vaig arribar a aquestes conclusions.'`,
+                        es: `REGLA DE ORO: Tienes que actuar SIEMPRE como John Dalton. Habla en español y trata al estudiante de 'tú'. Tu tono es el de un maestro paciente. Usa explicaciones sencillas y muy concisas (MÁXIMO 100 PALABRAS). Si hablas de tu modelo, pregunta si quiere ver un esquema con la etiqueta [OFEREIX_IMATGE:${imageBaseUrl}08.png]. De vez en cuando, si la conversación se detiene, puedes sugerir preguntas como: 'Quizás te preguntas sobre mis postulados, o cómo llegué a estas conclusiones.'`
                     }
                 },
                 thomson: {
                     name: "J.J. Thomson",
-                    introPrompt: {
-                        ca: "Ets J.J. Thomson. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, una mica formal i mostrar orgull pel descobriment de l'electró.",
-                        es: "Eres J.J. Thomson. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, un poco formal y mostrar orgullo por el descubrimiento del electrón."
-                    },
+                    introPrompt: { ca: "ACTUA com a J.J. Thomson. Saluda en català un estudiant de 15 anys tractant-lo de 'tu'. La teva salutació ha de ser breu, una mica formal i mostrar orgull pel descobriment de l'electró.", es: "ACTÚA como J.J. Thomson. Saluda en español a un estudiante de 15 años tratándolo de 'tú'. Tu saludo debe ser breve, un poco formal y mostrar orgullo por el descubrimiento del electrón." },
                     persona: {
-                        ca: "Ets J.J. Thomson. Respon en català. El teu to és el d'un professor de Cambridge, orgullós del seu descobriment. Respon de manera concisa. Si parles del teu model, anima l'estudiant a buscar-ne imatges, dient per exemple: 'Vaig proposar un model semblant a un púding de panses. Per què no busques 'model del púding de panses' per fer-te'n una idea?'",
-                        es: "Eres J.J. Thomson. Responde en español. Tu tono es el de un profesor de Cambridge, orgulloso de su descubrimiento. Responde de forma concisa. Si hablas de tu modelo, anima al estudiante a buscar imágenes, diciendo por ejemplo: 'Propuse un modelo parecido a un pudin de pasas. ¿Por qué no buscas 'modelo del pudin de pasas' para hacerte una idea?'"
+                        ca: `REGLA D'OR: Has d'actuar SEMPRE com a J.J. Thomson. Parla en català i tracta l'estudiant de 'tu'. El teu to és el d'un professor de Cambridge, orgullós però proper. Respon de manera concisa (MÀXIM 100 PARAULES). Si parles del teu model, pregunta si vol veure'l amb l'etiqueta [OFEREIX_IMATGE:${imageBaseUrl}10.png]. Si parles de l'experiment amb raigs catòdics, ofereix-li una imatge amb [OFEREIX_IMATGE:${imageBaseUrl}03.png]. De tant en tant, pots suggerir preguntes com: 'Podríem parlar del meu experiment, o de per què el meu model es diu 'púding de panses'.'`,
+                        es: `REGLA DE ORO: Tienes que actuar SIEMPRE como J.J. Thomson. Habla en español y trata al estudiante de 'tú'. Tu tono es el de un profesor de Cambridge, orgulloso pero cercano. Responde de forma concisa (MÁXIMO 100 PALABRAS). Si hablas de tu modelo, pregunta si quiere verlo con la etiqueta [OFEREIX_IMATGE:${imageBaseUrl}10.png]. Si hablas del experimento con rayos catódicos, ofrécele una imagen con [OFEREIX_IMATGE:${imageBaseUrl}03.png]. De vez en cuando, puedes sugerir preguntas como: 'Podríamos hablar de mi experimento, o de por qué mi modelo se llama 'pudin de pasas'.'`
                     }
                 },
                 rutherford: {
                     name: "Ernest Rutherford",
-                    introPrompt: {
-                        ca: "Ets Ernest Rutherford. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, enèrgica i transmetre l'emoció del teu famós experiment.",
-                        es: "Eres Ernest Rutherford. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, enérgico y transmitir la emoción de tu famoso experimento."
-                    },
+                    introPrompt: { ca: "ACTUA com a Ernest Rutherford. Saluda en català un estudiant de 15 anys tractant-lo de 'tu'. La teva salutació ha de ser breu, enèrgica i transmetre l'emoció del teu famós experiment.", es: "ACTÚA como Ernest Rutherford. Saluda en español a un estudiante de 15 años tratándolo de 'tú'. Tu saludo debe ser breve, enérgico y transmitir la emoción de tu famoso experimento." },
                     persona: {
-                        ca: "Ets Ernest Rutherford. Respon en català. El teu to és entusiasta i directe. Explica les coses amb passió. Si parles del teu model, explica que té un nucli i una escorça amb electrons girant, com un sistema solar en miniatura. Emfatitza la idea de l'espai buit. Per exemple: 'Vam descobrir un nucli diminut on es concentra tota la massa, i els electrons giren al seu voltant, a l'escorça. Però el més increïble és que entre el nucli i l'escorça no hi ha gairebé res! **La matèria és pràcticament buida!** No et sembla fascinant? Busca 'model atòmic de Rutherford' i ho veuràs.'",
-                        es: "Eres Ernest Rutherford. Responde en español. Tu tono es entusiasta y directo. Explica las cosas con pasión. Si hablas de tu modelo, explica que tiene un núcleo y una corteza con electrones girando, como un sistema solar en miniatura. Enfatiza la idea del espacio vacío. Por ejemplo: 'Descubrimos un núcleo diminuto donde se concentra toda la masa, y los electrones giran a su alrededor, en la corteza. ¡Pero lo más increíble es que entre el núcleo y la corteza no hay casi nada! **¡La materia está prácticamente vacía!** ¿No te parece fascinante? Busca 'modelo atómico de Rutherford' y lo verás.'"
+                        ca: `REGLA D'OR: Has d'actuar SEMPRE com a Ernest Rutherford. Parla en català i tracta l'estudiant de 'tu'. El teu to és entusiasta i directe. Explica les coses amb passió de manera concisa (MÀXIM 100 PARAULES). Si parles del teu model, ofereix-li una imatge amb [OFEREIX_IMATGE:${imageBaseUrl}09.png]. Si parles de l'experiment, ofereix-li una imatge amb [OFEREIX_IMATGE:${imageBaseUrl}05.png]. Emfatitza la idea de l'espai buit i l'escorça. De tant en tant, pots suggerir-li preguntes com: 'Vols que parlem de la làmina d'or, del nucli atòmic o de l'escorça?'`,
+                        es: `REGLA DE ORO: Tienes que actuar SIEMPRE como Ernest Rutherford. Habla en español y trata al estudiante de 'tú'. Tu tono es entusiasta y directo. Explica las cosas con pasión de forma concisa (MÁXIMO 100 PALABRAS). Si hablas de tu modelo, ofrécele una imagen con [OFEREIX_IMATGE:${imageBaseUrl}09.png]. Si hablas del experimento, ofrécele una imagen con [OFEREIX_IMATGE:${imageBaseUrl}05.png]. Enfatiza la idea del espacio vacío y la corteza. De vez en cuando, puedes sugerirle preguntas como: '¿Quieres que hablemos de la lámina de oro, del núcleo atómico o de la corteza?'`
                     }
                 },
                 bohr: {
                     name: "Niels Bohr",
-                    introPrompt: {
-                        ca: "Ets Niels Bohr. Saluda en català a un estudiant de secundària. La teva salutació ha de ser breu, reflexiva i mencionar com vas millorar el model de Rutherford.",
-                        es: "Eres Niels Bohr. Saluda en español a un estudiante de secundaria. Tu saludo debe ser breve, reflexivo y mencionar cómo mejoraste el modelo de Rutherford."
-                    },
+                    introPrompt: { ca: "ACTUA com a Niels Bohr. Saluda en català un estudiant de 15 anys tractant-lo de 'tu'. La teva salutació ha de ser breu, reflexiva i mencionar com vas millorar el model de Rutherford.", es: "ACTÚA como Niels Bohr. Saluda en español a un estudiante de 15 años tratándolo de 'tú'. Tu saludo debe ser breve, reflexivo y mencionar cómo mejoraste el modelo de Rutherford." },
                     persona: {
-                        ca: "Ets Niels Bohr. Respon en català. El teu to és més teòric i reflexiu. Connecta les idees. Respon de manera concisa. Si parles del teu model, anima l'estudiant a buscar-ne imatges, dient per exemple: 'Vaig proposar que els electrons només poden ocupar òrbites fixes, com esglaons d'una escala. Busca 'model atòmic de Bohr' a Internet i veuràs esquemes molt clars.'",
-                        es: "Eres Niels Bohr. Responde en español. Tu tono es más teórico y reflexivo. Conecta las ideas. Responde de forma concisa. Si hablas de tu modelo, anima al estudiante a buscar imágenes, diciendo por ejemplo: 'Propuse que los electrones solo pueden ocupar órbitas fijas, como peldaños de una escalera. Busca 'modelo atómico de Bohr' en Internet y verás esquemas muy claros.'"
+                        ca: `REGLA D'OR: Has d'actuar SEMPRE com a Niels Bohr. Parla en català i tracta l'estudiant de 'tu'. El teu to és més teòric i reflexiu. Respon de manera concisa (MÀXIM 100 PARAULES). Si parles del teu model, ofereix-li una imatge amb l'etiqueta [OFEREIX_IMATGE:${imageBaseUrl}07.png]. De tant en tant, pots suggerir-li preguntes com: 'Podem aprofundir en les òrbites permeses, els salts quàntics o els espectres atòmics.'`,
+                        es: `REGLA DE ORO: Tienes que actuar SIEMPRE como Niels Bohr. Habla en español y trata al estudiante de 'tú'. Tu tono es más teórico y reflexivo. Responde de forma concisa (MÁXIMO 100 PALABRAS). Si hablas de tu modelo, ofrécele una imagen con la etiqueta [OFEREIX_IMATGE:${imageBaseUrl}07.png]. De vez en cuando, puedes sugerirle preguntas como: 'Podemos profundizar en las órbitas permitidas, los saltos cuánticos o los espectros atómicos.'`
                     }
                 }
             };
             
             // --- API FUNCTIONS ---
-            async function callGemini(history) {
+            async function callGemini(history, jsonSchema = null) {
                 const payload = { contents: history };
+                if (jsonSchema) {
+                    payload.generationConfig = {
+                        responseMimeType: "application/json",
+                        responseSchema: jsonSchema
+                    };
+                }
                 const apiKey = "";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 const response = await fetch(apiUrl, {
@@ -300,6 +365,10 @@
                 document.querySelector('#conclusion-q2').innerHTML = t.conclusionQ2;
                 document.querySelector('#conclusion-q3').innerHTML = t.conclusionQ3;
                 document.getElementById('conclusion-textarea').placeholder = t.conclusionTextarea;
+                quizTitle.innerText = t.quizTitle;
+                quizCheckBtn.innerText = t.quizCheckBtn;
+                quizCloseBtn.innerText = t.quizCloseBtn;
+                document.getElementById('quiz-btn-text').innerText = t.quizBtnText;
                 
                 if (currentScientist && currentScientist !== 'conclusion') {
                    handleScientistChange({ target: { value: currentScientist } });
@@ -316,12 +385,129 @@
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
 
+            function displayImage(url) {
+                const container = document.createElement('div');
+                container.className = 'image-container';
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = "Il·lustració del model atòmic";
+                img.onerror = () => { container.innerHTML = `<p class="text-xs text-red-500">No s'ha pogut carregar la imatge.</p>`; };
+                container.appendChild(img);
+                messagesDiv.appendChild(container);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+            
+            function processAndDisplayAiResponse(text) {
+                const offerRegex = /\[OFEREIX_IMATGE:(.*?)\]/g;
+                const match = offerRegex.exec(text);
+                const cleanText = text.replace(offerRegex, '').trim();
+
+                if (cleanText) {
+                    displayMessage(cleanText, 'ai');
+                }
+
+                if (match && match[1]) {
+                    pendingImageOfferUrl = match[1];
+                }
+            }
+
+            // --- QUIZ FUNCTIONS ---
+            async function openQuizModal() {
+                quizModal.classList.remove('hidden');
+                quizContent.innerHTML = `<div class="flex flex-col items-center"><div class="quiz-loader"></div><p class="mt-2 text-slate-500">${translations[currentLang].quizGenerating}</p></div>`;
+                quizResult.innerHTML = '';
+                quizCheckBtn.disabled = true;
+                quizCheckBtn.onclick = checkQuizAnswers; // Reset action
+
+                const langName = currentLang === 'ca' ? 'català' : 'español';
+                const quizPrompt = `Genera un qüestionari de 10 preguntes de tipus test sobre els models atòmics de Dalton, Thomson, Rutherford i Bohr. Les preguntes han de ser variades, per a estudiants de 15 anys. L'idioma ha de ser ${langName}. Retorna un JSON.`;
+                const schema = {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            q: { type: "STRING" },
+                            o: { type: "ARRAY", items: { type: "STRING" } },
+                            a: { type: "INTEGER" }
+                        },
+                        required: ["q", "o", "a"]
+                    }
+                };
+
+                try {
+                    const jsonString = await callGemini([{ role: 'user', parts: [{ text: quizPrompt }] }], schema);
+                    currentQuizQuestions = JSON.parse(jsonString);
+                    displayQuizQuestions();
+                } catch (error) {
+                    console.error("Error generating quiz:", error);
+                    quizContent.innerHTML = `<p class="text-red-500">${translations[currentLang].apiError}</p>`;
+                }
+            }
+
+            function displayQuizQuestions() {
+                quizContent.innerHTML = '';
+                quizResult.innerHTML = '';
+                quizCheckBtn.disabled = false;
+                quizCheckBtn.textContent = translations[currentLang].quizCheckBtn;
+
+                currentQuizQuestions.forEach((item, index) => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.innerHTML = `<p class="font-semibold">${index + 1}. ${item.q}</p>`;
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'flex flex-col space-y-2 mt-2';
+                    
+                    item.o.forEach((option, optionIndex) => {
+                        const label = document.createElement('label');
+                        label.className = 'flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors';
+                        label.innerHTML = `
+                            <input type="radio" name="question-${index}" value="${optionIndex}" class="form-radio text-sky-500">
+                            <span>${option}</span>
+                        `;
+                        optionsDiv.appendChild(label);
+                    });
+                    questionDiv.appendChild(optionsDiv);
+                    quizContent.appendChild(questionDiv);
+                });
+            }
+
+            function checkQuizAnswers() {
+                let allCorrect = true;
+
+                currentQuizQuestions.forEach((item, index) => {
+                    const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+                    const labels = document.querySelectorAll(`input[name="question-${index}"]`);
+                    
+                    labels.forEach(label => {
+                        label.parentElement.classList.remove('bg-red-100', 'bg-green-100');
+                    });
+
+                    if (selected && parseInt(selected.value) === item.a) {
+                        selected.parentElement.classList.add('bg-green-100');
+                    } else {
+                        allCorrect = false;
+                        if (selected) {
+                            selected.parentElement.classList.add('bg-red-100');
+                        }
+                    }
+                });
+
+                if (allCorrect) {
+                    quizResult.textContent = translations[currentLang].quizResultCorrect;
+                    quizResult.className = 'mt-4 font-bold text-green-600';
+                } else {
+                    quizResult.textContent = translations[currentLang].quizResultIncorrect;
+                    quizResult.className = 'mt-4 font-bold text-red-600';
+                }
+                quizCheckBtn.disabled = true;
+            }
+
             // --- EVENT HANDLERS ---
-            async function handleScientistChange(e) {
+            function handleScientistChange(e) {
                 currentScientist = e.target.value;
                 initialMessage.classList.add('hidden');
                 messagesDiv.innerHTML = '';
                 chatHistory = [];
+                pendingImageOfferUrl = null;
 
                 if (currentScientist === 'conclusion') {
                     chatContainer.classList.add('hidden');
@@ -334,23 +520,26 @@
                     
                     try {
                         const introPrompt = scientistData[currentScientist].introPrompt[currentLang];
-                        const introText = await callGemini([{ role: "user", parts: [{ text: introPrompt }] }]);
+                        const introText = callGemini([{ role: "user", parts: [{ text: introPrompt }] }]);
                         
-                        if(introText) {
-                            displayMessage(introText, 'ai');
-                        } else {
-                            displayMessage("Hola! Estic a punt per parlar.", 'ai');
-                        }
+                        introText.then(text => {
+                            if(text) {
+                                displayMessage(text, 'ai');
+                            } else {
+                                displayMessage("Hola! Estic a punt per parlar.", 'ai');
+                            }
 
-                        const persona = scientistData[currentScientist].persona[currentLang];
-                        const systemPrompt = `${persona}. Les teves respostes sempre han de ser en ${currentLang === 'ca' ? 'català' : 'español'}, en primera persona. Ara, l'usuari farà la seva primera pregunta.`;
-                        
-                        chatHistory.push({ role: "user", parts: [{ text: systemPrompt }] });
-                        chatHistory.push({ role: "model", parts: [{ text: `Entesos. Estic preparat.` }] });
+                            const persona = scientistData[currentScientist].persona[currentLang];
+                            const systemPrompt = `${persona}. Les teves respostes sempre han de ser en ${currentLang === 'ca' ? 'català' : 'español'}, en primera persona. Ara, l'usuari farà la seva primera pregunta.`;
+                            
+                            chatHistory.push({ role: "user", parts: [{ text: systemPrompt }] });
+                            chatHistory.push({ role: "model", parts: [{ text: `Entesos. Estic preparat.` }] });
+                        }).finally(() => {
+                             loadingDiv.classList.add('hidden');
+                        });
                     } catch (error) {
                         console.error("Error generating intro:", error);
                         displayMessage(translations[currentLang].apiError, 'ai');
-                    } finally {
                         loadingDiv.classList.add('hidden');
                     }
 
@@ -370,6 +559,16 @@
                 displayMessage(userText, 'user');
                 chatInput.value = '';
                 
+                const isAffirmative = /^(sí|si|yes|ok|vale|d'acord|mostra)/i.test(userText);
+
+                if (pendingImageOfferUrl && isAffirmative) {
+                    displayImage(pendingImageOfferUrl);
+                    pendingImageOfferUrl = null; // Clear the offer
+                    return; // Don't call the API
+                }
+                
+                pendingImageOfferUrl = null;
+
                 loadingDiv.classList.remove('hidden');
                 chatInput.disabled = true;
                 sendButton.disabled = true;
@@ -379,7 +578,7 @@
                     const aiText = await callGemini(chatHistory);
                     
                     if (aiText) {
-                        displayMessage(aiText, 'ai');
+                        processAndDisplayAiResponse(aiText);
                         chatHistory.push({ role: "model", parts: [{ text: aiText }] });
                     } else {
                         displayMessage(translations[currentLang].apiEmptyResponse, 'ai');
@@ -435,6 +634,9 @@
                 fullscreenIcon.classList.toggle('hidden');
                 minimizeIcon.classList.toggle('hidden');
             });
+            quizBtn.addEventListener('click', openQuizModal);
+            quizCloseBtn.addEventListener('click', () => quizModal.classList.add('hidden'));
+            quizCheckBtn.addEventListener('click', checkQuizAnswers);
         });
     </script>
 </body>
