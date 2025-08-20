@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitxa de Treball Interactiva: Compostos Binaris</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-align: center; padding: 30px 20px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+        .content { padding: 30px; }
+        .theory-capsule { border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        .theory-capsule::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; }
+        .capsule-blue { background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-left: 5px solid #2196F3; }
+        .capsule-green { background: linear-gradient(135deg, #e8f5e8, #c8e6c9); border-left: 5px solid #4CAF50; }
+        .capsule-orange { background: linear-gradient(135deg, #fff3e0, #ffcc02); border-left: 5px solid #FF9800; }
+        .capsule-purple { background: linear-gradient(135deg, #f3e5f5, #e1bee7); border-left: 5px solid #9C27B0; }
+        .theory-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .icon { font-size: 1.8rem; }
+        .exercise-block { background: #f8f9fa; border-radius: 10px; padding: 25px; margin: 20px 0; border-left: 4px solid #007bff; }
+        .exercise-title { font-size: 1.3rem; font-weight: bold; color: #007bff; margin-bottom: 15px; }
+        .question { margin-bottom: 10px; display: flex; align-items: center; flex-wrap: wrap; }
+        .question-text { font-weight: 600; color: #333; min-width: 250px; margin-right: 10px; }
+        .question-text .nomen-type { font-weight: normal; font-style: italic; color: #555; font-size: 0.9rem; }
+        .answer-input { border: 2px solid #dee2e6; border-radius: 5px; padding: 8px; font-size: 1rem; flex-grow: 1; }
+        .answer-input:disabled { background-color: #e9ecef; }
+        .feedback { font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; margin-left: 10px; }
+        .feedback.correct { color: #155724; background-color: #d4edda; }
+        .feedback.incorrect { color: #721c24; background-color: #f8d7da; }
+        .feedback.case-warning { color: #856404; background-color: #fff3cd; }
+        .correct-answer-text { font-size: 0.9rem; color: #0b5ed7; margin-left: 10px; width: 100%; padding-left: 260px; display: block; min-height: 1em; }
+        .example { background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 8px; padding: 15px; margin: 15px 0; font-style: italic; }
+        .highlight { background: #fff3cd; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .formula { font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; background: #f1f3f4; padding: 4px 8px; border-radius: 4px; color: #d63384; }
+        .check-button-container { text-align: right; margin-top: 20px; }
+        .check-exercise-btn { background: #007bff; color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
+        .check-exercise-btn:hover { background: #0056b3; }
+        .check-exercise-btn:disabled { background: #6c757d; cursor: not-allowed; }
+        #report-generator { text-align: center; margin-top: 40px; }
+        #generate-report-btn { background: #28a745; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; }
+        #generate-report-btn:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Compostos Binaris</h1>
+            <p>Fitxa de Treball Interactiva - 4t ESO</p>
+        </div>
+        
+        <div class="content">
+
+            <div class="theory-capsule capsule-blue"><div class="theory-title"><span class="icon">⚡</span>1. Ordre dels Elements i Escriptura de Símbols</div><div>
+                En un compost binari, l'element més electronegatiu s'escriu a la <strong>dreta</strong>. El menys electronegatiu (el metall) va a l'<strong>esquerra</strong>.
+                <br><br>
+                <span class="highlight">MOLT IMPORTANT:</span> Els símbols químics sempre comencen amb <strong>majúscula</strong>. Si tenen una segona lletra, ha de ser <strong>minúscula</strong> (Ex: <span class="formula">Au</span>, <span class="formula">Cl</span>, <span class="formula">Zn</span>).
+            </div></div>
+
+            <div class="exercise-block" id="ex1">
+                <div class="exercise-title">✏️ Exercici 1: Ordena els Elements</div>
+                <p>Escriu els símbols en l'ordre correcte per formar el compost (sense subíndexs).</p>
+                <div class="question"><span class="question-text">a) Fòsfor (P) i Hidrogen (H) →</span><input type="text" class="answer-input" data-correct='["PH"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">b) Oxigen (O) i Alumini (Al) →</span><input type="text" class="answer-input" data-correct='["AlO"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">c) Sofre (S) i Hidrogen (H) →</span><input type="text" class="answer-input" data-correct='["HS"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">d) Fluor (F) i Potassi (K) →</span><input type="text" class="answer-input" data-correct='["KF"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">e) Brom (Br) i Calci (Ca) →</span><input type="text" class="answer-input" data-correct='["CaBr"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">f) Nitrogen (N) i Magnesi (Mg) →</span><input type="text" class="answer-input" data-correct='["MgN"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">g) Iode (I) i Ferro (Fe) →</span><input type="text" class="answer-input" data-correct='["FeI"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">h) Oxigen (O) i Bor (B) →</span><input type="text" class="answer-input" data-correct='["BO"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">i) Clor (Cl) i Or (Au) →</span><input type="text" class="answer-input" data-correct='["AuCl"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">j) Sofre (S) i Zinc (Zn) →</span><input type="text" class="answer-input" data-correct='["ZnS"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="check-button-container"><button class="check-exercise-btn">Comprova Exercici 1</button></div>
+            </div>
+
+            <div class="theory-capsule capsule-orange"><div class="theory-title"><span class="icon">🔄</span>2. Intercanvi de Valències</div><div>
+                Per formular, els elements intercanvien les seves valències (sense el signe). La valència d'un es converteix en el subíndex de l'altre. Si els subíndexs es poden simplificar, s'ha de fer.
+                <div class="example">💡 <strong>Exemple:</strong> Ferro (Fe³⁺) i Oxigen (O²⁻) → El 3 del ferro va a l'oxigen (O₃) i el 2 de l'oxigen va al ferro (Fe₂). Fórmula: <span class="formula">Fe₂O₃</span>.</div>
+            </div></div>
+
+            <div class="exercise-block" id="ex2">
+                <div class="exercise-title">✏️ Exercici 2: Formulació a partir d'Ions</div>
+                <p>Construeix la fórmula correcta a partir dels ions (ordena, intercanvia i simplifica).</p>
+                <div class="question"><span class="question-text">a) Co³⁺ i O²⁻ →</span><input type="text" class="answer-input" data-correct='["Co2O3"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">b) Mg²⁺ i Cl⁻ →</span><input type="text" class="answer-input" data-correct='["MgCl2"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">c) Au⁺ i S²⁻ →</span><input type="text" class="answer-input" data-correct='["Au2S"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">d) Pb⁴⁺ i S²⁻ →</span><input type="text" class="answer-input" data-correct='["PbS2"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">e) Al³⁺ i Br⁻ →</span><input type="text" class="answer-input" data-correct='["AlBr3"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">f) Zn²⁺ i O²⁻ →</span><input type="text" class="answer-input" data-correct='["ZnO"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">g) Fe²⁺ i I⁻ →</span><input type="text" class="answer-input" data-correct='["FeI2"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">h) B³⁺ i N³⁻ →</span><input type="text" class="answer-input" data-correct='["BN"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">i) Li⁺ i H⁻ →</span><input type="text" class="answer-input" data-correct='["LiH"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">j) Ca²⁺ i P³⁻ →</span><input type="text" class="answer-input" data-correct='["Ca3P2"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="check-button-container"><button class="check-exercise-btn">Comprova Exercici 2</button></div>
+            </div>
+
+            <div class="theory-capsule capsule-purple"><div class="theory-title"><span class="icon">📚</span>3. Tipus de Compostos Binaris</div><div>
+                <p>Els compostos binaris es classifiquen en quatre grans grups segons els elements que els formen:</p>
+                <ul>
+                    <li><strong>Òxids:</strong> Un element qualsevol + <strong>Oxigen (O)</strong>. Ex: <span class="formula">Fe₂O₃</span>, <span class="formula">SO₂</span>.</li>
+                    <li><strong>Hidrurs:</strong> Un metall + <strong>Hidrogen (H)</strong>. Ex: <span class="formula">NaH</span>, <span class="formula">CaH₂</span>.</li>
+                    <li><strong>Hidràcids:</strong> <strong>Hidrogen (H)</strong> + un no-metall dels grups 16 o 17. Ex: <span class="formula">HCl</span>, <span class="formula">H₂S</span>.</li>
+                    <li><strong>Sals Binàries:</strong> Un metall + un no-metall que no sigui ni Oxigen ni Hidrogen. Ex: <span class="formula">NaCl</span>, <span class="formula">FeBr₂</span>.</li>
+                </ul>
+            </div></div>
+
+            <div class="exercise-block" id="ex3">
+                <div class="exercise-title">✏️ Exercici 3: Classifica els següents compostos</div>
+                <p>Indica si és un òxid, hidrur, hidràcid o sal binària.</p>
+                <div class="question"><span class="question-text">a) <span class="formula">KBr</span> →</span><input type="text" class="answer-input" data-correct='["Sal binària", "Sal binaria"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">b) <span class="formula">SO₃</span> →</span><input type="text" class="answer-input" data-correct='["Òxid", "Oxid"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">c) <span class="formula">HF</span> →</span><input type="text" class="answer-input" data-correct='["Hidràcid", "Hidracid"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">d) <span class="formula">NaH</span> →</span><input type="text" class="answer-input" data-correct='["Hidrur"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">e) <span class="formula">Al₂O₃</span> →</span><input type="text" class="answer-input" data-correct='["Òxid", "Oxid"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">f) <span class="formula">CoCl₂</span> →</span><input type="text" class="answer-input" data-correct='["Sal binària", "Sal binaria"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">g) <span class="formula">H₂Se</span> →</span><input type="text" class="answer-input" data-correct='["Hidràcid", "Hidracid"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">h) <span class="formula">MgH₂</span> →</span><input type="text" class="answer-input" data-correct='["Hidrur"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">i) <span class="formula">P₂O₅</span> →</span><input type="text" class="answer-input" data-correct='["Òxid", "Oxid"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">j) <span class="formula">AgI</span> →</span><input type="text" class="answer-input" data-correct='["Sal binària", "Sal binaria"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="check-button-container"><button class="check-exercise-btn">Comprova Exercici 3</button></div>
+            </div>
+
+            <div class="theory-capsule capsule-green"><div class="theory-title"><span class="icon">🏷️</span>4. Nomenclatures: Stock i Estequiomètrica</div><div>
+                <p><strong>Nomenclatura Stock:</strong> Usa nombres romans (I, II, III...) per a la valència del metall si en té més d'una.</p>
+                <p><strong>Nomenclatura Estequiomètrica:</strong> Usa prefixos (mono-, di-, tri-...) per indicar el nombre d'àtoms. El prefix <span class="highlight">mono-</span> s'acostuma a ometre.</p>
+            </div></div>
+
+            <div class="exercise-block" id="ex4">
+                <div class="exercise-title">✏️ Exercici 4: Anomena els Compostos</div>
+                <!-- CORRECCIÓ: S'ha canviat l'apòstrof per l'entitat HTML &apos; per evitar errors de parsing. -->
+                <div class="question"><span class="question-text">a) <span class="formula">AuCl₃</span> <span class="nomen-type">(N. Estequiomètrica)</span> →</span><input type="text" class="answer-input" data-correct='["Triclorur d&apos;or"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">b) <span class="formula">Fe₂O₃</span> <span class="nomen-type">(N. Stock)</span> →</span><input type="text" class="answer-input" data-correct='["Òxid de ferro (III)"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">c) <span class="formula">CoS</span> <span class="nomen-type">(N. Stock)</span> →</span><input type="text" class="answer-input" data-correct='["Sulfur de cobalt (II)"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">d) <span class="formula">B₂S₃</span> <span class="nomen-type">(N. Estequiomètrica)</span> →</span><input type="text" class="answer-input" data-correct='["Trisulfur de dibor"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">e) <span class="formula">FeBr₂</span> <span class="nomen-type">(N. Stock)</span> →</span><input type="text" class="answer-input" data-correct='["Bromur de ferro (II)"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">f) <span class="formula">NiO</span> <span class="nomen-type">(N. Stock)</span> →</span><input type="text" class="answer-input" data-correct='["Òxid de níquel (II)"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">g) <span class="formula">Cu₂O</span> <span class="nomen-type">(N. Estequiomètrica)</span> →</span><input type="text" class="answer-input" data-correct='["Òxid de dicoure"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">h) <span class="formula">PbO₂</span> <span class="nomen-type">(N. Estequiomètrica)</span> →</span><input type="text" class="answer-input" data-correct='["Diòxid de plom"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">i) <span class="formula">MnCl₂</span> <span class="nomen-type">(N. Stock)</span> →</span><input type="text" class="answer-input" data-correct='["Clorur de manganès (II)"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <!-- CORRECCIÓ: S'ha canviat l'apòstrof per l'entitat HTML &apos; per evitar errors de parsing. -->
+                <div class="question"><span class="question-text">j) <span class="formula">AgF</span> <span class="nomen-type">(Nomenclatura única)</span> →</span><input type="text" class="answer-input" data-correct='["Fluorur d&apos;argent", "Fluorur de plata"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="check-button-container"><button class="check-exercise-btn">Comprova Exercici 4</button></div>
+            </div>
+
+            <div class="exercise-block" id="ex5">
+                <div class="exercise-title">✏️ Exercici 5: Formula els Compostos</div>
+                <div class="question"><span class="question-text">a) Òxid de bor →</span><input type="text" class="answer-input" data-correct='["B2O3"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">b) Clorur d'or (I) →</span><input type="text" class="answer-input" data-correct='["AuCl"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">c) Trisulfur de dinitrogen →</span><input type="text" class="answer-input" data-correct='["N2S3"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">d) Òxid de cobalt (II) →</span><input type="text" class="answer-input" data-correct='["CoO"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">e) Dihidrur de calci →</span><input type="text" class="answer-input" data-correct='["CaH2"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">f) Bromur de coure (I) →</span><input type="text" class="answer-input" data-correct='["CuBr"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">g) Òxid d'argent →</span><input type="text" class="answer-input" data-correct='["Ag2O"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">h) Clorur de plom (IV) →</span><input type="text" class="answer-input" data-correct='["PbCl4"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">i) Sulfur de ferro (III) →</span><input type="text" class="answer-input" data-correct='["Fe2S3"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="question"><span class="question-text">j) Monòxid de dinitrogen →</span><input type="text" class="answer-input" data-correct='["N2O"]'><span class="feedback"></span><div class="correct-answer-text"></div></div>
+                <div class="check-button-container"><button class="check-exercise-btn">Comprova Exercici 5</button></div>
+            </div>
+            
+            <div id="report-generator">
+                <button id="generate-report-btn">Genera Informe PDF</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const exerciseAttempts = {};
+
+    const normalizeCase = (str) => str.trim().replace(/\s+/g, ' ');
+    const normalizeForComparison = (str) => {
+        return normalizeCase(str.toLowerCase());
+    }
+
+    const isFormulaCaseCorrect = (formula) => {
+        const regex = /([A-Z][a-z]?)(\d*)/g;
+        let reconstructed = '';
+        let match;
+        while ((match = regex.exec(formula)) !== null) {
+            reconstructed += match[0];
+        }
+        return reconstructed === formula;
+    };
+
+    document.querySelectorAll('.check-exercise-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const btn = e.target;
+            const exerciseBlock = btn.closest('.exercise-block');
+            const exerciseId = exerciseBlock.id;
+
+            if (!exerciseAttempts[exerciseId]) {
+                exerciseAttempts[exerciseId] = 0;
+            }
+            exerciseAttempts[exerciseId]++;
+
+            const questions = exerciseBlock.querySelectorAll('.question');
+            
+            questions.forEach(q => {
+                const input = q.querySelector('.answer-input');
+                if (input.disabled) return;
+
+                const userAnswer = input.value;
+                const feedbackEl = q.querySelector('.feedback');
+                const correctAnswers = JSON.parse(input.dataset.correct);
+
+                const normalizedUserAnswer = normalizeForComparison(userAnswer);
+                const normalizedCorrectAnswers = correctAnswers.map(normalizeForComparison);
+                
+                let isCorrect = false;
+                let isCaseCorrect = true;
+
+                if (normalizedCorrectAnswers.includes(normalizedUserAnswer)) {
+                    isCorrect = true;
+                    const isFormula = /^[A-Za-z0-9]+$/.test(userAnswer.replace(/\s/g, ''));
+                    if (isFormula && !isFormulaCaseCorrect(normalizeCase(userAnswer))) {
+                        isCorrect = false;
+                        isCaseCorrect = false;
+                    }
+                }
+
+                if (isCorrect) {
+                    feedbackEl.textContent = 'Correcte!';
+                    feedbackEl.className = 'feedback correct';
+                    input.style.borderColor = '#198754';
+                    input.disabled = true;
+                } else if (!isCaseCorrect) {
+                    feedbackEl.textContent = 'Majúscules!';
+                    feedbackEl.className = 'feedback case-warning';
+                    input.style.borderColor = '#ffc107';
+                } else {
+                    feedbackEl.textContent = 'Incorrecte';
+                    feedbackEl.className = 'feedback incorrect';
+                    input.style.borderColor = '#dc3545';
+                }
+            });
+
+            if (exerciseAttempts[exerciseId] >= 2) {
+                btn.disabled = true;
+                btn.textContent = 'Intents esgotats';
+                questions.forEach(q => {
+                    const input = q.querySelector('.answer-input');
+                    if (!input.disabled) {
+                        input.disabled = true;
+                        const correctAnswers = JSON.parse(input.dataset.correct);
+                        const correctAnswerEl = q.querySelector('.correct-answer-text');
+                        correctAnswerEl.textContent = `Solució: ${correctAnswers.join(' o ')}`;
+                    }
+                });
+            }
+        });
+    });
+
+    document.getElementById('generate-report-btn').addEventListener('click', () => {
+        const studentName = prompt("Introdueix el teu nom i cognoms per a l'informe:");
+        if (studentName === null || studentName.trim() === "") {
+            return;
+        }
+
+        const printStyles = `
+            body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; }
+            h1 { font-size: 18pt; color: #000; text-align: center; margin-bottom: 10pt; }
+            h2 { font-size: 14pt; color: #333; margin-top: 20pt; border-bottom: 1px solid #888; padding-bottom: 5pt; margin-bottom: 10pt; }
+            p { margin: 0; padding: 0; }
+            .exercise-block { page-break-inside: avoid; margin-bottom: 15pt; }
+            .question-item { border-bottom: 1px solid #ccc; padding-bottom: 8pt; margin-bottom: 8pt; }
+            .question-text { font-weight: bold; }
+            .formula { font-family: monospace; background-color: #f0f0f0; padding: 1px 3px; border-radius: 3px; display: inline-block; }
+            .nomen-type { font-weight: normal; font-style: italic; }
+            .user-answer-line { margin-top: 4pt; }
+            .user-answer { font-style: italic; color: #555; }
+            .result-correct { color: #006400; font-weight: bold; }
+            .result-incorrect { color: #C00000; font-weight: bold; }
+            .correct-solution { color: #0000FF; }
+        `;
+
+        let reportHTML = `<h1>Informe de Compostos Binaris</h1><p style="text-align:center; font-size:14pt; margin-bottom:20pt;">${studentName}</p>`;
+        document.querySelectorAll('.exercise-block').forEach(block => {
+            const title = block.querySelector('.exercise-title').textContent;
+            reportHTML += `<div class="exercise-block"><h2>${title}</h2>`;
+            
+            block.querySelectorAll('.question').forEach(q => {
+                const questionTextHTML = q.querySelector('.question-text').innerHTML;
+                const input = q.querySelector('.answer-input');
+                const userAnswer = input.value;
+                const correctAnswers = JSON.parse(input.dataset.correct);
+                
+                reportHTML += `<div class="question-item"><p><span class="question-text">${questionTextHTML}</span></p>`;
+
+                if (userAnswer.trim() === "") {
+                    reportHTML += `<p class="user-answer-line"><span class="result-incorrect">No contestat</span></p>`;
+                } else {
+                    const normalizedUserAnswer = normalizeForComparison(userAnswer);
+                    const normalizedCorrectAnswers = correctAnswers.map(normalizeForComparison);
+                    let resultText = '';
+
+                    if (normalizedCorrectAnswers.includes(normalizedUserAnswer)) {
+                        const isFormula = /^[A-Za-z0-9]+$/.test(userAnswer.replace(/\s/g, ''));
+                        if (isFormula && !isFormulaCaseCorrect(normalizeCase(userAnswer))) {
+                            resultText = `<span class="result-incorrect">Majúscules incorrectes</span>`;
+                        } else {
+                            resultText = `<span class="result-correct">Correcte</span>`;
+                        }
+                    } else {
+                        resultText = `<span class="result-incorrect">Incorrecte</span>`;
+                    }
+                    reportHTML += `<p class="user-answer-line"><span class="user-answer">La teva resposta: ${userAnswer}</span> (${resultText})</p>`;
+                }
+                reportHTML += `<p class="correct-solution">↳ Solució: ${correctAnswers.join(' o ')}</p></div>`;
+            });
+            reportHTML += `</div>`;
+        });
+
+        const reportWindow = window.open('', '_blank');
+        if (!reportWindow) {
+            alert("Si us plau, permet les finestres emergents per generar l'informe.");
+            return;
+        }
+
+        reportWindow.document.write(`
+            <html>
+                <head>
+                    <title>Generant Informe PDF...</title>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
+                    <style>${printStyles}</style>
+                </head>
+                <body>
+                    <div id="contentToPrint">${reportHTML}</div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const element = document.getElementById('contentToPrint');
+                            const opt = {
+                                margin:       0.5,
+                                filename:     'informe_${studentName.replace(/ /g, '_')}.pdf',
+                                image:        { type: 'jpeg', quality: 0.98 },
+                                html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
+                                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                            };
+                            html2pdf().from(element).set(opt).save().then(() => {
+                                setTimeout(() => window.close(), 500);
+                            });
+                        });
+                    <\/script>
+                </body>
+            </html>
+        `);
+        reportWindow.document.close();
+    });
+});
+</script>
+</body>
+</html>
+
