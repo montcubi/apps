@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Targetes de Factors de Conversió per Imprimir</title>
+    <style>
+        /* --- General Styles --- */
+        :root {
+            /* Swapped dimensions for vertical layout */
+            --card-width: 5.4cm;
+            --card-height: 8.56cm;
+            --color-longitud: #3498db;
+            --color-massa: #2ecc71;
+            --color-temps: #f39c12;
+            --color-superficie: #9b59b6;
+            --color-volum: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Header and Controls --- */
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .print-button {
+            padding: 12px 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .print-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        /* --- Card Container --- */
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* --- Card Styling --- */
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            /* MODIFICATION: Changed border-top to a full border with 3mm thickness */
+            border: 3mm solid; 
+            overflow: hidden;
+            page-break-inside: avoid; /* Avoid breaking cards across pages when printing */
+        }
+
+        .card-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            text-align: center;
+        }
+        
+        /* --- Fraction Styling --- */
+        .fraction {
+            display: inline-block;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 700; /* Bold */
+            color: #2c3e50;
+            padding: 0 10px;
+        }
+
+        .numerator, .denominator {
+            display: block;
+            padding: 3px 5px;
+        }
+        
+        .numerator sup, .denominator sup {
+            font-size: 0.7em;
+        }
+
+        .fraction-line {
+            border: none;
+            border-top: 1.5px solid #2c3e50;
+            margin: 0;
+            width: 100%;
+        }
+
+        /* --- Divider Styling --- */
+        .category-divider {
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.0em;
+            padding: 4px 0;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
+
+        /* Category Colors */
+        .category-longitud { border-color: var(--color-longitud); }
+        .category-massa { border-color: var(--color-massa); }
+        .category-temps { border-color: var(--color-temps); }
+        .category-superficie { border-color: var(--color-superficie); }
+        .category-volum { border-color: var(--color-volum); }
+        
+        /* Category colors for the new divider */
+        .category-longitud .category-divider { background-color: #eaf5fd; color: #2980b9; }
+        .category-massa .category-divider { background-color: #eafaf1; color: #27ae60; }
+        .category-temps .category-divider { background-color: #fef5e7; color: #f39c12; }
+        .category-superficie .category-divider { background-color: #f4ecf7; color: #8e44ad; }
+        .category-volum .category-divider { background-color: #fdedec; color: #c0392b; }
+
+
+        /* --- Print Styles --- */
+        @media print {
+            body {
+                padding: 0;
+                background-color: white;
+            }
+            .controls {
+                display: none;
+            }
+            .card-container {
+                gap: 0;
+                margin: 0;
+            }
+            .card {
+                box-shadow: none;
+                /* MODIFICATION: Removed the dashed border override to keep the colored one */
+                margin: 5mm; /* Spacing on the paper */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button class="print-button" onclick="window.print()">🖨️ Imprimeix les Targetes</button>
+    </div>
+
+    <div class="card-container" id="card-container">
+        <!-- Les targetes es generaran aquí amb JavaScript -->
+    </div>
+
+    <script>
+        const conversionFactors = {
+            // Longitud
+            'km-m': { num: { val: 1000, unit: 'm' }, den: { val: 1, unit: 'km' }, category: 'longitud' },
+            'm-cm': { num: { val: 100, unit: 'cm' }, den: { val: 1, unit: 'm' }, category: 'longitud' },
+            // Massa
+            'kg-g': { num: { val: 1000, unit: 'g' }, den: { val: 1, unit: 'kg' }, category: 'massa' },
+            // Temps
+            'h-min': { num: { val: 60, unit: 'min' }, den: { val: 1, unit: 'h' }, category: 'temps' },
+            'min-s': { num: { val: 60, unit: 's' }, den: { val: 1, unit: 'min' }, category: 'temps' },
+            'h-s': { num: { val: 3600, unit: 's' }, den: { val: 1, unit: 'h' }, category: 'temps' },
+            // Superfície
+            'm2-cm2': { num: { val: 10000, unit: 'cm<sup>2</sup>' }, den: { val: 1, unit: 'm<sup>2</sup>' }, category: 'superficie' },
+            // Volum
+            'm3-cm3': { num: { val: 1000000, unit: 'cm<sup>3</sup>' }, den: { val: 1, unit: 'm<sup>3</sup>' }, category: 'volum' },
+            'L-mL': { num: { val: 1000, unit: 'mL' }, den: { val: 1, unit: 'L' }, category: 'volum' },
+            // Capacitat i Volum
+            'L-dm3': { num: { val: 1, unit: 'dm<sup>3</sup>' }, den: { val: 1, unit: 'L' }, category: 'volum' },
+            'mL-cm3': { num: { val: 1, unit: 'cm<sup>3</sup>' }, den: { val: 1, unit: 'mL' }, category: 'volum' },
+            'm3-L': { num: { val: 1000, unit: 'L' }, den: { val: 1, unit: 'm<sup>3</sup>' }, category: 'volum' },
+        };
+
+        const categoryNames = {
+            longitud: 'Longitud',
+            massa: 'Massa',
+            temps: 'Temps',
+            superficie: 'Superfície',
+            volum: 'Volum / Capacitat'
+        };
+
+        function createCard(factorData) {
+            const card = document.createElement('div');
+            card.className = `card category-${factorData.category}`;
+
+            // Create two fractions for the conversion
+            const fraction1 = `
+                <div class="fraction">
+                    <span class="numerator">${factorData.num.val} ${factorData.num.unit}</span>
+                    <hr class="fraction-line">
+                    <span class="denominator">${factorData.den.val} ${factorData.den.unit}</span>
+                </div>
+            `;
+            
+            const fraction2 = `
+                <div class="fraction">
+                    <span class="numerator">${factorData.den.val} ${factorData.den.unit}</span>
+                    <hr class="fraction-line">
+                    <span class="denominator">${factorData.num.val} ${factorData.num.unit}</span>
+                </div>
+            `;
+            
+            // The category name now acts as the divider
+            const categoryDivider = `<div class="category-divider">${categoryNames[factorData.category]}</div>`;
+
+            card.innerHTML = `
+                <div class="card-content">
+                    ${fraction1}
+                    ${categoryDivider}
+                    ${fraction2}
+                </div>
+            `;
+            return card;
+        }
+
+        function generateCards() {
+            const container = document.getElementById('card-container');
+            container.innerHTML = ''; // Clear previous cards
+
+            for (const key in conversionFactors) {
+                const factor = conversionFactors[key];
+                const cardElement = createCard(factor);
+                container.appendChild(cardElement);
+            }
+        }
+
+        // Generate cards on page load
+        window.addEventListener('load', generateCards);
+    </script>
+</body>
+</html>
+
