@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama d'Energia dels Orbitals</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estil per a les fletxes de l'SVG */
+        .arrow {
+            stroke: rgb(239, 68, 68); /* red-500 */
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#arrowhead);
+            stroke-dasharray: 4;
+            animation: dash 20s linear infinite;
+        }
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Energia dels Orbitals Atòmics</h1>
+            <p class="text-gray-600 mt-2">L'ordre en què els electrons omplen els "calaixos" d'un àtom.</p>
+        </div>
+
+        <!-- Contenidor principal del gràfic -->
+        <div class="relative h-[550px] w-full mt-4">
+            
+            <!-- Eix d'Energia -->
+            <div class="absolute top-0 bottom-0 left-4 md:left-8 border-l-2 border-gray-400 border-dashed"></div>
+            <div class="absolute top-1/2 -left-2 md:-left-0 -translate-y-1/2 -rotate-90 flex items-center">
+                <span class="text-sm font-semibold text-gray-600 tracking-wider">ENERGIA</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-short ml-1" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+                </svg>
+            </div>
+
+            <!-- SVG per a les fletxes de connexió -->
+            <svg class="absolute top-0 left-0 w-full h-full overflow-visible" aria-hidden="true">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="rgb(239, 68, 68)" />
+                    </marker>
+                </defs>
+                <!-- Les línies es dibuixen de punt final a punt inicial per a la direcció de la fletxa -->
+                <path class="arrow" d="M 120 485 L 120 420"></path> <!-- 1s -> 2s -->
+                <path class="arrow" d="M 120 415 L 220 370"></path> <!-- 2s -> 2p -->
+                <path class="arrow" d="M 220 365 L 120 310"></path> <!-- 2p -> 3s -->
+                <path class="arrow" d="M 120 305 L 220 260"></path> <!-- 3s -> 3p -->
+                <path class="arrow" d="M 220 255 L 120 190"></path> <!-- 3p -> 4s (La clau!) -->
+                <path class="arrow" d="M 120 185 L 320 140"></path> <!-- 4s -> 3d -->
+                <path class="arrow" d="M 320 135 L 220 90"></path>  <!-- 3d -> 4p -->
+            </svg>
+
+            <!-- Funció per crear un subnivell -->
+            <div id="sublevels-container" class="relative w-full h-full">
+                <!-- Nivell 1 -->
+                <div class="sublevel-group absolute" style="bottom: 10%; left: 25%;">
+                    <span class="absolute -left-12 top-1 text-lg font-bold text-gray-400">n=1</span>
+                    <div class="text-center">
+                        <div class="bg-blue-100 border-2 border-blue-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-blue-800">1s</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Nivell 2 -->
+                <div class="sublevel-group absolute" style="bottom: 25%; left: 25%;">
+                    <span class="absolute -left-12 top-1 text-lg font-bold text-gray-400">n=2</span>
+                    <div class="text-center">
+                        <div class="bg-green-100 border-2 border-green-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-green-800">2s</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sublevel-group absolute" style="bottom: 35%; left: 45%;">
+                    <div class="text-center">
+                        <div class="bg-green-100 border-2 border-green-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-green-800">2p</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Nivell 3 -->
+                <div class="sublevel-group absolute" style="bottom: 45%; left: 25%;">
+                    <span class="absolute -left-12 top-1 text-lg font-bold text-gray-400">n=3</span>
+                    <div class="text-center">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-yellow-800">3s</span>
+                        </div>
+                    </div>
+                </div>
+                 <div class="sublevel-group absolute" style="bottom: 55%; left: 45%;">
+                    <div class="text-center">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-yellow-800">3p</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sublevel-group absolute" style="bottom: 75%; left: 65%;">
+                    <div class="text-center">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-yellow-800">3d</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Nivell 4 -->
+                <div class="sublevel-group absolute" style="bottom: 65%; left: 25%;">
+                    <span class="absolute -left-12 top-1 text-lg font-bold text-gray-400">n=4</span>
+                     <div class="text-center">
+                        <div class="bg-red-100 border-2 border-red-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-red-800">4s</span>
+                        </div>
+                    </div>
+                </div>
+                 <div class="sublevel-group absolute" style="bottom: 85%; left: 45%;">
+                    <div class="text-center">
+                        <div class="bg-red-100 border-2 border-red-400 rounded-md px-4 py-1">
+                            <span class="font-bold text-lg text-red-800">4p</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Llegenda / Explicació -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Com llegir el gràfic:</h2>
+            <ul class="list-none mt-4 space-y-3">
+                <li class="flex items-start">
+                    <span class="bg-gray-200 text-gray-700 rounded-full w-6 h-6 text-sm flex items-center justify-center font-bold mr-3 flex-shrink-0">1</span>
+                    <div><strong>Energia:</strong> Els subnivells més avall tenen menys energia. Els electrons, que són "mandrosos", sempre intenten ocupar primer els llocs de menys energia.</div>
+                </li>
+                <li class="flex items-start">
+                    <span class="bg-gray-200 text-gray-700 rounded-full w-6 h-6 text-sm flex items-center justify-center font-bold mr-3 flex-shrink-0">2</span>
+                    <div><strong>Ordre d'ompliment:</strong> Les fletxes vermelles indiquen el camí que segueixen els electrons per anar omplint els orbitals, des del menys energètic (1s) cap amunt.</div>
+                </li>
+                 <li class="flex items-start">
+                    <span class="bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center font-bold mr-3 flex-shrink-0">!</span>
+                    <div><strong class="text-red-600">La Clau (la "trampa"):</strong> Fixa't que el subnivell <strong>4s</strong> està energèticament per sota del <strong>3d</strong>. Per això, s'omple abans! Aquest és el motiu pel qual la configuració del Potassi (K) acaba en 4s¹ i la del Calci (Ca) en 4s².</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>
+
