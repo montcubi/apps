@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Fitxes d'Elements Químics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .input-field {
+            @apply bg-slate-100 border-slate-300 rounded-md text-center p-1 w-24 focus:ring-indigo-500 focus:border-indigo-500 transition-colors;
+        }
+        .notation-input {
+            @apply w-16 h-16 border-2 border-dashed border-slate-400 rounded-md flex justify-center items-center text-slate-800 text-3xl font-mono text-center;
+        }
+        .correct {
+            @apply border-green-500 bg-green-50;
+        }
+        .incorrect {
+            @apply border-red-500 bg-red-50;
+        }
+
+        /* Estils per a la impressió */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .worksheet {
+                width: 14.8cm;
+                height: 21cm;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                page-break-after: always;
+            }
+            .no-print {
+                display: none;
+            }
+            /* Amaga els inputs i mostra el seu valor per a la impressió */
+            input {
+                border: none !important;
+                background-color: transparent !important;
+                font-size: inherit !important;
+                color: inherit !important;
+                text-align: left !important;
+                padding: 0 !important;
+                width: auto !important;
+            }
+             .notation-input {
+                height: auto;
+                width: auto;
+                border: none !important;
+                font-size: 2rem !important;
+            }
+        }
+        @page {
+            size: A5;
+            margin: 0.8cm;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Secció de controls, no s'imprimirà -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8 no-print">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Generador de Fitxes d'Elements</h1>
+            <p class="text-slate-600 mb-6">Selecciona elements, genera les fitxes i completa-les. Fes clic a "Comprovar" per corregir-les.</p>
+            
+            <div id="element-selector" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+                <!-- Les caselles de selecció es generaran aquí amb JS -->
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="generate-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Generar Fitxes
+                </button>
+                <button id="check-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                    Comprovar
+                </button>
+                <button id="print-btn" class="w-full sm:w-auto bg-slate-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50">
+                    Imprimir
+                </button>
+            </div>
+        </div>
+
+        <!-- Àrea d'impressió on apareixeran les fitxes generades -->
+        <div id="print-area" class="space-y-8">
+             <div class="flex justify-center items-center h-64 bg-white rounded-xl shadow-md border-2 border-dashed border-slate-300">
+                <p class="text-slate-500 text-lg">Selecciona elements i genera les fitxes per veure-les aquí.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const elements = [
+            { symbol: 'H', name: 'Hidrogen', z: 1, a: 1 }, { symbol: 'He', name: 'Heli', z: 2, a: 4 },
+            { symbol: 'Li', name: 'Liti', z: 3, a: 7 }, { symbol: 'Be', name: 'Beril·li', z: 4, a: 9 },
+            { symbol: 'B', name: 'Bor', z: 5, a: 11 }, { symbol: 'C', name: 'Carboni', z: 6, a: 12 },
+            { symbol: 'N', name: 'Nitrogen', z: 7, a: 14 }, { symbol: 'O', name: 'Oxigen', z: 8, a: 16 },
+            { symbol: 'F', name: 'Fluor', z: 9, a: 19 }, { symbol: 'Ne', name: 'Neó', z: 10, a: 20 },
+            { symbol: 'Na', name: 'Sodi', z: 11, a: 23 }, { symbol: 'Mg', name: 'Magnesi', z: 12, a: 24 },
+            { symbol: 'Al', name: 'Alumini', z: 13, a: 27 }, { symbol: 'Si', name: 'Silici', z: 14, a: 28 },
+            { symbol: 'P', name: 'Fòsfor', z: 15, a: 31 }, { symbol: 'S', name: 'Sofre', z: 16, a: 32 },
+            { symbol: 'Cl', name: 'Clor', z: 17, a: 35 }, { symbol: 'Ar', name: 'Argó', z: 18, a: 40 },
+            { symbol: 'K', name: 'Potassi', z: 19, a: 39 }, { symbol: 'Ca', name: 'Calci', z: 20, a: 40 },
+            { symbol: 'Fe', name: 'Ferro', z: 26, a: 56 }, { symbol: 'Cu', name: 'Coure', z: 29, a: 64 },
+            { symbol: 'Zn', name: 'Zinc', z: 30, a: 65 }, { symbol: 'Ag', name: 'Plata', z: 47, a: 108 },
+            { symbol: 'Au', name: 'Or', z: 79, a: 197 },
+        ];
+
+        const elementSelector = document.getElementById('element-selector');
+        const generateBtn = document.getElementById('generate-btn');
+        const printBtn = document.getElementById('print-btn');
+        const checkBtn = document.getElementById('check-btn');
+        const printArea = document.getElementById('print-area');
+
+        function getElectronDistribution(z) {
+            let electrons = z;
+            const distribution = [];
+            const shells = [2, 8, 8, 18, 18, 32, 32]; // Simplificació per a ESO
+            for (const capacity of shells) {
+                if (electrons > 0) {
+                    const inShell = Math.min(electrons, capacity);
+                    distribution.push(inShell);
+                    electrons -= inShell;
+                } else {
+                    break;
+                }
+            }
+            return distribution.join(', ');
+        }
+
+        function createWorksheet(element) {
+            const neutrons = element.a - element.z;
+            const distribution = getElectronDistribution(element.z);
+            let shellsSVG = '';
+            for (let i = 0; i < 5; i++) {
+                shellsSVG += `<circle cx="100" cy="100" r="${25 + i * 15}" stroke="#cbd5e1" stroke-width="1.5" fill="none" stroke-dasharray="3 3" />`;
+            }
+
+            return `
+                <div class="worksheet bg-white p-4 rounded-xl shadow-lg border border-slate-200 flex flex-col" style="width: 14.8cm; height: 21cm; margin-left: auto; margin-right: auto;">
+                    <h2 class="text-xl font-bold text-center text-slate-800 border-b-2 border-slate-300 pb-2 mb-3">Fitxa d'element químic</h2>
+                    
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-3">
+                        <div class="grid grid-cols-2 gap-4 text-center items-center">
+                            <div>
+                                <p class="text-4xl font-bold text-indigo-600">${element.symbol}</p>
+                                <p class="text-xs text-slate-700">${element.name}</p>
+                            </div>
+                            <div class="text-left text-sm space-y-1">
+                                <p><strong>Z:</strong> <input type="text" class="input-field" data-correct="${element.z}"></p>
+                                <p><strong>A:</strong> <input type="text" class="input-field" data-correct="${element.a}"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h3 class="font-semibold text-md mb-1 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>1. Notació simbòlica</h3>
+                        <div class="flex items-center space-x-3">
+                            <input type="text" class="notation-input" data-correct="${element.symbol}">
+                            <p class="text-slate-600 text-sm">Escriu el símbol amb A i Z.</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h3 class="font-semibold text-md mb-1 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L7.86 6.85c-.44 1.8.66 3.58 2.47 4.03l3.62.9c1.8.44 3.58-.66 4.03-2.47l.9-3.62c.38-1.56-1.56-2.6-2.47-4.03l-3.62-.9zM5.49 9.17c-.38-1.56-2.6-1.56-2.98 0L1.86 12.85c-.44 1.8.66 3.58 2.47 4.03l3.62.9c1.8.44 3.58-.66 4.03-2.47l.9-3.62c.38-1.56-1.56-2.6-2.47-4.03l-3.62-.9z" clip-rule="evenodd" /></svg>2. Partícules subatòmiques</h3>
+                        <div class="grid grid-cols-2 gap-x-4 text-sm space-y-1">
+                            <p>Protons (p⁺):</p>
+                            <p>Neutrons (n⁰):</p>
+                            <p>Electrons (e⁻):</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col mb-3">
+                        <h3 class="font-semibold text-md mb-1 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a1.5 1.5 0 011.5 1.5v.563l3.343 3.342a1.5 1.5 0 01-2.121 2.122L10 8.864l-2.722 2.721a1.5 1.5 0 01-2.121-2.122L8.5 5.563V5A1.5 1.5 0 0110 3.5zM5.5 10a1.5 1.5 0 00-1.5 1.5v.563l-1.72 1.72a1.5 1.5 0 002.121 2.122L7.121 13.2l2.722 2.722a1.5 1.5 0 002.121-2.122L9.243 11.08v-.58A1.5 1.5 0 007.743 9H5.5z" /><path d="M10 18a8 8 0 100-16 8 8 0 000 16z" /></svg>3. Distribució electrònica</h3>
+                        <div class="mb-1 text-sm">
+                            <p><strong>Distribució:</strong> <input type="text" class="input-field w-full" data-correct="${distribution}"></p>
+                        </div>
+                        <div class="w-full h-56 border-2 border-dashed border-slate-400 rounded-lg p-1 flex justify-center items-center">
+                             <svg viewBox="0 0 200 200" class="w-full h-full">
+                                <circle cx="100" cy="100" r="18" fill="#e2e8f0" />
+                                <text x="100" y="97" text-anchor="middle" font-size="10" fill="#475569">p⁺=?</text>
+                                <text x="100" y="109" text-anchor="middle" font-size="10" fill="#475569">n⁰=?</text>
+                                ${shellsSVG}
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col mt-auto">
+                        <h3 class="font-semibold text-md mb-1 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>4. Identificació d'elements</h3>
+                        <p class="text-sm text-slate-600 mb-2">Donat p⁺ i n⁰: <strong>a)</strong> Cerca l'element. <strong>b)</strong> Representa'l simbòlicament.</p>
+                        <ol class="list-decimal list-inside text-sm space-y-1 columns-2 gap-x-4">
+                            <li>19 p⁺, 21 n⁰ → <input type="text" class="input-field" data-correct="K"></li>
+                            <li>26 p⁺, 30 n⁰ → <input type="text" class="input-field" data-correct="Fe"></li>
+                            <li>29 p⁺, 34 n⁰ → <input type="text" class="input-field" data-correct="Cu"></li>
+                            <li>30 p⁺, 34 n⁰ → <input type="text" class="input-field" data-correct="Zn"></li>
+                            <li>47 p⁺, 60 n⁰ → <input type="text" class="input-field" data-correct="Ag"></li>
+                            <li>79 p⁺, 118 n⁰ → <input type="text" class="input-field" data-correct="Au"></li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+
+        function populateSelector() {
+            elements.forEach(element => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center space-x-2 p-3 bg-slate-200 rounded-lg cursor-pointer hover:bg-slate-300 transition-colors';
+                label.innerHTML = `
+                    <input type="checkbox" class="form-checkbox h-5 w-5 text-indigo-600 border-slate-400 rounded focus:ring-indigo-500" data-symbol="${element.symbol}">
+                    <span class="font-semibold">${element.symbol}</span>
+                    <span class="text-slate-700 text-sm">${element.name}</span>
+                `;
+                elementSelector.appendChild(label);
+            });
+        }
+
+        function generateWorksheets() {
+            printArea.innerHTML = '';
+            const selectedSymbols = Array.from(document.querySelectorAll('#element-selector input:checked'))
+                                         .map(input => input.dataset.symbol);
+
+            if (selectedSymbols.length === 0) {
+                printArea.innerHTML = `
+                    <div class="flex justify-center items-center h-64 bg-white rounded-xl shadow-md border-2 border-dashed border-slate-300">
+                        <p class="text-slate-500 text-lg">No has seleccionat cap element. Tria'n un o més per generar les fitxes.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            selectedSymbols.forEach(symbol => {
+                const elementData = elements.find(el => el.symbol === symbol);
+                if (elementData) {
+                    printArea.innerHTML += createWorksheet(elementData);
+                }
+            });
+        }
+
+        function checkAnswers() {
+            const inputs = printArea.querySelectorAll('input[data-correct]');
+            inputs.forEach(input => {
+                const userAnswer = input.value.trim();
+                const correctAnswer = input.dataset.correct;
+                input.classList.remove('correct', 'incorrect');
+                if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                    input.classList.add('correct');
+                } else {
+                    input.classList.add('incorrect');
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            populateSelector();
+            generateBtn.addEventListener('click', generateWorksheets);
+            printBtn.addEventListener('click', () => window.print());
+            checkBtn.addEventListener('click', checkAnswers);
+        });
+    </script>
+</body>
+</html>
