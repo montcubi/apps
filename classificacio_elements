@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificador de Matèria</title>
+    <!-- Tailwind CSS per a l'estil -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF per a generar informes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Estils personalitzats addicionals */
+        .atom-button {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .atom-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .feedback {
+            min-height: 80px; /* Evita que la interfície salti en mostrar el feedback */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .feedback.correct {
+            background-color: #d1fae5; /* Green-100 */
+            color: #065f46; /* Green-800 */
+        }
+        .feedback.incorrect {
+            background-color: #fee2e2; /* Red-100 */
+            color: #991b1b; /* Red-800 */
+        }
+        .atom-sphere {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: inline-block;
+            border: 2px solid rgba(0,0,0,0.2);
+        }
+        .molecule-container, .atom-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 8px;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+            min-width: 80px;
+        }
+        .recipient-item {
+             display: inline-flex;
+             vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-green-50 font-sans flex items-center justify-center min-h-screen">
+
+    <div class="container mx-auto p-4 max-w-4xl bg-white rounded-2xl shadow-lg">
+
+        <!-- CAPÇALERA -->
+        <header class="flex flex-col sm:flex-row justify-between items-center p-4 border-b-2 border-gray-200">
+            <h1 class="text-2xl md:text-3xl font-bold text-blue-800 mb-2 sm:mb-0">🌍 Classificador de Matèria</h1>
+            <div class="flex items-center space-x-4">
+                <div class="text-lg font-semibold">
+                    Punts: <span id="score" class="bg-blue-600 text-white rounded-full px-3 py-1">0</span>
+                </div>
+                <button id="generate-report-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
+                    Genera Informe
+                </button>
+            </div>
+        </header>
+
+        <!-- SELECCIÓ DE NIVELL -->
+        <div class="p-4 flex justify-center gap-4">
+            <button id="level1-btn" class="bg-teal-500 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75 transition duration-300">Nivell 1: Classificador</button>
+            <button id="level2-btn" class="bg-purple-500 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75 transition duration-300">Nivell 2: Constructor</button>
+        </div>
+        
+        <hr/>
+        <input type="text" id="student-name" placeholder="Escriu el teu nom per a l'informe" class="w-full p-2 mt-4 border rounded-md">
+
+
+        <!-- CONTINGUT PRINCIPAL -->
+        <main id="main-content" class="p-4 md:p-6">
+
+            <!-- NIVELL 1: EL CLASSIFICADOR -->
+            <div id="level1-container">
+                <h2 class="text-xl font-semibold text-center text-gray-700 mb-4">Nivell 1: Classifica la Substància</h2>
+                <div id="l1-question-card" class="bg-gray-50 p-6 rounded-xl shadow-md text-center">
+                    <p class="text-lg mb-2">Substància a classificar:</p>
+                    <h3 id="l1-substance-name" class="text-3xl font-bold text-gray-800 mb-6">--</h3>
+                    
+                    <!-- Pas 1 -->
+                    <div id="l1-step1">
+                        <p class="font-semibold mb-3">Pas 1: Es pot separar per mètodes físics?</p>
+                        <div class="flex justify-center gap-4">
+                            <button data-answer="mescla" class="l1-step1-btn bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-yellow-600 transition">Sí (Mescla)</button>
+                            <button data-answer="pura" class="l1-step1-btn bg-green-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-green-600 transition">No (Pura)</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Pas 2 -->
+                    <div id="l1-step2" class="hidden mt-6">
+                        <p class="font-semibold mb-3">Pas 2: Com està formada?</p>
+                        <div id="l1-step2-pure-buttons" class="flex justify-center gap-4">
+                            <button data-answer="element" class="l1-step2-btn bg-blue-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-blue-600 transition">Element</button>
+                            <button data-answer="compost" class="l1-step2-btn bg-red-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-red-600 transition">Compost</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mt-4 gap-4">
+                    <button id="l1-hint-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition"> necessito una pista (-2 punts)</button>
+                    <button id="l1-next-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition hidden">Següent</button>
+                </div>
+
+                <div id="l1-feedback" class="feedback text-center mt-4"></div>
+            </div>
+
+            <!-- NIVELL 2: EL CONSTRUCTOR ATÒMIC -->
+            <div id="level2-container" class="hidden">
+                 <h2 class="text-xl font-semibold text-center text-gray-700 mb-4">Nivell 2: Construeix la Matèria</h2>
+                 <div class="bg-gray-50 p-6 rounded-xl shadow-md">
+                    <p class="text-center text-lg mb-2">Objectiu:</p>
+                    <h3 id="l2-goal" class="text-2xl font-bold text-gray-800 mb-6 text-center">--</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Paleta de components -->
+                        <div>
+                            <h4 class="font-semibold mb-3 text-center">Paleta de Components</h4>
+                            <div id="l2-palette" class="grid grid-cols-2 gap-3 items-center justify-center p-2 bg-gray-200 rounded-lg">
+                                <!-- Components visuals es generaran aquí -->
+                            </div>
+                        </div>
+                        <!-- Recipient de construcció -->
+                        <div>
+                            <h4 class="font-semibold mb-3 text-center">El teu Recipient</h4>
+                            <div id="l2-recipient" class="bg-white border-2 border-dashed border-gray-400 rounded-lg min-h-[150px] p-3 flex flex-wrap gap-2 items-start">
+                                <!-- Components afegits apareixeran aquí -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center gap-4 mt-6">
+                        <button id="l2-verify-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition">Verifica</button>
+                        <button id="l2-reset-btn" class="bg-gray-400 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-500 transition">Reinicia</button>
+                    </div>
+                 </div>
+                 
+                 <div class="flex justify-center mt-4 gap-4">
+                    <button id="l2-hint-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition"> necessito una pista (-2 punts)</button>
+                 </div>
+
+                 <div id="l2-feedback" class="feedback text-center mt-4"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Dades de l'aplicació
+            const level1Questions = [
+                { substance: "Oxigen (O₂)", type1: "pura", type2: "element", hint: "Està format per un únic tipus d'àtom, encara que vagin en parelles.", explanation: "L'Oxigen és una substància pura i un element, ja que totes les seves partícules estan fetes d'àtoms d'oxigen." },
+                { substance: "Aigua (H₂O)", type1: "pura", type2: "compost", hint: "Les seves molècules tenen àtoms d'Hidrogen i d'Oxigen units.", explanation: "L'aigua és una substància pura i un compost, perquè està formada per molècules idèntiques (H₂O), cadascuna amb àtoms diferents." },
+                { substance: "Aigua amb sal", type1: "mescla", type2: "homogènia", hint: "Conté aigua i sal, i no es poden distingir a simple vista.", explanation: "És una mescla (d'aigua i sal) i és homogènia perquè els seus components no es distingeixen." },
+                { substance: "Ferro (Fe)", type1: "pura", type2: "element", hint: "Busca'l a la taula periòdica. Està format per un sol tipus d'àtom.", explanation: "El Ferro és un element químic. Totes les partícules són àtoms de Ferro." },
+                { substance: "Aire", type1: "mescla", type2: "homogènia", hint: "És una combinació de gasos com Nitrogen, Oxigen, etc.", explanation: "L'aire és una mescla de gasos (Nitrogen, Oxigen...). Com que no distingim els components, és homogènia." },
+                { substance: "Diòxid de Carboni (CO₂)", type1: "pura", type2: "compost", hint: "Les seves molècules tenen àtoms de Carboni i d'Oxigen units.", explanation: "El CO₂ és un compost, format per molècules on s'uneixen un àtom de Carboni i dos d'Oxigen." },
+                { substance: "Sopa de fideus", type1: "mescla", type2: "heterogènia", hint: "Pots veure clarament el brou i els fideus per separat.", explanation: "És una mescla heterogènia. Es poden distingir clarament els seus components (brou, fideus, verdures...)." },
+                { substance: "Bronze", type1: "mescla", type2: "homogènia", hint: "És un aliatge, una barreja sòlida de metalls (Coure i Estany).", explanation: "El bronze és una mescla homogènia (un aliatge) de Coure i Estany." },
+            ];
+            
+            // Paleta de components estàndard per a tots els reptes del Nivell 2
+            const masterPalette = [
+                { id: 'He', type: 'atom', isElement: true, displayName: "Àtom d'Heli", atoms: [{ color: 'bg-pink-400' }] },
+                { id: 'Fe', type: 'atom', isElement: true, displayName: "Àtom de Ferro", atoms: [{ color: 'bg-gray-500' }] },
+                { id: 'O2', type: 'molecule', isElement: true, displayName: "Molècula d'Oxigen", atoms: [{ color: 'bg-blue-500' }, { color: 'bg-blue-500' }] },
+                { id: 'H2O', type: 'molecule', isElement: false, displayName: "Molècula d'Aigua", atoms: [{ color: 'bg-gray-200' }, { color: 'bg-blue-500' }, { color: 'bg-gray-200' }] },
+                { id: 'CO2', type: 'molecule', isElement: false, displayName: "Molècula de CO₂", atoms: [{ color: 'bg-gray-700' }, { color: 'bg-red-500' }, { color: 'bg-red-500' }] }
+            ];
+
+            const level2Challenges = [
+                {
+                    goal: "Construeix una substància pura (Element monoatòmic)",
+                    validation: (items) => {
+                        if (items.length === 0) return false;
+                        const firstItem = items[0];
+                        const allSame = items.every(item => item.id === firstItem.id);
+                        return allSame && firstItem.isElement && firstItem.type === 'atom';
+                    },
+                    hint: "Una substància pura elemental està formada per un sol tipus d'àtom. Afegeix diverses vegades la mateixa esfera que representa un àtom sol.",
+                    explanation: "Molt bé! Una substància pura elemental (monoatòmica) està formada per un únic tipus d'àtom, com l'Heli o el Ferro."
+                },
+                {
+                    goal: "Construeix una substància pura (Compost)",
+                    validation: (items) => {
+                        if (items.length === 0) return false;
+                        const firstItem = items[0];
+                        const allSame = items.every(item => item.id === firstItem.id);
+                        return allSame && !firstItem.isElement;
+                    },
+                    hint: "Una substància pura composta està formada per molècules idèntiques. Afegeix diverses vegades la mateixa agrupació d'esferes de colors.",
+                    explanation: "Perfecte! Una substància pura composta està formada per un sol tipus de molècula, com l'aigua (H₂O) o el CO₂."
+                },
+                {
+                    goal: "Construeix una substància pura (Element diatòmic)",
+                    validation: (items) => {
+                        if (items.length === 0) return false;
+                        const firstItem = items[0];
+                        const allSame = items.every(item => item.id === firstItem.id);
+                        return allSame && firstItem.isElement && firstItem.id === 'O2';
+                    },
+                    hint: "Alguns elements, com l'oxigen, formen molècules de dos àtoms iguals. Totes les partícules han de ser idèntiques.",
+                    explanation: "Excel·lent! L'oxigen és un element, però les seves partícules són molècules diatòmiques (O₂). Com que totes les partícules són iguals, és una substància pura."
+                },
+                {
+                    goal: "Construeix una mescla de dos elements",
+                    validation: (items) => {
+                        const uniqueIds = new Set(items.map(item => item.id));
+                        if (uniqueIds.size !== 2) return false;
+                        const firstType = masterPalette.find(p => p.id === Array.from(uniqueIds)[0]);
+                        const secondType = masterPalette.find(p => p.id === Array.from(uniqueIds)[1]);
+                        return firstType.isElement && secondType.isElement;
+                    },
+                    hint: "Una mescla d'elements conté partícules de diferents elements no unides. Tria dos tipus de partícules elementals (àtoms o molècules diatòmiques) i afegeix-ne al recipient.",
+                    explanation: "Correcte! Una mescla d'elements conté diferents tipus de partícules elementals no enllaçades químicament."
+                },
+                {
+                    goal: "Construeix una mescla d'un element i un compost",
+                    validation: (items) => {
+                         const uniqueIds = new Set(items.map(item => item.id));
+                        if (uniqueIds.size !== 2) return false;
+                        const firstType = masterPalette.find(p => p.id === Array.from(uniqueIds)[0]);
+                        const secondType = masterPalette.find(p => p.id === Array.from(uniqueIds)[1]);
+                        return (firstType.isElement && !secondType.isElement) || (!firstType.isElement && secondType.isElement);
+                    },
+                    hint: "Barreja partícules d'un element (àtoms o molècules diatòmiques) amb les partícules d'un compost.",
+                    explanation: "Molt bé! Has barrejat les partícules d'un element amb les d'un compost."
+                },
+                {
+                    goal: "Construeix una mescla de dos compostos",
+                    validation: (items) => {
+                        const uniqueIds = new Set(items.map(item => item.id));
+                        if (uniqueIds.size !== 2) return false;
+                        const firstType = masterPalette.find(p => p.id === Array.from(uniqueIds)[0]);
+                        const secondType = masterPalette.find(p => p.id === Array.from(uniqueIds)[1]);
+                        return !firstType.isElement && !secondType.isElement;
+                    },
+                    hint: "Una mescla de compostos conté molècules de diferents tipus. Tria dues agrupacions d'esferes diferents i afegeix-ne al recipient.",
+                    explanation: "Correcte! Has barrejat dos tipus de compostos diferents, com l'aigua i el diòxid de carboni."
+                }
+            ];
+            
+            // Estat de l'aplicació
+            let currentLevel = 1;
+            let score = 0;
+            let l1_currentQuestionIndex = 0;
+            let l1_userAnswer1 = null;
+            let l1_userAnswer2 = null;
+            let l2_currentChallengeIndex = 0;
+            let l2_recipientItems = [];
+            let reportData = [];
+
+            // Elements del DOM
+            const scoreEl = document.getElementById('score');
+            const mainContentEl = document.getElementById('main-content');
+            const level1Container = document.getElementById('level1-container');
+            const level2Container = document.getElementById('level2-container');
+            const l1_substanceNameEl = document.getElementById('l1-substance-name');
+            const l1_step1El = document.getElementById('l1-step1');
+            const l1_step2El = document.getElementById('l1-step2');
+            const l1_feedbackEl = document.getElementById('l1-feedback');
+            const l1_nextBtn = document.getElementById('l1-next-btn');
+            const l1_hintBtn = document.getElementById('l1-hint-btn');
+            
+            const l2_goalEl = document.getElementById('l2-goal');
+            const l2_paletteEl = document.getElementById('l2-palette');
+            const l2_recipientEl = document.getElementById('l2-recipient');
+            const l2_feedbackEl = document.getElementById('l2-feedback');
+            const l2_verifyBtn = document.getElementById('l2-verify-btn');
+            const l2_resetBtn = document.getElementById('l2-reset-btn');
+            const l2_hintBtn = document.getElementById('l2-hint-btn');
+
+
+            // Inicialització
+            init();
+
+            function init() {
+                document.getElementById('level1-btn').addEventListener('click', () => switchLevel(1));
+                document.getElementById('level2-btn').addEventListener('click', () => switchLevel(2));
+                
+                l1_nextBtn.addEventListener('click', nextLevel1Question);
+                l1_hintBtn.addEventListener('click', showLevel1Hint);
+                
+                l2_verifyBtn.addEventListener('click', verifyLevel2);
+                l2_resetBtn.addEventListener('click', resetLevel2Recipient);
+                l2_hintBtn.addEventListener('click', showLevel2Hint);
+
+                document.getElementById('generate-report-btn').addEventListener('click', generateReport);
+
+
+                document.querySelectorAll('.l1-step1-btn').forEach(btn => {
+                    btn.addEventListener('click', handleL1Step1);
+                });
+                 document.querySelectorAll('.l1-step2-btn').forEach(btn => {
+                    btn.addEventListener('click', handleL1Step2);
+                });
+
+                switchLevel(1);
+            }
+            
+            function switchLevel(level) {
+                currentLevel = level;
+                if (level === 1) {
+                    level1Container.classList.remove('hidden');
+                    level2Container.classList.add('hidden');
+                    document.getElementById('level1-btn').classList.add('bg-teal-700', 'ring-2');
+                    document.getElementById('level2-btn').classList.remove('bg-purple-700', 'ring-2');
+                    loadLevel1Question();
+                } else {
+                    level1Container.classList.add('hidden');
+                    level2Container.classList.remove('hidden');
+                    document.getElementById('level1-btn').classList.remove('bg-teal-700', 'ring-2');
+                    document.getElementById('level2-btn').classList.add('bg-purple-700', 'ring-2');
+                    loadLevel2Challenge();
+                }
+            }
+
+            function updateScore(points) {
+                score += points;
+                scoreEl.textContent = score;
+            }
+
+            // --- LÒGICA NIVELL 1 ---
+            function loadLevel1Question() {
+                if (l1_currentQuestionIndex >= level1Questions.length) {
+                    l1_substanceNameEl.textContent = "Nivell 1 completat!";
+                    l1_step1El.classList.add('hidden');
+                    l1_step2El.classList.add('hidden');
+                    l1_nextBtn.classList.add('hidden');
+                    l1_hintBtn.classList.add('hidden');
+                    return;
+                }
+                const question = level1Questions[l1_currentQuestionIndex];
+                l1_substanceNameEl.textContent = question.substance;
+                resetLevel1State();
+            }
+
+            function resetLevel1State() {
+                l1_step1El.classList.remove('hidden');
+                l1_step2El.classList.add('hidden');
+                l1_feedbackEl.innerHTML = "";
+                l1_feedbackEl.className = "feedback text-center mt-4";
+                l1_nextBtn.classList.add('hidden');
+                l1_hintBtn.disabled = false;
+                l1_userAnswer1 = null;
+                l1_userAnswer2 = null;
+                document.querySelectorAll('.l1-step1-btn, .l1-step2-btn').forEach(btn => btn.disabled = false);
+            }
+
+            function handleL1Step1(e) {
+                l1_userAnswer1 = e.target.dataset.answer;
+                const question = level1Questions[l1_currentQuestionIndex];
+
+                if (l1_userAnswer1 === question.type1) {
+                    // Resposta correcta al pas 1
+                    if (question.type1 === 'pura') {
+                        // Si és una substància pura, continuem al pas 2
+                        l1_step1El.classList.add('hidden');
+                        l1_step2El.classList.remove('hidden');
+                    } else {
+                        // Si és una mescla, l'exercici ha acabat i és correcte.
+                        handleL1Result(true);
+                    }
+                } else {
+                    // Resposta incorrecta al pas 1
+                    handleL1Result(false);
+                }
+            }
+
+            function handleL1Step2(e) {
+                const userAnswer2 = e.target.dataset.answer;
+                l1_userAnswer2 = userAnswer2;
+                const question = level1Questions[l1_currentQuestionIndex];
+                const isCorrect = l1_userAnswer1 === question.type1 && userAnswer2 === question.type2;
+                handleL1Result(isCorrect);
+            }
+            
+            function handleL1Result(isCorrect) {
+                 const question = level1Questions[l1_currentQuestionIndex];
+                 document.querySelectorAll('.l1-step1-btn, .l1-step2-btn').forEach(btn => btn.disabled = true);
+                 l1_hintBtn.disabled = true;
+                 
+                 l1_feedbackEl.innerHTML = `<strong>${isCorrect ? "Correcte!" : "Incorrecte."}</strong><p>${question.explanation}</p>`;
+                 l1_feedbackEl.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+                 if (isCorrect) {
+                     updateScore(10);
+                 }
+                 l1_nextBtn.classList.remove('hidden');
+
+                 const finalAnswer = l1_userAnswer2 ? `${l1_userAnswer1}, ${l1_userAnswer2}` : l1_userAnswer1;
+                 reportData.push({
+                     level: 1,
+                     question: `Classificar: ${question.substance}`,
+                     answer: finalAnswer,
+                     isCorrect: isCorrect,
+                     points: isCorrect ? 10 : 0
+                 });
+            }
+
+            function nextLevel1Question() {
+                l1_currentQuestionIndex++;
+                loadLevel1Question();
+            }
+            
+            function showLevel1Hint() {
+                const question = level1Questions[l1_currentQuestionIndex];
+                l1_feedbackEl.innerHTML = `<p><strong>Pista:</strong> ${question.hint}</p>`;
+                l1_feedbackEl.className = "feedback text-center mt-4 bg-blue-100 text-blue-800";
+                updateScore(-2);
+                l1_hintBtn.disabled = true;
+
+                reportData.push({
+                     level: 1,
+                     question: `Pista per a: ${question.substance}`,
+                     answer: `(ha demanat pista)`,
+                     isCorrect: null,
+                     points: -2
+                 });
+            }
+
+
+            // --- LÒGICA NIVELL 2 ---
+             function loadLevel2Challenge() {
+                if (l2_currentChallengeIndex >= level2Challenges.length) {
+                    l2_goalEl.textContent = "Nivell 2 completat!";
+                    l2_paletteEl.innerHTML = "";
+                    l2_recipientEl.innerHTML = "";
+                    l2_verifyBtn.classList.add('hidden');
+                    l2_resetBtn.classList.add('hidden');
+                    l2_hintBtn.classList.add('hidden');
+                    return;
+                }
+                const challenge = level2Challenges[l2_currentChallengeIndex];
+                l2_goalEl.textContent = challenge.goal;
+                l2_paletteEl.innerHTML = '';
+                
+                masterPalette.forEach(comp => {
+                    const compContainer = document.createElement('div');
+                    compContainer.className = 'atom-button flex flex-col items-center justify-center p-2 rounded-lg';
+                    compContainer.title = comp.displayName;
+                    
+                    const visualEl = document.createElement('div');
+                    visualEl.className = comp.type === 'atom' ? 'atom-container' : 'molecule-container';
+
+                    comp.atoms.forEach(atom => {
+                        const atomSphere = document.createElement('div');
+                        atomSphere.className = `atom-sphere ${atom.color}`;
+                        visualEl.appendChild(atomSphere);
+                    });
+                    
+                    compContainer.appendChild(visualEl);
+                    compContainer.addEventListener('click', () => addComponentToRecipient(comp));
+                    l2_paletteEl.appendChild(compContainer);
+                });
+
+                resetLevel2Recipient();
+                l2_feedbackEl.innerHTML = "";
+                l2_feedbackEl.className = "feedback text-center mt-4";
+                l2_verifyBtn.disabled = false;
+                l2_resetBtn.disabled = false;
+                l2_hintBtn.disabled = false;
+            }
+
+            function addComponentToRecipient(comp) {
+                l2_recipientItems.push(comp);
+                const visualClone = document.createElement('div');
+                visualClone.className = 'recipient-item';
+
+                const container = document.createElement('div');
+                container.className = comp.type === 'atom' ? 'atom-container' : 'molecule-container';
+                
+                comp.atoms.forEach(atom => {
+                    const atomSphere = document.createElement('div');
+                    atomSphere.className = `atom-sphere ${atom.color}`;
+                    container.appendChild(atomSphere);
+                });
+
+                visualClone.appendChild(container);
+                l2_recipientEl.appendChild(visualClone);
+            }
+
+            function resetLevel2Recipient() {
+                l2_recipientItems = [];
+                l2_recipientEl.innerHTML = '';
+            }
+            
+            function verifyLevel2() {
+                const challenge = level2Challenges[l2_currentChallengeIndex];
+                const isCorrect = challenge.validation(l2_recipientItems);
+                
+                l2_feedbackEl.innerHTML = `<strong>${isCorrect ? "Correcte!" : "Incorrecte."}</strong><p>${challenge.explanation}</p>`;
+                l2_feedbackEl.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                if (isCorrect) {
+                    updateScore(15); // Nivell 2 val més punts
+                }
+
+                l2_verifyBtn.disabled = true;
+                l2_hintBtn.disabled = true;
+
+                reportData.push({
+                     level: 2,
+                     question: `Construir: ${challenge.goal}`,
+                     answer: l2_recipientItems.map(item => item.displayName).join(', ') || '(buit)',
+                     isCorrect: isCorrect,
+                     points: isCorrect ? 15 : 0
+                 });
+                 
+                 // Passa al següent repte automàticament després de 3 segons
+                 setTimeout(nextLevel2Challenge, 3000);
+            }
+
+            function nextLevel2Challenge() {
+                l2_currentChallengeIndex++;
+                loadLevel2Challenge();
+            }
+
+            function showLevel2Hint() {
+                 const challenge = level2Challenges[l2_currentChallengeIndex];
+                 l2_feedbackEl.innerHTML = `<p><strong>Pista:</strong> ${challenge.hint}</p>`;
+                 l2_feedbackEl.className = "feedback text-center mt-4 bg-purple-100 text-purple-800";
+                 updateScore(-2);
+                 l2_hintBtn.disabled = true;
+
+                 reportData.push({
+                     level: 2,
+                     question: `Pista per a: ${challenge.goal}`,
+                     answer: `(ha demanat pista)`,
+                     isCorrect: null,
+                     points: -2
+                 });
+            }
+
+            // --- GENERACIÓ D'INFORME ---
+            function generateReport() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const studentName = document.getElementById('student-name').value || 'Anònim';
+
+                // Càlcul del percentatge d'encerts
+                let totalObtainedPoints = 0;
+                let totalPossiblePoints = 0;
+                reportData.forEach(item => {
+                    if (item.isCorrect === true) {
+                        totalObtainedPoints += item.points;
+                        totalPossiblePoints += item.points;
+                    } else if (item.isCorrect === false) {
+                        // Afegim els punts que s'haurien guanyat si la resposta fos correcta
+                        if (item.level === 1) totalPossiblePoints += 10;
+                        if (item.level === 2) totalPossiblePoints += 15;
+                    }
+                });
+                const percentage = totalPossiblePoints > 0 ? Math.round((totalObtainedPoints / totalPossiblePoints) * 100) : 0;
+                
+                doc.setFontSize(20);
+                doc.text("Informe d'Activitats: Classificador de Matèria", 10, 20);
+
+                doc.setFontSize(14);
+                doc.text(`Alumne/a: ${studentName}`, 10, 30);
+                doc.text(`Puntuació Final: ${score} (${percentage}% d'encerts)`, 10, 40);
+
+                doc.setFontSize(12);
+                doc.text("Resum de respostes:", 10, 60);
+                
+                let y = 70;
+                reportData.forEach((item, index) => {
+                    if (y > 270) { // Salt de pàgina
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    let resultText = '';
+                    if (item.isCorrect === true) resultText = 'Correcte';
+                    else if (item.isCorrect === false) resultText = 'Incorrecte';
+                    else resultText = 'Pista';
+
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Nivell ${item.level} - ${item.question}`, 15, y);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(`Resposta: ${item.answer}`, 20, y + 7);
+                    doc.text(`Resultat: ${resultText} (${item.points} punts)`, 20, y + 14);
+                    y += 25;
+                });
+
+
+                doc.save(`informe_quimica_${studentName.replace(/\s/g, '_')}.pdf`);
+            }
+
+        });
+    </script>
+</body>
+</html>
+
+
