@@ -78,7 +78,10 @@
         </div>
         
         <hr/>
-        <input type="text" id="student-name" placeholder="Escriu el teu nom per a l'informe" class="w-full p-2 mt-4 border rounded-md">
+        <div class="p-4 flex items-center justify-center gap-2">
+            <label for="student-name" class="text-xl font-bold text-indigo-800">NOM:</label>
+            <input type="text" id="student-name" placeholder="Escriu el teu nom..." class="flex-grow p-3 border-2 rounded-lg text-lg bg-indigo-50 border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none transition">
+        </div>
 
 
         <!-- CONTINGUT PRINCIPAL -->
@@ -88,7 +91,7 @@
             <div id="level1-container">
                 <h2 class="text-xl font-semibold text-center text-gray-700 mb-4">Nivell 1: Classifica la Substància</h2>
                 <div id="l1-question-card" class="bg-gray-50 p-6 rounded-xl shadow-md text-center">
-                    <p class="text-lg mb-2">Substància a classificar:</p>
+                    <p class="text-lg mb-2">Substància a classificar (<span id="question-counter"></span>):</p>
                     <h3 id="l1-substance-name" class="text-3xl font-bold text-gray-800 mb-6">--</h3>
                     
                     <!-- Pas 1 -->
@@ -168,7 +171,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Dades de l'aplicació
-            let level1Questions = [
+            let allLevel1Questions = [
                 { substance: "Oxigen (O₂)", type1: "pura", type2: "element", hint: "Està format per un únic tipus d'àtom, encara que vagin en parelles.", explanation: "L'Oxigen és una substància pura i un element, ja que totes les seves partícules estan fetes d'àtoms d'oxigen." },
                 { substance: "Aigua (H₂O)", type1: "pura", type2: "compost", hint: "Les seves molècules tenen àtoms d'Hidrogen i d'Oxigen units.", explanation: "L'aigua és una substància pura i un compost, perquè està formada per molècules idèntiques (H₂O), cadascuna amb àtoms diferents." },
                 { substance: "Aigua amb sal", type1: "mescla", type2: "homogènia", hint: "Conté aigua i sal, i no es poden distingir a simple vista.", explanation: "És una mescla (d'aigua i sal) i és homogènia perquè els seus components no es distingeixen." },
@@ -183,9 +186,13 @@
                 { substance: "Heli (He)", type1: "pura", type2: "element", hint: "És un gas noble. Els seus àtoms no s'uneixen entre ells.", explanation: "L'Heli és un element. Totes les seves partícules són àtoms individuals d'Heli." },
                 { substance: "Acer", type1: "mescla", type2: "homogènia", hint: "És una barreja de Ferro i Carboni. És un aliatge metàl·lic.", explanation: "L'acer és una mescla homogènia (un aliatge) principalment de Ferro i Carboni." },
                 { substance: "Plata (Ag)", type1: "pura", type2: "element", hint: "És un metall preciós que trobaràs a la taula periòdica.", explanation: "La plata és un element químic. Totes les seves partícules són àtoms de Plata." },
-                { substance: "Nitrogen (N₂)", type1: "pura", type2: "element", hint: "És el gas més abundant de l'aire. Les seves partícules estan formades per dos àtoms iguals.", explanation: "El Nitrogen és un element, ja que totes les seves partícules estan fetes d'àtoms de nitrogen, agrupats en molècules diatòmiques (N₂)." }
+                { substance: "Nitrogen (N₂)", type1: "pura", type2: "element", hint: "És el gas més abundant de l'aire. Les seves partícules estan formades per dos àtoms iguals.", explanation: "El Nitrogen és un element, ja que totes les seves partícules estan fetes d'àtoms de nitrogen, agrupats en molècules diatòmiques (N₂)." },
+                { substance: "Lleixiu", type1: "mescla", type2: "homogènia", hint: "És aigua amb hipoclorit de sodi (NaClO) dissolt.", explanation: "El lleixiu és una mescla homogènia, una dissolució d'hipoclorit de sodi en aigua." },
+                { substance: "Alcohol etílic", type1: "pura", type2: "compost", hint: "La seva fórmula química és C₂H₅OH.", explanation: "L'alcohol etílic és un compost químic, format per molècules idèntiques." }
             ];
             
+            let level1Questions = []; // Aquest array contindrà les 10 preguntes de la sessió actual
+
             const masterPalette = [
                 { id: 'He', type: 'atom', isElement: true, displayName: "Àtom d'Heli", atoms: [{ color: 'bg-pink-400' }] },
                 { id: 'Fe', type: 'atom', isElement: true, displayName: "Àtom de Ferro", atoms: [{ color: 'bg-gray-500' }] },
@@ -205,7 +212,8 @@
                         return allSame && firstItem.isElement && firstItem.type === 'atom';
                     },
                     hint: "Una substància pura elemental està formada per un sol tipus d'àtom. Afegeix diverses vegades la mateixa esfera que representa un àtom sol.",
-                    explanation: "Molt bé! Una substància pura elemental (monoatòmica) està formada per un únic tipus d'àtom, com l'Heli o el Ferro."
+                    explanation_correct: "Molt bé! Una substància pura elemental (monoatòmica) està formada per un únic tipus d'àtom, com l'Heli o el Ferro.",
+                    explanation_incorrect: "Recorda, una substància pura d'un element monoatòmic ha de contenir un sol tipus d'àtom."
                 },
                 {
                     goal: "Construeix una substància pura (Compost)",
@@ -216,7 +224,8 @@
                         return allSame && !firstItem.isElement;
                     },
                     hint: "Una substància pura composta està formada per molècules idèntiques. Afegeix diverses vegades la mateixa agrupació d'esferes de colors.",
-                    explanation: "Perfecte! Una substància pura composta està formada per un sol tipus de molècula, com l'aigua (H₂O) o el CO₂."
+                    explanation_correct: "Perfecte! Una substància pura composta està formada per un sol tipus de molècula, com l'aigua (H₂O) o el CO₂.",
+                    explanation_incorrect: "Per a un compost pur, totes les partícules (les molècules) han de ser idèntiques entre si."
                 },
                 {
                     goal: "Construeix una substància pura (Element diatòmic)",
@@ -227,7 +236,8 @@
                         return allSame && firstItem.isElement && firstItem.type === 'molecule';
                     },
                     hint: "Alguns elements, com l'oxigen, formen molècules de dos àtoms iguals. Totes les partícules han de ser idèntiques.",
-                    explanation: "Excel·lent! L'oxigen o el nitrogen són elements, però les seves partícules són molècules diatòmiques. Com que totes les partícules són iguals, és una substància pura."
+                    explanation_correct: "Excel·lent! L'oxigen o el nitrogen són elements, però les seves partícules són molècules diatòmiques. Com que totes les partícules són iguals, és una substància pura.",
+                    explanation_incorrect: "Per a un element diatòmic pur, totes les partícules han de ser el mateix tipus de molècula diatòmica."
                 },
                 {
                     goal: "Construeix una mescla de dos elements diatòmics",
@@ -237,7 +247,8 @@
                         return uniqueIds.has('O2') && uniqueIds.has('N2');
                     },
                     hint: "Una mescla d'elements diatòmics conté molècules de diferents elements, on cada molècula està formada per dos àtoms iguals. Tria els dos tipus de molècules diatòmiques de la paleta.",
-                    explanation: "Correcte! Has barrejat molècules de dos elements diatòmics diferents, com l'Oxigen (O₂) i el Nitrogen (N₂)."
+                    explanation_correct: "Correcte! Has barrejat molècules de dos elements diatòmics diferents, com l'Oxigen (O₂) i el Nitrogen (N₂).",
+                    explanation_incorrect: "Això no és una mescla de dos elements diatòmics. Necessites incloure els dos tipus de molècules diatòmiques (O₂ i N₂) i res més."
                 },
                 {
                     goal: "Construeix una mescla d'un element i un compost",
@@ -249,21 +260,24 @@
                         return (firstType.isElement && !secondType.isElement) || (!firstType.isElement && secondType.isElement);
                     },
                     hint: "Barreja partícules d'un element (àtoms o molècules diatòmiques) amb les partícules d'un compost.",
-                    explanation: "Molt bé! Has barrejat les partícules d'un element amb les d'un compost."
+                    explanation_correct: "Molt bé! Has barrejat les partícules d'un element amb les d'un compost.",
+                    explanation_incorrect: "Recorda, una mescla d'un element i un compost ha de contenir exactament un tipus de partícula elemental i un tipus de partícula de compost."
                 },
                  {
                     goal: "Repte Especial: Construeix AIRE",
                     validation: (items) => {
                         const uniqueIds = new Set(items.map(item => item.id));
-                        if (uniqueIds.size !== 2) return false;
+                        if (uniqueIds.size < 2) return false; // Almenys N2 i O2
                         
                         const hasN2 = items.some(item => item.id === 'N2');
                         const hasO2 = items.some(item => item.id === 'O2');
                         
+                        // Permet altres components minoritaris però exigeix N2 i O2
                         return hasN2 && hasO2;
                     },
                     hint: "L'aire és una mescla principalment de dos gasos. Tots dos són elements diatòmics. El més abundant és el Nitrogen.",
-                    explanation: "Fantàstic! Has representat l'aire, que és una mescla principalment de Nitrogen (N₂, ~78%) i Oxigen (O₂, ~21%)."
+                    explanation_correct: "Fantàstic! Has representat l'aire, que és una mescla principalment de Nitrogen (N₂, ~78%) i Oxigen (O₂, ~21%).",
+                    explanation_incorrect: "La teva construcció no representa l'aire. Recorda que està format principalment per molècules de Nitrogen (N₂) i Oxigen (O₂)."
                 }
             ];
             
@@ -283,6 +297,7 @@
             const l1_step1El = document.getElementById('l1-step1');
             const l1_step2El = document.getElementById('l1-step2');
             const l1_hintBtn = document.getElementById('l1-hint-btn');
+            const l1_questionCounterEl = document.getElementById('question-counter');
             const l2_goalEl = document.getElementById('l2-goal');
             const l2_paletteEl = document.getElementById('l2-palette');
             const l2_recipientEl = document.getElementById('l2-recipient');
@@ -299,7 +314,8 @@
             init();
 
             function init() {
-                level1Questions.sort(() => Math.random() - 0.5);
+                // Selecciona 10 preguntes aleatòries per a la sessió del Nivell 1
+                level1Questions = allLevel1Questions.sort(() => Math.random() - 0.5).slice(0, 10);
                 level2Challenges.sort(() => Math.random() - 0.5);
 
                 document.getElementById('level1-btn').addEventListener('click', () => switchLevel(1));
@@ -373,10 +389,12 @@
                     l1_step1El.classList.add('hidden');
                     l1_step2El.classList.add('hidden');
                     l1_hintBtn.classList.add('hidden');
+                    l1_questionCounterEl.textContent = `10 de 10`;
                     return;
                 }
                 const question = level1Questions[l1_currentQuestionIndex];
                 l1_substanceNameEl.textContent = question.substance;
+                l1_questionCounterEl.textContent = `${l1_currentQuestionIndex + 1} de ${level1Questions.length}`;
                 resetLevel1State();
             }
 
@@ -520,8 +538,9 @@
                 setTimeout(() => {
                     const challenge = level2Challenges[l2_currentChallengeIndex];
                     const isCorrect = challenge.validation(l2_recipientItems);
+                    const explanation = isCorrect ? challenge.explanation_correct : challenge.explanation_incorrect;
                     
-                    showModal(isCorrect ? "Correcte!" : "Incorrecte.", challenge.explanation, isCorrect);
+                    showModal(isCorrect ? "Correcte!" : "Incorrecte.", explanation, isCorrect);
                     
                     if (isCorrect) {
                         updateScore(15);
