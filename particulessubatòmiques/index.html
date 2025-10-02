@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joc de Partícules Subatòmiques</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Lilac/purple theme background */
+            background-color: #e0e7ff;
+            background-image: linear-gradient(to top right, #e0e7ff, #f3e8ff);
+        }
+        .dark body {
+             background-color: #1e1b4b;
+             background-image: linear-gradient(to top right, #1e1b4b, #4c1d95);
+        }
+        /* Card design */
+        .card {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark .card {
+            background-color: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Symbol display adjustments */
+        .symbol-container { display: flex; align-items: center; justify-content: center; min-height: 150px; }
+        .symbol-display { font-size: 6rem; line-height: 1; font-weight: 800; position: relative; display: inline-block; margin: 0 2.8rem; }
+        .symbol-mass, .symbol-atomic, .symbol-charge { position: absolute; font-size: 2rem; font-weight: 500; line-height: 1; color: #4f46e5; } /* indigo-600 */
+        .dark .symbol-mass, .dark .symbol-atomic, .dark .symbol-charge { color: #a5b4fc; } /* indigo-300 */
+        
+        /* Adjusted positioning */
+        .symbol-mass { top: -0.2em; left: -1.1em; }
+        .symbol-atomic { bottom: -0.2em; left: -1.1em; }
+        .symbol-charge { top: -0.2em; right: -1.1em; }
+
+        /* General UI styling */
+        .correct-answer { color: #16a34a; }
+        .incorrect-answer { color: #ef4444; }
+        .input-correct { border-color: #16a34a !important; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.3); }
+        .input-incorrect { border-color: #ef4444 !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3); }
+        .transition-all { transition: all 0.3s ease-in-out; }
+        
+        /* --- FINAL COLOR THEME: INDIGO/PURPLE --- */
+        .btn-primary {
+            background-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+        .btn-secondary {
+            background-color: #64748b; /* slate-500 */
+            box-shadow: 0 4px 14px 0 rgba(100, 116, 139, 0.2);
+        }
+        .btn-secondary:hover {
+            background-color: #475569; /* slate-600 */
+        }
+        
+        /* Results styling */
+        .results-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; }
+        .results-grid > dt { font-weight: 600; color: #4f46e5; }
+        .dark .results-grid > dt { color: #a5b4fc; }
+        .user-answer-correct { color: #16a34a; font-weight: 600; }
+        .user-answer-incorrect { color: #ef4444; font-weight: 600; text-decoration: line-through; }
+        .correct-answer-text { color: #16a34a; font-weight: 600; }
+    </style>
+</head>
+<body class="transition-all">
+
+    <div class="w-full max-w-2xl mx-auto rounded-3xl shadow-xl p-6 md:p-8 transition-all card my-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 mb-4">Joc de Partícules Subatòmiques</h1>
+        
+        <div id="game-container">
+            <!-- Game content will be injected here -->
+        </div>
+
+        <div id="end-game-screen" class="hidden text-center py-8">
+            <h2 class="text-3xl font-bold mb-2">Partida Acabada!</h2>
+            <p id="final-score" class="text-2xl mb-6"></p>
+            
+            <div class="my-8">
+                <div class="w-full max-w-sm mx-auto">
+                     <label for="student-name" class="block text-left text-lg font-semibold mb-2 dark:text-gray-300">Introdueix el teu nom per al PDF:</label>
+                     <input type="text" id="student-name" class="w-full bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="El teu nom i cognoms">
+                </div>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-4 mt-6">
+                    <button id="restart-btn" class="w-full md:w-auto btn-secondary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Jugar de Nou</button>
+                    <button id="pdf-btn" class="w-full md:w-auto btn-primary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Genera PDF amb Resultats</button>
+                </div>
+            </div>
+
+            <div class="mt-8 text-left">
+                <h3 class="text-2xl font-bold mb-4 text-center">Resum de Respostes</h3>
+                <div id="results-summary" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const allElements = [
+            { symbol: 'H', name: 'Hidrogen', atomicNumber: 1, massNumber: 1, charge: 0 }, { symbol: 'H', name: 'Hidrogen', atomicNumber: 1, massNumber: 1, charge: 1 }, { symbol: 'D', name: 'Deuteri', atomicNumber: 1, massNumber: 2, charge: 0 }, { symbol: 'He', name: 'Heli', atomicNumber: 2, massNumber: 4, charge: 0 }, { symbol: 'Li', name: 'Liti', atomicNumber: 3, massNumber: 7, charge: 1 }, { symbol: 'Be', name: 'Beril·li', atomicNumber: 4, massNumber: 9, charge: 2 }, { symbol: 'B', name: 'Bor', atomicNumber: 5, massNumber: 11, charge: 0 }, { symbol: 'C', name: 'Carboni', atomicNumber: 6, massNumber: 12, charge: 0 }, { symbol: 'C', name: 'Carboni', atomicNumber: 6, massNumber: 14, charge: 0 }, { symbol: 'N', name: 'Nitrogen', atomicNumber: 7, massNumber: 14, charge: 0 }, { symbol: 'N', name: 'Nitrogen', atomicNumber: 7, massNumber: 14, charge: -3 }, { symbol: 'O', name: 'Oxigen', atomicNumber: 8, massNumber: 16, charge: 0 }, { symbol: 'O', name: 'Oxigen', atomicNumber: 8, massNumber: 16, charge: -2 }, { symbol: 'F', name: 'Fluor', atomicNumber: 9, massNumber: 19, charge: -1 }, { symbol: 'Ne', name: 'Neó', atomicNumber: 10, massNumber: 20, charge: 0 }, { symbol: 'Na', name: 'Sodi', atomicNumber: 11, massNumber: 23, charge: 1 }, { symbol: 'Mg', name: 'Magnesi', atomicNumber: 12, massNumber: 24, charge: 2 }, { symbol: 'Al', name: 'Alumini', atomicNumber: 13, massNumber: 27, charge: 3 }, { symbol: 'Si', name: 'Silici', atomicNumber: 14, massNumber: 28, charge: 0 }, { symbol: 'P', name: 'Fòsfor', atomicNumber: 15, massNumber: 31, charge: -3 }, { symbol: 'S', name: 'Sofre', atomicNumber: 16, massNumber: 32, charge: -2 }, { symbol: 'Cl', name: 'Clor', atomicNumber: 17, massNumber: 35, charge: -1 }, { symbol: 'Ar', name: 'Argó', atomicNumber: 18, massNumber: 40, charge: 0 }, { symbol: 'K', name: 'Potassi', atomicNumber: 19, massNumber: 39, charge: 1 }, { symbol: 'Ca', name: 'Calci', atomicNumber: 20, massNumber: 40, charge: 2 }, { symbol: 'Fe', name: 'Ferro', atomicNumber: 26, massNumber: 56, charge: 2 }, { symbol: 'Fe', name: 'Ferro', atomicNumber: 26, massNumber: 56, charge: 3 }, { symbol: 'Cu', name: 'Coure', atomicNumber: 29, massNumber: 64, charge: 1 }, { symbol: 'Cu', name: 'Coure', atomicNumber: 29, massNumber: 64, charge: 2 }, { symbol: 'Br', name: 'Brom', atomicNumber: 35, massNumber: 80, charge: -1 }, { symbol: 'Ag', name: 'Plata', atomicNumber: 47, massNumber: 108, charge: 1 }, { symbol: 'I', name: 'Iode', atomicNumber: 53, massNumber: 127, charge: -1 }, { symbol: 'Pb', name: 'Plom', atomicNumber: 82, massNumber: 207, charge: 2 }, { symbol: 'U', name: 'Urani', atomicNumber: 92, massNumber: 238, charge: 0 }, { symbol: 'U', name: 'Urani', atomicNumber: 92, massNumber: 235, charge: 0 },
+        ];
+        
+        // --- GAME STATE ---
+        let currentElement = null, score = 0, gameElements = [], questionCount = 0, currentQuestionType = '';
+        let resultsHistory = [];
+        let isFirstAttemptInQuestion = true;
+        const totalQuestions = 20;
+
+        // --- DOM ELEMENTS ---
+        const gameContainer = document.getElementById('game-container');
+        const endGameScreen = document.getElementById('end-game-screen');
+        const finalScoreEl = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const pdfBtn = document.getElementById('pdf-btn');
+        const resultsSummaryEl = document.getElementById('results-summary');
+
+        // --- TEMPLATES ---
+        const gameHTML = `
+            <p id="question-counter" class="text-center text-gray-500 dark:text-gray-400 mb-4 font-semibold"></p>
+            <div id="guess-particles-container" class="hidden">
+                <p class="text-center text-lg mb-6 dark:text-gray-300">Quantes partícules té aquest element/ió?</p>
+                <div class="symbol-container mb-8">
+                    <div class="symbol-display text-gray-800 dark:text-gray-200">
+                        <span id="mass-number" class="symbol-mass"></span><span id="atomic-number" class="symbol-atomic"></span>
+                        <span id="element-main" class="symbol-main"></span><span id="charge" class="symbol-charge"></span>
+                    </div>
+                </div>
+                <div class="space-y-4 mb-6">
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <label for="protons" class="col-span-1 font-semibold text-lg">Protons (p⁺):</label>
+                        <input type="number" id="protons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <label for="neutrons" class="col-span-1 font-semibold text-lg">Neutrons (n⁰):</label>
+                        <input type="number" id="neutrons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <label for="electrons" class="col-span-1 font-semibold text-lg">Electrons (e⁻):</label>
+                        <input type="number" id="electrons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                    </div>
+                </div>
+            </div>
+            <div id="guess-numbers-container" class="hidden">
+                 <p class="text-center text-lg mb-6 dark:text-gray-300">A quin element/ió corresponen aquestes partícules?</p>
+                <div class="bg-indigo-100 dark:bg-indigo-900/30 rounded-lg p-4 mb-8 text-center space-y-2">
+                    <p class="text-lg">Protons (p⁺): <strong id="given-protons" class="text-indigo-600 dark:text-indigo-400"></strong></p>
+                    <p class="text-lg">Neutrons (n⁰): <strong id="given-neutrons" class="text-indigo-600 dark:text-indigo-400"></strong></p>
+                    <p class="text-lg">Electrons (e⁻): <strong id="given-electrons" class="text-indigo-600 dark:text-indigo-400"></strong></p>
+                </div>
+                 <div class="space-y-4 mb-6">
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <label for="atomic-input" class="col-span-1 font-semibold text-lg">N. Atòmic (Z):</label>
+                        <input type="number" id="atomic-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <label for="mass-input" class="col-span-1 font-semibold text-lg">N. Màssic (A):</label>
+                        <input type="number" id="mass-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <label for="charge-input" class="col-span-1 font-semibold text-lg">Càrrega:</label>
+                        <input type="number" id="charge-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                    </div>
+                </div>
+            </div>
+            <div id="feedback" class="text-center h-8 mb-4 font-bold text-xl transition-all"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button id="check-btn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Comprova</button>
+                <button id="next-btn" class="w-full btn-secondary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105" disabled>Següent</button>
+            </div>
+            <div class="text-center mt-6">
+                <p class="text-lg font-medium text-gray-700 dark:text-gray-300">Puntuació: <span id="score" class="font-bold text-indigo-600 dark:text-indigo-400">0</span></p>
+            </div>`;
+
+        // --- FUNCTIONS ---
+        function startGame() {
+            score = 0;
+            questionCount = 0;
+            resultsHistory = [];
+            const shuffled = [...allElements].sort(() => 0.5 - Math.random());
+            gameElements = shuffled.slice(0, totalQuestions);
+            
+            endGameScreen.classList.add('hidden');
+            gameContainer.innerHTML = gameHTML;
+            gameContainer.classList.remove('hidden');
+            
+            setupEventListeners();
+            setupNewQuestion();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('check-btn').addEventListener('click', checkAnswer);
+            document.getElementById('next-btn').addEventListener('click', handleNextQuestion);
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('keyup', (event) => {
+                    if (event.key === 'Enter') {
+                        const checkBtn = document.getElementById('check-btn');
+                        const nextBtn = document.getElementById('next-btn');
+                        if (!checkBtn.disabled) checkBtn.click();
+                        else nextBtn.click();
+                    }
+                });
+            });
+        }
+
+        function setupNewQuestion() {
+            if (questionCount >= totalQuestions) {
+                endGame();
+                return;
+            }
+            currentElement = gameElements[questionCount];
+            currentQuestionType = Math.random() < 0.5 ? 'guessParticles' : 'guessNumbers';
+            isFirstAttemptInQuestion = true;
+            
+            resetUI();
+            
+            if (currentQuestionType === 'guessParticles') {
+                setupGuessParticles();
+            } else {
+                setupGuessNumbers();
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('question-counter').textContent = `Pregunta ${questionCount + 1} de ${totalQuestions}`;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'text-center h-8 mb-4 font-bold text-xl transition-all';
+            
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.value = '';
+                input.classList.remove('input-correct', 'input-incorrect');
+                input.style.boxShadow = 'none';
+            });
+            
+            document.getElementById('check-btn').disabled = false;
+            document.getElementById('next-btn').disabled = true;
+        }
+
+        function setupGuessParticles() {
+            document.getElementById('guess-numbers-container').classList.add('hidden');
+            document.getElementById('guess-particles-container').classList.remove('hidden');
+            document.getElementById('mass-number').textContent = currentElement.massNumber;
+            document.getElementById('atomic-number').textContent = currentElement.atomicNumber;
+            document.getElementById('element-main').textContent = currentElement.symbol;
+            if (currentElement.charge === 0) {
+                document.getElementById('charge').textContent = '';
+            } else {
+                const sign = currentElement.charge > 0 ? '+' : '−';
+                const absCharge = Math.abs(currentElement.charge);
+                document.getElementById('charge').textContent = (absCharge === 1) ? sign : `${absCharge}${sign}`;
+            }
+            document.getElementById('protons').focus();
+        }
+
+        function setupGuessNumbers() {
+            document.getElementById('guess-particles-container').classList.add('hidden');
+            document.getElementById('guess-numbers-container').classList.remove('hidden');
+            const protons = currentElement.atomicNumber;
+            const neutrons = currentElement.massNumber - currentElement.atomicNumber;
+            const electrons = currentElement.atomicNumber - currentElement.charge;
+            document.getElementById('given-protons').textContent = protons;
+            document.getElementById('given-neutrons').textContent = neutrons;
+            document.getElementById('given-electrons').textContent = electrons;
+            document.getElementById('atomic-input').focus();
+        }
+
+        function checkAnswer() {
+            let allCorrect, userAnswers, correctAnswers;
+
+            if (currentQuestionType === 'guessParticles') {
+                const userProtons = parseInt(document.getElementById('protons').value, 10);
+                const userNeutrons = parseInt(document.getElementById('neutrons').value, 10);
+                const userElectrons = parseInt(document.getElementById('electrons').value, 10);
+                userAnswers = { p: userProtons || '?', n: userNeutrons || '?', e: userElectrons || '?' };
+                
+                const correctProtons = currentElement.atomicNumber;
+                const correctNeutrons = currentElement.massNumber - currentElement.atomicNumber;
+                const correctElectrons = currentElement.atomicNumber - currentElement.charge;
+                correctAnswers = { p: correctProtons, n: correctNeutrons, e: correctElectrons };
+
+                allCorrect = (userProtons === correctProtons && userNeutrons === correctNeutrons && userElectrons === correctElectrons);
+                validateInput(document.getElementById('protons'), userProtons, correctProtons);
+                validateInput(document.getElementById('neutrons'), userNeutrons, correctNeutrons);
+                validateInput(document.getElementById('electrons'), userElectrons, correctElectrons);
+            } else {
+                const userAtomic = parseInt(document.getElementById('atomic-input').value, 10);
+                const userMass = parseInt(document.getElementById('mass-input').value, 10);
+                const userCharge = parseInt(document.getElementById('charge-input').value, 10);
+                userAnswers = { Z: userAtomic || '?', A: userMass || '?', C: userCharge || '?' };
+                
+                const correctAtomic = currentElement.atomicNumber;
+                const correctMass = currentElement.massNumber;
+                const correctCharge = currentElement.charge;
+                correctAnswers = { Z: correctAtomic, A: correctMass, C: correctCharge };
+
+                allCorrect = (userAtomic === correctAtomic && userMass === correctMass && userCharge === correctCharge);
+                validateInput(document.getElementById('atomic-input'), userAtomic, correctAtomic);
+                validateInput(document.getElementById('mass-input'), userMass, correctMass);
+                validateInput(document.getElementById('charge-input'), userCharge, correctCharge);
+            }
+
+            if (isFirstAttemptInQuestion) {
+                isFirstAttemptInQuestion = false;
+                if (allCorrect) {
+                    score++;
+                    document.getElementById('score').textContent = score;
+                }
+                resultsHistory.push({
+                    element: currentElement,
+                    questionType: currentQuestionType,
+                    userAnswers: userAnswers,
+                    correctAnswers: correctAnswers,
+                    isCorrect: allCorrect
+                });
+            }
+
+            const feedbackEl = document.getElementById('feedback');
+            if (allCorrect) {
+                feedbackEl.textContent = 'Correcte!';
+                feedbackEl.classList.remove('incorrect-answer');
+                feedbackEl.classList.add('correct-answer');
+                document.getElementById('check-btn').disabled = true;
+                document.getElementById('next-btn').disabled = false;
+                document.getElementById('next-btn').focus();
+            } else {
+                feedbackEl.textContent = 'Incorrecte. Corretgeix la resposta per continuar.';
+                feedbackEl.classList.remove('correct-answer');
+                feedbackEl.classList.add('incorrect-answer');
+            }
+        }
+
+        function validateInput(inputElement, userValue, correctValue) {
+            const isCorrect = userValue === correctValue;
+            inputElement.classList.remove('input-correct', 'input-incorrect');
+            inputElement.classList.add(isCorrect ? 'input-correct' : 'input-incorrect');
+            return isCorrect;
+        }
+        
+        function handleNextQuestion() {
+            questionCount++;
+            setupNewQuestion();
+        }
+
+        function endGame() {
+            gameContainer.classList.add('hidden');
+            endGameScreen.classList.remove('hidden');
+            finalScoreEl.innerHTML = `Puntuació Final: <strong class="text-indigo-600 dark:text-indigo-400">${score}</strong> de <strong class="text-indigo-600 dark:text-indigo-400">${totalQuestions}</strong>.`;
+            displayResults();
+        }
+
+        function displayResults() {
+            resultsSummaryEl.innerHTML = '';
+            resultsHistory.forEach((result, index) => {
+                const { element, questionType, userAnswers, correctAnswers, isCorrect } = result;
+                let questionHTML = '', answersHTML = '';
+
+                if (questionType === 'guessParticles') {
+                    const chargeText = element.charge === 0 ? '' : (Math.abs(element.charge) === 1 ? (element.charge > 0 ? '+' : '−') : `${Math.abs(element.charge)}${element.charge > 0 ? '+' : '−'}`);
+                    questionHTML = `Pregunta: <strong><sup>${element.massNumber}</sup><sub>${element.atomicNumber}</sub>${element.symbol}<sup>${chargeText}</sup></strong>`;
+                    answersHTML = `<dl class="results-grid mt-2">
+                            <dt>Protons (p⁺):</dt><dd>${formatAnswer(userAnswers.p, correctAnswers.p)}</dd>
+                            <dt>Neutrons (n⁰):</dt><dd>${formatAnswer(userAnswers.n, correctAnswers.n)}</dd>
+                            <dt>Electrons (e⁻):</dt><dd>${formatAnswer(userAnswers.e, correctAnswers.e)}</dd></dl>`;
+                } else {
+                    questionHTML = `Pregunta: <strong>p⁺=${correctAnswers.Z}, n⁰=${correctAnswers.A - correctAnswers.Z}, e⁻=${correctAnswers.Z - correctAnswers.C}</strong>`;
+                     answersHTML = `<dl class="results-grid mt-2">
+                            <dt>N. Atòmic (Z):</dt><dd>${formatAnswer(userAnswers.Z, correctAnswers.Z)}</dd>
+                            <dt>N. Màssic (A):</dt><dd>${formatAnswer(userAnswers.A, correctAnswers.A)}</dd>
+                            <dt>Càrrega:</dt><dd>${formatAnswer(userAnswers.C, correctAnswers.C)}</dd></dl>`;
+                }
+
+                const resultCard = `<div class="p-4 rounded-lg ${isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}">
+                        <p class="font-semibold text-lg">${index + 1}. ${questionHTML}</p>${answersHTML}</div>`;
+                resultsSummaryEl.innerHTML += resultCard;
+            });
+        }
+
+        function formatAnswer(user, correct) {
+            if (user === correct) {
+                return `<span class="user-answer-correct">${user} ✔</span>`;
+            }
+            return `<span class="user-answer-incorrect">${user}</span> <span class="correct-answer-text">→ ${correct}</span>`;
+        }
+        
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const studentName = document.getElementById('student-name').value || 'Anònim';
+
+            doc.setFontSize(20);
+            doc.text("Resultats del Qüestionari de Partícules", 105, 20, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(`Alumne/a: ${studentName}`, 14, 35);
+            doc.text(`Puntuació Final: ${score} de ${totalQuestions}`, 14, 42);
+
+            const tableColumn = ["#", "Pregunta", "La Teva Resposta (1r intent)", "Resultat"];
+            const tableRows = [];
+
+            resultsHistory.forEach((result, index) => {
+                const { element, questionType, userAnswers, correctAnswers, isCorrect } = result;
+                let questionText, userAnswerText, resultText;
+
+                if (questionType === 'guessParticles') {
+                    const chargeText = element.charge === 0 ? '' : (Math.abs(element.charge) === 1 ? (element.charge > 0 ? '+' : '-') : `${Math.abs(element.charge)}${element.charge > 0 ? '+' : '-'}`);
+                    questionText = `${element.massNumber}, ${element.atomicNumber}, ${element.symbol}, ${chargeText}`;
+                    userAnswerText = `p: ${userAnswers.p}, n: ${userAnswers.n}, e: ${userAnswers.e}`;
+                    resultText = isCorrect ? 'Correcte' : `Incorrecte. Correcta: p: ${correctAnswers.p}, n: ${correctAnswers.n}, e: ${correctAnswers.e}`;
+                } else {
+                    questionText = `p: ${correctAnswers.Z}, n: ${correctAnswers.A - correctAnswers.Z}, e: ${correctAnswers.Z - correctAnswers.C}`;
+                    userAnswerText = `Z: ${userAnswers.Z}, A: ${userAnswers.A}, C: ${userAnswers.C}`;
+                    resultText = isCorrect ? 'Correcte' : `Incorrecte. Correcta: Z: ${correctAnswers.Z}, A: ${correctAnswers.A}, C: ${correctAnswers.C}`;
+                }
+                tableRows.push([index + 1, questionText, userAnswerText, resultText]);
+            });
+
+            doc.autoTable({
+                head: [tableColumn], body: tableRows, startY: 50, theme: 'grid',
+                headStyles: { fillColor: [79, 70, 229] }, // Indigo color for PDF
+                didParseCell: function (data) {
+                    if (!resultsHistory[data.row.index]?.isCorrect && data.column.index === 3) {
+                         data.cell.styles.textColor = '#ef4444';
+                    }
+                }
+            });
+            doc.save(`resultats-${studentName.replace(/ /g, '_')}.pdf`);
+        }
+
+        // --- INITIALIZE GAME ---
+        restartBtn.addEventListener('click', startGame);
+        pdfBtn.addEventListener('click', generatePDF);
+        window.onload = startGame;
+
+    </script>
+</body>
+</html>
