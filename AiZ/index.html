@@ -125,7 +125,8 @@
 
     <script>
         const atomPool = [
-            { symbol: 'H', Z: 1, A: 1 }, { symbol: 'He', Z: 2, A: 4 }, { symbol: 'Li', Z: 3, A: 7 }, { symbol: 'Be', Z: 4, A: 9 }, { symbol: 'B', Z: 5, A: 11 }, { symbol: 'C', Z: 6, A: 12 }, { symbol: 'N', Z: 7, A: 14 }, { symbol: 'O', Z: 8, A: 16 }, { symbol: 'F', Z: 9, A: 19 }, { symbol: 'Ne', Z: 10, A: 20 }, { symbol: 'Na', Z: 11, A: 23 }, { symbol: 'Mg', Z: 12, A: 24 }, { symbol: 'Al', Z: 13, A: 27 }, { symbol: 'Si', Z: 14, A: 28 }, { symbol: 'P', Z: 15, A: 31 }, { symbol: 'S', Z: 16, A: 32 }, { symbol: 'Cl', Z: 17, A: 35 }, { symbol: 'Ar', Z: 18, A: 40 }, { symbol: 'K', Z: 19, A: 39 }, { symbol: 'Ca', Z: 20, A: 40 }
+            { symbol: 'H', Z: 1, A: 1 }, { symbol: 'He', Z: 2, A: 4 }, { symbol: 'Li', Z: 3, A: 7 }, { symbol: 'Be', Z: 4, A: 9 }, { symbol: 'B', Z: 5, A: 11 }, { symbol: 'C', Z: 6, A: 12 }, { symbol: 'N', Z: 7, A: 14 }, { symbol: 'O', Z: 8, A: 16 }, { symbol: 'F', Z: 9, A: 19 }, { symbol: 'Ne', Z: 10, A: 20 }, { symbol: 'Na', Z: 11, A: 23 }, { symbol: 'Mg', Z: 12, A: 24 }, { symbol: 'Al', Z: 13, A: 27 }, { symbol: 'Si', Z: 14, A: 28 }, { symbol: 'P', Z: 15, A: 31 }, { symbol: 'S', Z: 16, A: 32 }, { symbol: 'Cl', Z: 17, A: 35 }, { symbol: 'Ar', Z: 18, A: 40 }, { symbol: 'K', Z: 19, A: 39 }, { symbol: 'Ca', Z: 20, A: 40 },
+            { symbol: 'Sc', Z: 21, A: 45 }, { symbol: 'Ti', Z: 22, A: 48 }, { symbol: 'V', Z: 23, A: 51 }, { symbol: 'Cr', Z: 24, A: 52 }, { symbol: 'Mn', Z: 25, A: 55 }, { symbol: 'Fe', Z: 26, A: 56 }, { symbol: 'Co', Z: 27, A: 59 }, { symbol: 'Ni', Z: 28, A: 58 }, { symbol: 'Cu', Z: 29, A: 63 }, { symbol: 'Zn', Z: 30, A: 65 }
         ];
 
         atomPool.forEach(atom => {
@@ -191,7 +192,8 @@
         function startNewRound() {
             clearFeedback();
             reportModal.classList.add('hidden');
-            const possibleClues = [['symbol', 'A'], ['Z', 'n'], ['p', 'A'], ['e', 'n'], ['Z', 'A'], ['symbol', 'n'], ['p', 'e'], ['A', 'n'], ['symbol', 'p']];
+            // Eliminem les pistes que inclouen el símbol per obligar a deduir-lo
+            const possibleClues = [['Z', 'n'], ['p', 'A'], ['e', 'n'], ['Z', 'A'], ['p', 'e'], ['A', 'n']];
             
             const availableAtoms = atomPool.filter(atom => !usedAtomsSymbols.has(atom.symbol));
             shuffleArray(availableAtoms);
@@ -215,34 +217,19 @@
                 statusMessage.textContent = `Ronda ${completedRounds + 1} de ${NUM_ROUNDS}`;
                 checkButton.disabled = false;
                 reportButton.disabled = true;
-                nextActionButton.textContent = 'Tornar a començar';
-                nextActionButton.onclick = startNewSession;
-                nextActionButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-                nextActionButton.classList.add('bg-red-600', 'hover:bg-red-700');
+                nextActionButton.textContent = 'Següent Ronda';
+                nextActionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                nextActionButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
             } else {
                 statusMessage.textContent = "Sessió completada! Ja pots generar l'informe.";
                 checkButton.disabled = true;
                 reportButton.disabled = false;
                 nextActionButton.textContent = 'Tornar a començar';
-                nextActionButton.onclick = startNewSession;
+                nextActionButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                nextActionButton.classList.add('bg-red-600', 'hover:bg-red-700');
             }
         }
         
-        function onRoundComplete() {
-            const completedRounds = sessionHistory.length;
-            checkButton.disabled = true;
-
-            if (completedRounds < NUM_ROUNDS) {
-                nextActionButton.textContent = 'Següent Ronda';
-                nextActionButton.onclick = startNewRound;
-                nextActionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-                nextActionButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
-            } else {
-                reportButton.disabled = false;
-                 statusMessage.textContent = "Sessió completada! Ja pots generar l'informe.";
-            }
-        }
-
         function clearFeedback() {
             const inputs = tableBody.querySelectorAll('input');
             inputs.forEach(input => input.classList.remove('correct-cell', 'incorrect-cell'));
@@ -268,13 +255,13 @@
             sessionHistory.forEach((round, index) => {
                 reportHTML += `<div class="border-t pt-4"><h3 class="text-xl font-semibold text-gray-800 mb-3">Ronda ${index + 1}</h3><div class="space-y-4">`;
                 round.attempts.forEach(element => {
-                    let questionHTML = `<div class="p-3 bg-gray-50 rounded-lg"><h4 class="font-bold text-md text-gray-800">${element.symbol}</h4><ul class="list-disc list-inside pl-4 mt-1 text-sm">`;
+                    let questionHTML = `<div class="p-3 bg-gray-50 rounded-lg"><h4 class="font-bold text-md text-gray-800">Element (Z=${element.Z})</h4><ul class="list-disc list-inside pl-4 mt-1 text-sm">`;
                     propertyKeys.forEach(key => {
                         if (!element.show.includes(key)) {
                             sessionTotal++;
                             const userAnswer = element.userAnswers[key] || "buit";
                             const correctAnswer = String(element[key]);
-                            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                            if (userAnswer.toLowerCase().replace(/\s/g, '') === correctAnswer.toLowerCase().replace(/\s/g, '')) {
                                 sessionCorrect++;
                                 questionHTML += `<li class="text-green-700"><strong>${key}:</strong> Resposta "${userAnswer}" és correcta.</li>`;
                             } else {
@@ -314,7 +301,7 @@
                 propertyKeys.forEach(key => {
                     if (!element.show.includes(key)) {
                         const input = document.getElementById(`input-${element.id}-${key}`);
-                        if (input.value.trim().toLowerCase() === String(element[key]).toLowerCase()) {
+                        if (input.value.trim().toLowerCase().replace(/\s/g, '') === String(element[key]).toLowerCase().replace(/\s/g, '')) {
                             input.classList.add('correct-cell');
                         } else {
                             input.classList.add('incorrect-cell');
@@ -322,8 +309,6 @@
                     }
                 });
             });
-            saveAttempt();
-            onRoundComplete();
         });
 
         reportButton.addEventListener('click', () => {
@@ -351,7 +336,19 @@
         });
         
         closeReportButton.addEventListener('click', () => reportModal.classList.add('hidden'));
-        nextActionButton.onclick = startNewSession;
+        
+        nextActionButton.addEventListener('click', () => {
+            if (nextActionButton.textContent === 'Següent Ronda') {
+                saveAttempt();
+                if (sessionHistory.length < NUM_ROUNDS) {
+                    startNewRound();
+                } else {
+                    updateUIState();
+                }
+            } else { // 'Tornar a començar'
+                startNewSession();
+            }
+        });
 
         window.onload = startNewSession;
     </script>
