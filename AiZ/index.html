@@ -37,11 +37,11 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-green-50 text-gray-800">
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Activitat Interactiva: Propietats Atòmiques</h1>
+            <h1 class="text-3xl sm:text-4xl font-bold text-green-800">Activitat Interactiva: Propietats Atòmiques</h1>
             <p class="mt-2 text-lg text-gray-600">Completa les 2 rondes per poder generar l'informe de la sessió.</p>
         </header>
 
@@ -49,14 +49,14 @@
             <p id="status-message" class="text-center text-xl font-semibold text-gray-700 mb-4"></p>
             <div class="overflow-x-auto bg-white rounded-lg shadow">
                 <table class="min-w-full divide-y divide-gray-200 text-center">
-                    <thead class="bg-gray-200">
+                    <thead class="bg-green-600">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Símbol</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Nombre Atòmic (Z)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Nombre Màssic (A)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Protons (p⁺)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Neutrons (n⁰)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Electrons (e⁻)</th>
+                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Símbol</th>
+                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Nombre Atòmic (Z)</th>
+                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Nombre Màssic (A)</th>
+                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Protons (p⁺)</th>
+                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Neutrons (n⁰)</th>
+                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Electrons (e⁻)</th>
                         </tr>
                     </thead>
                     <tbody id="quiz-table-body" class="bg-white divide-y divide-gray-200">
@@ -66,13 +66,13 @@
             </div>
 
             <div class="mt-6 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4">
-                <button id="check-button" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-transform transform hover:scale-105 disabled:hover:scale-100 disabled:hover:bg-gray-400">
+                <button id="check-button" class="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75 transition-transform transform hover:scale-105 disabled:hover:scale-100 disabled:hover:bg-gray-400">
                     Comprovar Respostes
                 </button>
-                 <button id="report-button" class="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                 <button id="report-button" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
                     Generar Informe
                 </button>
-                <button id="next-action-button" class="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                <button id="next-action-button" class="w-full sm:w-auto px-6 py-3 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
                     Tornar a començar
                 </button>
             </div>
@@ -82,8 +82,8 @@
     <!-- Finestra emergent (Modal) per a les dades de l'usuari -->
     <div id="user-info-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all duration-300 ease-out">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-2xl font-bold text-gray-900">Dades per a l'Informe</h2>
+            <div class="flex justify-between items-center p-4 border-b border-green-200">
+                <h2 class="text-2xl font-bold text-green-800">Dades per a l'Informe</h2>
                 <button id="close-user-info-button" class="text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
             </div>
             <div class="p-6">
@@ -101,7 +101,7 @@
                         <input type="text" id="user-class" name="user-class" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                     <div class="flex justify-end">
-                        <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
                             Generar Informe
                         </button>
                     </div>
@@ -113,8 +113,8 @@
     <!-- Finestra emergent (Modal) per a l'informe -->
     <div id="report-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-300 ease-out">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-2xl font-bold text-gray-900">Informe de Sessió</h2>
+            <div class="flex justify-between items-center p-4 border-b border-green-200">
+                <h2 class="text-2xl font-bold text-green-800">Informe de Sessió</h2>
                 <button id="close-report-button" class="text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
             </div>
             <div id="report-modal-content" class="p-6">
@@ -218,15 +218,15 @@
                 checkButton.disabled = false;
                 reportButton.disabled = true;
                 nextActionButton.textContent = 'Següent Ronda';
-                nextActionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-                nextActionButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                nextActionButton.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+                nextActionButton.classList.add('bg-amber-500', 'hover:bg-amber-600');
             } else {
                 statusMessage.textContent = "Sessió completada! Ja pots generar l'informe.";
                 checkButton.disabled = true;
                 reportButton.disabled = false;
                 nextActionButton.textContent = 'Tornar a començar';
-                nextActionButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-                nextActionButton.classList.add('bg-red-600', 'hover:bg-red-700');
+                nextActionButton.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+                nextActionButton.classList.add('bg-rose-600', 'hover:bg-rose-700');
             }
         }
         
@@ -276,7 +276,7 @@
             });
 
             const percentage = sessionTotal > 0 ? ((sessionCorrect / sessionTotal) * 100).toFixed(1) : 0;
-            let summaryHTML = `<div class="text-center mb-6"><p class="text-xl text-gray-700">Resultat total de la sessió:</p><p class="text-xl text-gray-700">Has encertat <strong>${sessionCorrect}</strong> de <strong>${sessionTotal}</strong> respostes.</p><p class="text-5xl font-bold mt-2 text-purple-600">${percentage}%</p></div>`;
+            let summaryHTML = `<div class="text-center mb-6"><p class="text-xl text-gray-700">Resultat total de la sessió:</p><p class="text-xl text-gray-700">Has encertat <strong>${sessionCorrect}</strong> de <strong>${sessionTotal}</strong> respostes.</p><p class="text-5xl font-bold mt-2 text-green-600">${percentage}%</p></div>`;
             reportModalContent.innerHTML = userInfoHTML + summaryHTML + reportHTML + '</div>';
             reportModal.classList.remove('hidden');
         }
@@ -354,4 +354,5 @@
     </script>
 </body>
 </html>
+
 
