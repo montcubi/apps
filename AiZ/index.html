@@ -24,9 +24,6 @@
             min-width: 60px;
             max-width: 100px;
         }
-        .fixed-cell {
-            background-color: #f3f4f6; /* Gray-100 */
-        }
         #report-modal-content {
             max-height: 70vh;
             overflow-y: auto;
@@ -168,8 +165,14 @@
                     const cell = document.createElement('td');
                     cell.classList.add('px-4', 'py-3', 'text-sm', 'whitespace-nowrap');
                     if (element.show.includes(key)) {
-                        cell.textContent = element[key];
-                        cell.classList.add('font-medium', 'text-gray-900', 'fixed-cell');
+                        const fixedValueContainer = document.createElement('div');
+                        fixedValueContainer.textContent = element[key];
+                        fixedValueContainer.classList.add(
+                            'w-full', 'p-2', 'text-center', 'border', 
+                            'border-yellow-300', 'rounded-md', 'bg-yellow-100', 
+                            'font-medium', 'text-gray-800', 'input-cell'
+                        );
+                        cell.appendChild(fixedValueContainer);
                     } else {
                         const input = document.createElement('input');
                         input.type = 'text';
@@ -221,7 +224,7 @@
                 nextActionButton.classList.remove('bg-rose-600', 'hover:bg-rose-700');
                 nextActionButton.classList.add('bg-amber-500', 'hover:bg-amber-600');
             } else {
-                statusMessage.textContent = "Sessió completada! Ja pots generar l'informe.";
+                statusMessage.innerHTML = "Sessió completada! No t'oblidis de <strong>generar l'informe</strong>, desar-lo com a PDF i enviar-lo al Classroom.";
                 checkButton.disabled = true;
                 reportButton.disabled = false;
                 nextActionButton.textContent = 'Tornar a començar';
@@ -243,7 +246,7 @@
             }
 
             const userInfoHTML = `
-                <div class="mb-6 p-4 bg-gray-100 rounded-lg border border-gray-200">
+                <div class="mb-6 p-4 bg-yellow-100 rounded-lg border border-yellow-300">
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">Dades de l'Alumne/a</h3>
                     <p class="text-gray-700"><strong>Nom:</strong> ${userInfo.name} ${userInfo.surname}</p>
                     <p class="text-gray-700"><strong>Classe:</strong> ${userInfo.class}</p>
@@ -255,7 +258,7 @@
             sessionHistory.forEach((round, index) => {
                 reportHTML += `<div class="border-t pt-4"><h3 class="text-xl font-semibold text-gray-800 mb-3">Ronda ${index + 1}</h3><div class="space-y-4">`;
                 round.attempts.forEach(element => {
-                    let questionHTML = `<div class="p-3 bg-gray-50 rounded-lg"><h4 class="font-bold text-md text-gray-800">Element (Z=${element.Z})</h4><ul class="list-disc list-inside pl-4 mt-1 text-sm">`;
+                    let questionHTML = `<div class="p-3 bg-yellow-50 rounded-lg"><h4 class="font-bold text-md text-gray-800">Element (Z=${element.Z})</h4><ul class="list-disc list-inside pl-4 mt-1 text-sm">`;
                     propertyKeys.forEach(key => {
                         if (!element.show.includes(key)) {
                             sessionTotal++;
@@ -354,5 +357,8 @@
     </script>
 </body>
 </html>
+
+
+
 
 
