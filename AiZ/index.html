@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activitat Interactiva: Propietats Atòmiques</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -114,7 +115,10 @@
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-300 ease-out">
             <div class="flex justify-between items-center p-4 border-b border-green-200">
                 <h2 class="text-2xl font-bold text-green-800">Informe de Sessió</h2>
-                <button id="close-report-button" class="text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
+                <div class="flex items-center gap-4">
+                    <button id="download-pdf-button" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Descarregar PDF</button>
+                    <button id="close-report-button" class="text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
+                </div>
             </div>
             <div id="report-modal-content" class="p-6">
                 <!-- El contingut de l'informe es generarà aquí -->
@@ -139,6 +143,7 @@
         const reportModal = document.getElementById('report-modal');
         const reportModalContent = document.getElementById('report-modal-content');
         const closeReportButton = document.getElementById('close-report-button');
+        const downloadPdfButton = document.getElementById('download-pdf-button');
         const statusMessage = document.getElementById('status-message');
         const userInfoModal = document.getElementById('user-info-modal');
         const userInfoForm = document.getElementById('user-info-form');
@@ -150,6 +155,7 @@
         let currentQuizAtoms = [];
         let sessionHistory = [];
         let usedAtomsSymbols = new Set();
+        let currentUserInfo = {};
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -191,13 +197,13 @@
         function startNewSession() {
             sessionHistory = [];
             usedAtomsSymbols = new Set();
+            currentUserInfo = {};
             startNewRound();
         }
 
         function startNewRound() {
             clearFeedback();
             reportModal.classList.add('hidden');
-            // Eliminem les pistes que inclouen el símbol per obligar a deduir-lo
             const possibleClues = [['Z', 'n'], ['p', 'A'], ['e', 'n'], ['Z', 'A'], ['p', 'e'], ['A', 'n']];
             
             const availableAtoms = atomPool.filter(atom => !usedAtomsSymbols.has(atom.symbol));
@@ -286,6 +292,25 @@
             reportModal.classList.remove('hidden');
         }
 
+        function downloadPDF() {
+            const element = document.getElementById('report-modal-content');
+            const userName = (currentUserInfo.name || 'Alumne').replace(/\s/g, '_');
+            const userSurname = (currentUserInfo.surname || '').replace(/\s/g, '_');
+            const userClass = (currentUserInfo.class || 'Classe').replace(/\s/g, '_');
+            
+            const filename = `Informe_${userName}${userSurname}_${userClass}.pdf`;
+
+            const opt = {
+              margin:       0.5,
+              filename:     filename,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, useCORS: true },
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save();
+        }
+
         function saveAttempt() {
             const roundAttempts = [];
             currentQuizAtoms.forEach(element => {
@@ -333,6 +358,7 @@
             };
             
             if(userInfo.name && userInfo.surname && userInfo.class) {
+                currentUserInfo = userInfo;
                 userInfoModal.classList.add('hidden');
                 generateReport(userInfo);
             } else {
@@ -341,6 +367,7 @@
         });
         
         closeReportButton.addEventListener('click', () => reportModal.classList.add('hidden'));
+        downloadPdfButton.addEventListener('click', downloadPDF);
         
         nextActionButton.addEventListener('click', () => {
             if (nextActionButton.textContent === 'Següent Ronda') {
@@ -359,9 +386,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
