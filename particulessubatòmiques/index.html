@@ -14,13 +14,13 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            /* Lilac/purple theme background */
-            background-color: #e0e7ff;
-            background-image: linear-gradient(to top right, #e0e7ff, #f3e8ff);
+            /* Red theme background */
+            background-color: #fee2e2;
+            background-image: linear-gradient(to top right, #fee2e2, #fecaca);
         }
         .dark body {
-             background-color: #1e1b4b;
-             background-image: linear-gradient(to top right, #1e1b4b, #4c1d95);
+             background-color: #7f1d1d;
+             background-image: linear-gradient(to top right, #7f1d1d, #991b1b);
         }
         /* Card design */
         .card {
@@ -37,8 +37,8 @@
         /* Symbol display adjustments */
         .symbol-container { display: flex; align-items: center; justify-content: center; min-height: 150px; }
         .symbol-display { font-size: 6rem; line-height: 1; font-weight: 800; position: relative; display: inline-block; margin: 0 2.8rem; }
-        .symbol-mass, .symbol-atomic, .symbol-charge { position: absolute; font-size: 2rem; font-weight: 500; line-height: 1; color: #4f46e5; } /* indigo-600 */
-        .dark .symbol-mass, .dark .symbol-atomic, .dark .symbol-charge { color: #a5b4fc; } /* indigo-300 */
+        .symbol-mass, .symbol-atomic, .symbol-charge { position: absolute; font-size: 2rem; font-weight: 500; line-height: 1; color: #dc2626; } /* red-600 */
+        .dark .symbol-mass, .dark .symbol-atomic, .dark .symbol-charge { color: #fca5a5; } /* red-300 */
         
         /* Adjusted positioning */
         .symbol-mass { top: -0.2em; left: -1.1em; }
@@ -46,19 +46,15 @@
         .symbol-charge { top: -0.2em; right: -1.1em; }
 
         /* General UI styling */
-        .correct-answer { color: #16a34a; }
-        .incorrect-answer { color: #ef4444; }
-        .input-correct { border-color: #16a34a !important; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.3); }
-        .input-incorrect { border-color: #ef4444 !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3); }
         .transition-all { transition: all 0.3s ease-in-out; }
         
-        /* --- FINAL COLOR THEME: INDIGO/PURPLE --- */
+        /* --- FINAL COLOR THEME: RED --- */
         .btn-primary {
-            background-color: #4f46e5; /* indigo-600 */
-            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
+            background-color: #dc2626; /* red-600 */
+            box-shadow: 0 4px 14px 0 rgba(220, 38, 38, 0.3);
         }
         .btn-primary:hover {
-            background-color: #4338ca; /* indigo-700 */
+            background-color: #b91c1c; /* red-700 */
         }
         .btn-secondary {
             background-color: #64748b; /* slate-500 */
@@ -67,11 +63,18 @@
         .btn-secondary:hover {
             background-color: #475569; /* slate-600 */
         }
+        .btn-success {
+            background-color: #16a34a; /* green-600 */
+            box-shadow: 0 4px 14px 0 rgba(22, 163, 74, 0.3);
+        }
+        .btn-success:hover {
+            background-color: #15803d; /* green-700 */
+        }
         
         /* Results styling */
         .results-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; }
-        .results-grid > dt { font-weight: 600; color: #4f46e5; }
-        .dark .results-grid > dt { color: #a5b4fc; }
+        .results-grid > dt { font-weight: 600; color: #dc2626; }
+        .dark .results-grid > dt { color: #fca5a5; }
         .user-answer-correct { color: #16a34a; font-weight: 600; }
         .user-answer-incorrect { color: #ef4444; font-weight: 600; text-decoration: line-through; }
         .correct-answer-text { color: #16a34a; font-weight: 600; }
@@ -80,10 +83,31 @@
 <body class="transition-all">
 
     <div class="w-full max-w-2xl mx-auto rounded-3xl shadow-xl p-6 md:p-8 transition-all card my-8">
-        <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 mb-4">Joc de Partícules Subatòmiques</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-red-600 dark:text-red-400 mb-2">Joc de Partícules Subatòmiques</h1>
         
+        <div id="instructions" class="text-sm text-center text-gray-600 dark:text-gray-400 bg-red-100 dark:bg-red-900/30 p-3 rounded-lg mb-6">
+            <p class="font-semibold">Instruccions:</p>
+            <ul class="list-disc list-inside">
+                <li>Completa els camps buits amb els números corresponents.</li>
+                <li>Per a la càrrega, posa el signe davant del número (ex: <strong>-2</strong>, <strong>+1</strong>). Posa <strong>0</strong> si és neutre.</li>
+            </ul>
+        </div>
+
         <div id="game-container">
             <!-- Game content will be injected here -->
+        </div>
+        
+        <div id="round-results-screen" class="hidden text-center py-8">
+            <h2 id="round-results-title" class="text-3xl font-bold mb-2">Resultats de la Ronda 1</h2>
+            <p id="round-score" class="text-2xl mb-6"></p>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4 mt-6">
+                <button id="repeat-round-btn" class="w-full md:w-auto btn-secondary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Repetir Ronda</button>
+                <button id="continue-game-btn" class="w-full md:w-auto btn-primary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Continuar</button>
+                <button id="round-pdf-btn" class="w-full md:w-auto btn-success text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Generar Informe</button>
+            </div>
+             <div class="mt-8 text-left">
+                <div id="round-summary" class="space-y-6"></div>
+            </div>
         </div>
 
         <div id="end-game-screen" class="hidden text-center py-8">
@@ -91,19 +115,30 @@
             <p id="final-score" class="text-2xl mb-6"></p>
             
             <div class="my-8">
-                <div class="w-full max-w-sm mx-auto">
-                     <label for="student-name" class="block text-left text-lg font-semibold mb-2 dark:text-gray-300">Introdueix el teu nom per al PDF:</label>
-                     <input type="text" id="student-name" class="w-full bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="El teu nom i cognoms">
-                </div>
                 <div class="flex flex-col md:flex-row justify-center items-center gap-4 mt-6">
                     <button id="restart-btn" class="w-full md:w-auto btn-secondary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Jugar de Nou</button>
-                    <button id="pdf-btn" class="w-full md:w-auto btn-primary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Genera PDF amb Resultats</button>
+                    <button id="pdf-btn" class="w-full md:w-auto btn-primary text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">Generar Informe Final</button>
                 </div>
             </div>
 
             <div class="mt-8 text-left">
-                <h3 class="text-2xl font-bold mb-4 text-center">Resum de Respostes</h3>
+                <h3 class="text-2xl font-bold mb-4 text-center">Resum de Respostes Finals</h3>
                 <div id="results-summary" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PDF Name Modal -->
+    <div id="pdf-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full card">
+            <h3 class="text-xl font-bold mb-4 text-center text-red-600 dark:text-red-400">Generar Informe PDF</h3>
+            <div class="space-y-2">
+                <label for="pdf-student-name" class="block text-left text-lg font-semibold dark:text-gray-300">Introdueix el teu nom:</label>
+                <input type="text" id="pdf-student-name" class="w-full bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="El teu nom i cognoms">
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button id="cancel-pdf-btn" class="w-full btn-secondary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Cancel·lar</button>
+                <button id="confirm-pdf-btn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Descarregar</button>
             </div>
         </div>
     </div>
@@ -117,16 +152,22 @@
         // --- GAME STATE ---
         let currentElement = null, score = 0, gameElements = [], questionCount = 0, currentQuestionType = '';
         let resultsHistory = [];
-        let isFirstAttemptInQuestion = true;
         const totalQuestions = 20;
+        const questionsPerRound = 10;
+        let currentRound = 1;
 
         // --- DOM ELEMENTS ---
         const gameContainer = document.getElementById('game-container');
+        const roundResultsScreen = document.getElementById('round-results-screen');
         const endGameScreen = document.getElementById('end-game-screen');
         const finalScoreEl = document.getElementById('final-score');
         const restartBtn = document.getElementById('restart-btn');
         const pdfBtn = document.getElementById('pdf-btn');
         const resultsSummaryEl = document.getElementById('results-summary');
+        const pdfModal = document.getElementById('pdf-modal');
+        const pdfStudentNameInput = document.getElementById('pdf-student-name');
+        const confirmPdfBtn = document.getElementById('confirm-pdf-btn');
+        const cancelPdfBtn = document.getElementById('cancel-pdf-btn');
 
         // --- TEMPLATES ---
         const gameHTML = `
@@ -142,88 +183,85 @@
                 <div class="space-y-4 mb-6">
                     <div class="grid grid-cols-3 gap-4 items-center">
                         <label for="protons" class="col-span-1 font-semibold text-lg">Protons (p⁺):</label>
-                        <input type="number" id="protons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                        <input type="number" id="protons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="?">
                     </div>
                     <div class="grid grid-cols-3 gap-4 items-center">
                         <label for="neutrons" class="col-span-1 font-semibold text-lg">Neutrons (n⁰):</label>
-                        <input type="number" id="neutrons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                        <input type="number" id="neutrons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="?">
                     </div>
                     <div class="grid grid-cols-3 gap-4 items-center">
                         <label for="electrons" class="col-span-1 font-semibold text-lg">Electrons (e⁻):</label>
-                        <input type="number" id="electrons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                        <input type="number" id="electrons" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="?">
                     </div>
                 </div>
             </div>
             <div id="guess-numbers-container" class="hidden">
                  <p class="text-center text-lg mb-6 dark:text-gray-300">A quin element/ió corresponen aquestes partícules?</p>
-                <div class="bg-indigo-100 dark:bg-indigo-900/30 rounded-lg p-4 mb-8 text-center space-y-2">
-                    <p class="text-lg">Protons (p⁺): <strong id="given-protons" class="text-indigo-600 dark:text-indigo-400"></strong></p>
-                    <p class="text-lg">Neutrons (n⁰): <strong id="given-neutrons" class="text-indigo-600 dark:text-indigo-400"></strong></p>
-                    <p class="text-lg">Electrons (e⁻): <strong id="given-electrons" class="text-indigo-600 dark:text-indigo-400"></strong></p>
+                <div class="bg-red-100 dark:bg-red-900/30 rounded-lg p-4 mb-8 text-center space-y-2">
+                    <p class="text-lg">Protons (p⁺): <strong id="given-protons" class="text-red-600 dark:text-red-400"></strong></p>
+                    <p class="text-lg">Neutrons (n⁰): <strong id="given-neutrons" class="text-red-600 dark:text-red-400"></strong></p>
+                    <p class="text-lg">Electrons (e⁻): <strong id="given-electrons" class="text-red-600 dark:text-red-400"></strong></p>
                 </div>
                  <div class="space-y-4 mb-6">
                     <div class="grid grid-cols-3 gap-4 items-center">
                         <label for="atomic-input" class="col-span-1 font-semibold text-lg">N. Atòmic (Z):</label>
-                        <input type="number" id="atomic-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                        <input type="number" id="atomic-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="?">
                     </div>
                     <div class="grid grid-cols-3 gap-4 items-center">
                         <label for="mass-input" class="col-span-1 font-semibold text-lg">N. Màssic (A):</label>
-                        <input type="number" id="mass-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                        <input type="number" id="mass-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="?">
                     </div>
                     <div class="grid grid-cols-3 gap-4 items-center">
                         <label for="charge-input" class="col-span-1 font-semibold text-lg">Càrrega:</label>
-                        <input type="number" id="charge-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" placeholder="?">
+                        <input type="number" id="charge-input" class="col-span-2 bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg p-3 text-center text-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="?">
                     </div>
                 </div>
             </div>
-            <div id="feedback" class="text-center h-8 mb-4 font-bold text-xl transition-all"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button id="check-btn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Comprova</button>
-                <button id="next-btn" class="w-full btn-secondary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105" disabled>Següent</button>
+            <div class="mt-8">
+                <button id="next-btn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Següent</button>
             </div>
-            <div class="text-center mt-6">
-                <p class="text-lg font-medium text-gray-700 dark:text-gray-300">Puntuació: <span id="score" class="font-bold text-indigo-600 dark:text-indigo-400">0</span></p>
+             <div class="text-center mt-6">
+                <p class="text-lg font-medium text-gray-700 dark:text-gray-300">Puntuació Total: <span id="score" class="font-bold text-red-600 dark:text-red-400">0</span></p>
             </div>`;
 
         // --- FUNCTIONS ---
         function startGame() {
             score = 0;
             questionCount = 0;
+            currentRound = 1;
             resultsHistory = [];
             const shuffled = [...allElements].sort(() => 0.5 - Math.random());
             gameElements = shuffled.slice(0, totalQuestions);
             
             endGameScreen.classList.add('hidden');
+            roundResultsScreen.classList.add('hidden');
             gameContainer.innerHTML = gameHTML;
             gameContainer.classList.remove('hidden');
+            document.getElementById('instructions').classList.remove('hidden');
             
             setupEventListeners();
             setupNewQuestion();
         }
 
         function setupEventListeners() {
-            document.getElementById('check-btn').addEventListener('click', checkAnswer);
-            document.getElementById('next-btn').addEventListener('click', handleNextQuestion);
+            document.getElementById('next-btn').addEventListener('click', recordAnswerAndNext);
             document.querySelectorAll('input[type="number"]').forEach(input => {
                 input.addEventListener('keyup', (event) => {
                     if (event.key === 'Enter') {
-                        const checkBtn = document.getElementById('check-btn');
-                        const nextBtn = document.getElementById('next-btn');
-                        if (!checkBtn.disabled) checkBtn.click();
-                        else nextBtn.click();
+                        document.getElementById('next-btn').click();
                     }
                 });
             });
         }
 
         function setupNewQuestion() {
-            if (questionCount >= totalQuestions) {
+             if(questionCount >= totalQuestions) {
                 endGame();
                 return;
             }
+
             currentElement = gameElements[questionCount];
             currentQuestionType = Math.random() < 0.5 ? 'guessParticles' : 'guessNumbers';
-            isFirstAttemptInQuestion = true;
             
             resetUI();
             
@@ -233,20 +271,131 @@
                 setupGuessNumbers();
             }
         }
+        
+        function recordAnswerAndNext() {
+            let userAnswers;
+            if (currentQuestionType === 'guessParticles') {
+                const userProtons = document.getElementById('protons').value;
+                const userNeutrons = document.getElementById('neutrons').value;
+                const userElectrons = document.getElementById('electrons').value;
+                userAnswers = { 
+                    p: userProtons === '' ? '?' : parseInt(userProtons, 10), 
+                    n: userNeutrons === '' ? '?' : parseInt(userNeutrons, 10), 
+                    e: userElectrons === '' ? '?' : parseInt(userElectrons, 10) 
+                };
+            } else {
+                 const userAtomic = document.getElementById('atomic-input').value;
+                 const userMass = document.getElementById('mass-input').value;
+                 const userCharge = document.getElementById('charge-input').value;
+                 userAnswers = {
+                    Z: userAtomic === '' ? '?' : parseInt(userAtomic, 10),
+                    A: userMass === '' ? '?' : parseInt(userMass, 10),
+                    C: userCharge === '' ? '?' : parseInt(userCharge, 10)
+                 };
+            }
+            resultsHistory.push({
+                element: currentElement,
+                questionType: currentQuestionType,
+                userAnswers: userAnswers,
+            });
+
+            questionCount++;
+            
+            if (questionCount % questionsPerRound === 0 && questionCount > 0) {
+                evaluateRoundAndShowResults();
+            } else {
+                setupNewQuestion();
+            }
+        }
+
+        function evaluateRoundAndShowResults() {
+            gameContainer.classList.add('hidden');
+            roundResultsScreen.classList.remove('hidden');
+            
+            const roundStartIdx = (currentRound - 1) * questionsPerRound;
+            const roundEndIdx = roundStartIdx + questionsPerRound;
+            let roundScore = 0;
+
+            for(let i = roundStartIdx; i < roundEndIdx; i++) {
+                const result = resultsHistory[i];
+                if (!result) continue; // Safeguard
+                let allCorrect = false;
+                if (result.questionType === 'guessParticles') {
+                    const correctProtons = result.element.atomicNumber;
+                    const correctNeutrons = result.element.massNumber - result.element.atomicNumber;
+                    const correctElectrons = result.element.atomicNumber - result.element.charge;
+                    result.correctAnswers = { p: correctProtons, n: correctNeutrons, e: correctElectrons };
+                    allCorrect = (result.userAnswers.p === correctProtons && result.userAnswers.n === correctNeutrons && result.userAnswers.e === correctElectrons);
+                } else {
+                    const correctAtomic = result.element.atomicNumber;
+                    const correctMass = result.element.massNumber;
+                    const correctCharge = result.element.charge;
+                    result.correctAnswers = { Z: correctAtomic, A: correctMass, C: correctCharge };
+                    allCorrect = (result.userAnswers.Z === correctAtomic && result.userAnswers.A === correctMass && result.userAnswers.C === correctCharge);
+                }
+                result.isCorrect = allCorrect;
+                if(allCorrect) roundScore++;
+            }
+
+            score += roundScore;
+            
+            document.getElementById('round-results-title').textContent = `Resultats de la Ronda ${currentRound}`;
+            document.getElementById('round-score').innerHTML = `Puntuació de la Ronda: <strong class="text-red-600 dark:text-red-400">${roundScore}</strong> de <strong class="text-red-600 dark:text-red-400">${questionsPerRound}</strong>.`;
+            displayRoundResults(roundStartIdx, roundEndIdx);
+
+            const continueBtn = document.getElementById('continue-game-btn');
+            if (currentRound >= (totalQuestions / questionsPerRound)) {
+                continueBtn.textContent = 'Finalitzar i Veure Resum';
+                continueBtn.onclick = endGame;
+            } else {
+                continueBtn.textContent = 'Següent Ronda';
+                continueBtn.onclick = continueToNextRound;
+            }
+            document.getElementById('repeat-round-btn').onclick = repeatRound;
+            document.getElementById('round-pdf-btn').onclick = showPdfModal;
+        }
+
+        function displayRoundResults(startIdx, endIdx) {
+            const summaryEl = document.getElementById('round-summary');
+            summaryEl.innerHTML = '';
+            const roundResults = resultsHistory.slice(startIdx, endIdx);
+            roundResults.forEach((result, index) => {
+                summaryEl.innerHTML += getResultCardHTML(result, startIdx + index);
+            });
+        }
+        
+        function repeatRound() {
+            const roundStartIdx = (currentRound - 1) * questionsPerRound;
+            let roundScoreToRemove = 0;
+            const roundEndIdx = roundStartIdx + questionsPerRound;
+            const currentRoundResults = resultsHistory.slice(roundStartIdx, roundEndIdx);
+            
+            for(const result of currentRoundResults) {
+                if(result.isCorrect) roundScoreToRemove++;
+            }
+            score -= roundScoreToRemove;
+
+            resultsHistory.splice(roundStartIdx);
+            questionCount = roundStartIdx;
+            
+            roundResultsScreen.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            document.getElementById('score').textContent = score;
+            setupNewQuestion();
+        }
+
+        function continueToNextRound() {
+            currentRound++;
+            roundResultsScreen.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            setupNewQuestion();
+        }
 
         function resetUI() {
-            document.getElementById('question-counter').textContent = `Pregunta ${questionCount + 1} de ${totalQuestions}`;
-            document.getElementById('feedback').textContent = '';
-            document.getElementById('feedback').className = 'text-center h-8 mb-4 font-bold text-xl transition-all';
+            document.getElementById('question-counter').textContent = `Ronda ${currentRound} - Pregunta ${questionCount % questionsPerRound + 1} de ${questionsPerRound}`;
+            document.getElementById('score').textContent = score;
             
-            document.querySelectorAll('input[type="number"]').forEach(input => {
-                input.value = '';
-                input.classList.remove('input-correct', 'input-incorrect');
-                input.style.boxShadow = 'none';
-            });
-            
-            document.getElementById('check-btn').disabled = false;
-            document.getElementById('next-btn').disabled = true;
+            document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
         }
 
         function setupGuessParticles() {
@@ -277,115 +426,44 @@
             document.getElementById('atomic-input').focus();
         }
 
-        function checkAnswer() {
-            let allCorrect, userAnswers, correctAnswers;
-
-            if (currentQuestionType === 'guessParticles') {
-                const userProtons = parseInt(document.getElementById('protons').value, 10);
-                const userNeutrons = parseInt(document.getElementById('neutrons').value, 10);
-                const userElectrons = parseInt(document.getElementById('electrons').value, 10);
-                userAnswers = { p: userProtons || '?', n: userNeutrons || '?', e: userElectrons || '?' };
-                
-                const correctProtons = currentElement.atomicNumber;
-                const correctNeutrons = currentElement.massNumber - currentElement.atomicNumber;
-                const correctElectrons = currentElement.atomicNumber - currentElement.charge;
-                correctAnswers = { p: correctProtons, n: correctNeutrons, e: correctElectrons };
-
-                allCorrect = (userProtons === correctProtons && userNeutrons === correctNeutrons && userElectrons === correctElectrons);
-                validateInput(document.getElementById('protons'), userProtons, correctProtons);
-                validateInput(document.getElementById('neutrons'), userNeutrons, correctNeutrons);
-                validateInput(document.getElementById('electrons'), userElectrons, correctElectrons);
-            } else {
-                const userAtomic = parseInt(document.getElementById('atomic-input').value, 10);
-                const userMass = parseInt(document.getElementById('mass-input').value, 10);
-                const userCharge = parseInt(document.getElementById('charge-input').value, 10);
-                userAnswers = { Z: userAtomic || '?', A: userMass || '?', C: userCharge || '?' };
-                
-                const correctAtomic = currentElement.atomicNumber;
-                const correctMass = currentElement.massNumber;
-                const correctCharge = currentElement.charge;
-                correctAnswers = { Z: correctAtomic, A: correctMass, C: correctCharge };
-
-                allCorrect = (userAtomic === correctAtomic && userMass === correctMass && userCharge === correctCharge);
-                validateInput(document.getElementById('atomic-input'), userAtomic, correctAtomic);
-                validateInput(document.getElementById('mass-input'), userMass, correctMass);
-                validateInput(document.getElementById('charge-input'), userCharge, correctCharge);
-            }
-
-            if (isFirstAttemptInQuestion) {
-                isFirstAttemptInQuestion = false;
-                if (allCorrect) {
-                    score++;
-                    document.getElementById('score').textContent = score;
-                }
-                resultsHistory.push({
-                    element: currentElement,
-                    questionType: currentQuestionType,
-                    userAnswers: userAnswers,
-                    correctAnswers: correctAnswers,
-                    isCorrect: allCorrect
-                });
-            }
-
-            const feedbackEl = document.getElementById('feedback');
-            if (allCorrect) {
-                feedbackEl.textContent = 'Correcte!';
-                feedbackEl.classList.remove('incorrect-answer');
-                feedbackEl.classList.add('correct-answer');
-                document.getElementById('check-btn').disabled = true;
-                document.getElementById('next-btn').disabled = false;
-                document.getElementById('next-btn').focus();
-            } else {
-                feedbackEl.textContent = 'Incorrecte. Corretgeix la resposta per continuar.';
-                feedbackEl.classList.remove('correct-answer');
-                feedbackEl.classList.add('incorrect-answer');
-            }
-        }
-
-        function validateInput(inputElement, userValue, correctValue) {
-            const isCorrect = userValue === correctValue;
-            inputElement.classList.remove('input-correct', 'input-incorrect');
-            inputElement.classList.add(isCorrect ? 'input-correct' : 'input-incorrect');
-            return isCorrect;
-        }
-        
-        function handleNextQuestion() {
-            questionCount++;
-            setupNewQuestion();
-        }
-
         function endGame() {
             gameContainer.classList.add('hidden');
+            roundResultsScreen.classList.add('hidden');
+            document.getElementById('instructions').classList.add('hidden');
             endGameScreen.classList.remove('hidden');
-            finalScoreEl.innerHTML = `Puntuació Final: <strong class="text-indigo-600 dark:text-indigo-400">${score}</strong> de <strong class="text-indigo-600 dark:text-indigo-400">${totalQuestions}</strong>.`;
-            displayResults();
+            const questionsPlayed = resultsHistory.length;
+            finalScoreEl.innerHTML = `Puntuació Final: <strong class="text-red-600 dark:text-red-400">${score}</strong> de <strong class="text-red-600 dark:text-red-400">${questionsPlayed}</strong>.`;
+            displayFinalResults();
         }
 
-        function displayResults() {
+        function displayFinalResults() {
             resultsSummaryEl.innerHTML = '';
             resultsHistory.forEach((result, index) => {
-                const { element, questionType, userAnswers, correctAnswers, isCorrect } = result;
-                let questionHTML = '', answersHTML = '';
-
-                if (questionType === 'guessParticles') {
-                    const chargeText = element.charge === 0 ? '' : (Math.abs(element.charge) === 1 ? (element.charge > 0 ? '+' : '−') : `${Math.abs(element.charge)}${element.charge > 0 ? '+' : '−'}`);
-                    questionHTML = `Pregunta: <strong><sup>${element.massNumber}</sup><sub>${element.atomicNumber}</sub>${element.symbol}<sup>${chargeText}</sup></strong>`;
-                    answersHTML = `<dl class="results-grid mt-2">
-                            <dt>Protons (p⁺):</dt><dd>${formatAnswer(userAnswers.p, correctAnswers.p)}</dd>
-                            <dt>Neutrons (n⁰):</dt><dd>${formatAnswer(userAnswers.n, correctAnswers.n)}</dd>
-                            <dt>Electrons (e⁻):</dt><dd>${formatAnswer(userAnswers.e, correctAnswers.e)}</dd></dl>`;
-                } else {
-                    questionHTML = `Pregunta: <strong>p⁺=${correctAnswers.Z}, n⁰=${correctAnswers.A - correctAnswers.Z}, e⁻=${correctAnswers.Z - correctAnswers.C}</strong>`;
-                     answersHTML = `<dl class="results-grid mt-2">
-                            <dt>N. Atòmic (Z):</dt><dd>${formatAnswer(userAnswers.Z, correctAnswers.Z)}</dd>
-                            <dt>N. Màssic (A):</dt><dd>${formatAnswer(userAnswers.A, correctAnswers.A)}</dd>
-                            <dt>Càrrega:</dt><dd>${formatAnswer(userAnswers.C, correctAnswers.C)}</dd></dl>`;
-                }
-
-                const resultCard = `<div class="p-4 rounded-lg ${isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}">
-                        <p class="font-semibold text-lg">${index + 1}. ${questionHTML}</p>${answersHTML}</div>`;
-                resultsSummaryEl.innerHTML += resultCard;
+                 resultsSummaryEl.innerHTML += getResultCardHTML(result, index);
             });
+        }
+        
+        function getResultCardHTML(result, index) {
+            const { element, questionType, userAnswers, correctAnswers, isCorrect } = result;
+            let questionHTML = '', answersHTML = '';
+
+            if (questionType === 'guessParticles') {
+                const chargeText = element.charge === 0 ? '' : (Math.abs(element.charge) === 1 ? (element.charge > 0 ? '+' : '−') : `${Math.abs(element.charge)}${element.charge > 0 ? '+' : '−'}`);
+                questionHTML = `Pregunta: <strong><sup>${element.massNumber}</sup><sub>${element.atomicNumber}</sub>${element.symbol}<sup>${chargeText}</sup></strong>`;
+                answersHTML = `<dl class="results-grid mt-2">
+                        <dt>Protons (p⁺):</dt><dd>${formatAnswer(userAnswers.p, correctAnswers.p)}</dd>
+                        <dt>Neutrons (n⁰):</dt><dd>${formatAnswer(userAnswers.n, correctAnswers.n)}</dd>
+                        <dt>Electrons (e⁻):</dt><dd>${formatAnswer(userAnswers.e, correctAnswers.e)}</dd></dl>`;
+            } else {
+                questionHTML = `Pregunta: <strong>p⁺=${correctAnswers.Z}, n⁰=${correctAnswers.A - correctAnswers.Z}, e⁻=${correctAnswers.Z - correctAnswers.C}</strong>`;
+                    answersHTML = `<dl class="results-grid mt-2">
+                        <dt>N. Atòmic (Z):</dt><dd>${formatAnswer(userAnswers.Z, correctAnswers.Z)}</dd>
+                        <dt>N. Màssic (A):</dt><dd>${formatAnswer(userAnswers.A, correctAnswers.A)}</dd>
+                        <dt>Càrrega:</dt><dd>${formatAnswer(userAnswers.C, correctAnswers.C)}</dd></dl>`;
+            }
+
+            return `<div class="p-4 rounded-lg ${isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}">
+                    <p class="font-semibold text-lg">${index + 1}. ${questionHTML}</p>${answersHTML}</div>`;
         }
 
         function formatAnswer(user, correct) {
@@ -395,18 +473,19 @@
             return `<span class="user-answer-incorrect">${user}</span> <span class="correct-answer-text">→ ${correct}</span>`;
         }
         
-        function generatePDF() {
+        function generatePDF(studentName) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const studentName = document.getElementById('student-name').value || 'Anònim';
+            const name = studentName || 'Anònim';
+            const questionsPlayed = resultsHistory.length;
 
             doc.setFontSize(20);
-            doc.text("Resultats del Qüestionari de Partícules", 105, 20, { align: 'center' });
+            doc.text("Informe de Resultats: Joc de Partícules", 105, 20, { align: 'center' });
             doc.setFontSize(12);
-            doc.text(`Alumne/a: ${studentName}`, 14, 35);
-            doc.text(`Puntuació Final: ${score} de ${totalQuestions}`, 14, 42);
+            doc.text(`Alumne/a: ${name}`, 14, 35);
+            doc.text(`Puntuació: ${score} de ${questionsPlayed}`, 14, 42);
 
-            const tableColumn = ["#", "Pregunta", "La Teva Resposta (1r intent)", "Resultat"];
+            const tableColumn = ["#", "Pregunta", "La Teva Resposta", "Resultat"];
             const tableRows = [];
 
             resultsHistory.forEach((result, index) => {
@@ -428,21 +507,38 @@
 
             doc.autoTable({
                 head: [tableColumn], body: tableRows, startY: 50, theme: 'grid',
-                headStyles: { fillColor: [79, 70, 229] }, // Indigo color for PDF
+                headStyles: { fillColor: [220, 38, 38] }, // Red color for PDF
                 didParseCell: function (data) {
-                    if (!resultsHistory[data.row.index]?.isCorrect && data.column.index === 3) {
+                    if (data.row.index >= 0 && resultsHistory[data.row.index] && !resultsHistory[data.row.index].isCorrect && data.column.index === 3) {
                          data.cell.styles.textColor = '#ef4444';
                     }
                 }
             });
-            doc.save(`resultats-${studentName.replace(/ /g, '_')}.pdf`);
+            doc.save(`resultats-${name.replace(/ /g, '_')}.pdf`);
+        }
+        
+        // --- MODAL & INITIALIZE ---
+        function showPdfModal() {
+            pdfStudentNameInput.value = ''; // Clear previous input
+            pdfModal.classList.remove('hidden');
+            pdfStudentNameInput.focus();
         }
 
-        // --- INITIALIZE GAME ---
+        function hidePdfModal() {
+            pdfModal.classList.add('hidden');
+        }
+
         restartBtn.addEventListener('click', startGame);
-        pdfBtn.addEventListener('click', generatePDF);
+        pdfBtn.addEventListener('click', showPdfModal);
+        cancelPdfBtn.addEventListener('click', hidePdfModal);
+        confirmPdfBtn.addEventListener('click', () => {
+            generatePDF(pdfStudentNameInput.value);
+            hidePdfModal();
+        });
+
         window.onload = startGame;
 
     </script>
 </body>
 </html>
+
