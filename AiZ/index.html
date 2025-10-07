@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activitat Interactiva: Propietats Atòmiques</title>
+    <title>Activitat Interactiva: Propietats Atòmiques d'Àtoms Neutres i Ions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,12 +13,10 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .correct-cell {
-            background-color: #d1fae5 !important; /* Green-200 */
+        .correct-cell-report {
             color: #065f46; /* Green-800 */
         }
-        .incorrect-cell {
-            background-color: #fee2e2 !important; /* Red-200 */
+        .incorrect-cell-report {
             color: #991b1b; /* Red-800 */
         }
         .input-cell {
@@ -27,54 +25,121 @@
             margin-left: auto;
             margin-right: auto;
         }
-        #report-modal-content {
-            max-height: 70vh;
-            overflow-y: auto;
-        }
         button:disabled {
             background-color: #9ca3af;
             cursor: not-allowed;
+        }
+         @media print {
+            body * {
+                visibility: hidden;
+            }
+            #report-view, #report-view * {
+                visibility: visible;
+            }
+            #report-view {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+            
+            /* Additional print styles for better PDF generation */
+            #printable-area {
+                margin: 0;
+                padding: 20px;
+                font-size: 14px;
+            }
+            
+            /* Ensure content sections don't break inappropriately */
+            h3, .p-3, .bg-gray-100, .space-y-4 > div {
+                page-break-inside: avoid;
+            }
+            
+            /* Prevent table rows from breaking within the row */
+            tr {
+                page-break-inside: avoid;
+            }
+            
+            /* Page break controls */
+            .page-break-before {
+                page-break-before: always;
+            }
+            
+            .break-inside-avoid {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media print {
+            #printable-area {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
         }
     </style>
 </head>
 <body class="bg-green-50 text-gray-800">
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-green-800">Activitat Interactiva: Propietats Atòmiques</h1>
+        <header class="text-center mb-8 hidden">
+            <h1 class="text-3xl sm:text-4xl font-bold text-green-800">Propietats atòmiques d'àtoms neutres o ions</h1>
             <p class="mt-2 text-lg text-gray-600">Completa les 2 rondes per poder generar l'informe de la sessió.</p>
         </header>
 
         <main>
-            <p id="status-message" class="text-center text-xl font-semibold text-gray-700 mb-4"></p>
-            <div class="overflow-x-auto bg-white rounded-lg shadow">
-                <table class="min-w-full divide-y divide-gray-200 text-center">
-                    <thead class="bg-green-600">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Símbol</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Nombre Atòmic (Z)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Nombre Màssic (A)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Protons (p⁺)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Neutrons (n⁰)</th>
-                            <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Electrons (e⁻)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="quiz-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Les files seran generades per JavaScript -->
-                    </tbody>
-                </table>
+            <div id="level-selection-view">
+                <div class="text-center p-8 bg-white rounded-lg shadow-lg">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Tria el teu nivell de dificultat</h2>
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+                        <button id="level-initial" class="w-full sm:w-auto px-8 py-4 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                            Nivell Inicial<br><span class="font-normal text-sm">(Àtoms Neutres)</span>
+                        </button>
+                        <button id="level-advanced" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                            Nivell Avançat<br><span class="font-normal text-sm">(Àtoms i Ions)</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="mt-6 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4">
-                <button id="check-button" class="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75 transition-transform transform hover:scale-105 disabled:hover:scale-100 disabled:hover:bg-gray-400">
-                    Comprovar Respostes
-                </button>
-                 <button id="report-button" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
-                    Generar Informe
-                </button>
-                <button id="next-action-button" class="w-full sm:w-auto px-6 py-3 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
-                    Tornar a començar
-                </button>
+            <div id="quiz-view" class="hidden">
+                <p id="status-message" class="text-center text-xl font-semibold text-gray-700 mb-4"></p>
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="min-w-full divide-y divide-gray-200 text-center">
+                        <thead class="bg-green-600">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Símbol</th>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Nombre Atòmic (Z)</th>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Nombre Màssic (A)</th>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Protons (p⁺)</th>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Neutrons (n⁰)</th>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Electrons (e⁻)</th>
+                                <th scope="col" class="px-4 py-3 text-xs sm:text-sm font-semibold text-white uppercase tracking-wider">Càrrega (q)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quiz-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Les files seran generades per JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4">
+                     <button id="home-button" class="w-full sm:w-auto px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                        Inici
+                    </button>
+                    <button id="report-button" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                        Generar Informe
+                    </button>
+                    <button id="next-action-button" class="w-full sm:w-auto px-6 py-3 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                        Següent Ronda
+                    </button>
+                </div>
+            </div>
+            <div id="report-view" class="hidden">
+                <!-- El contingut de l'informe es generarà aquí -->
             </div>
         </main>
     </div>
@@ -110,48 +175,25 @@
         </div>
     </div>
 
-    <!-- Finestra emergent (Modal) per a l'informe -->
-    <div id="report-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-300 ease-out">
-            <div class="flex justify-between items-center p-4 border-b border-green-200">
-                <h2 class="text-2xl font-bold text-green-800">Informe de Sessió</h2>
-                <div class="flex items-center gap-4">
-                    <button id="download-pdf-button" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Descarregar PDF</button>
-                    <button id="close-report-button" class="text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
-                </div>
-            </div>
-            <div id="report-modal-content" class="p-6">
-                <!-- El contingut de l'informe es generarà aquí -->
-            </div>
-        </div>
-    </div>
-
     <script>
         const atomPool = [
             { symbol: 'H', Z: 1, A: 1 }, { symbol: 'He', Z: 2, A: 4 }, { symbol: 'Li', Z: 3, A: 7 }, { symbol: 'Be', Z: 4, A: 9 }, { symbol: 'B', Z: 5, A: 11 }, { symbol: 'C', Z: 6, A: 12 }, { symbol: 'N', Z: 7, A: 14 }, { symbol: 'O', Z: 8, A: 16 }, { symbol: 'F', Z: 9, A: 19 }, { symbol: 'Ne', Z: 10, A: 20 }, { symbol: 'Na', Z: 11, A: 23 }, { symbol: 'Mg', Z: 12, A: 24 }, { symbol: 'Al', Z: 13, A: 27 }, { symbol: 'Si', Z: 14, A: 28 }, { symbol: 'P', Z: 15, A: 31 }, { symbol: 'S', Z: 16, A: 32 }, { symbol: 'Cl', Z: 17, A: 35 }, { symbol: 'Ar', Z: 18, A: 40 }, { symbol: 'K', Z: 19, A: 39 }, { symbol: 'Ca', Z: 20, A: 40 },
             { symbol: 'Sc', Z: 21, A: 45 }, { symbol: 'Ti', Z: 22, A: 48 }, { symbol: 'V', Z: 23, A: 51 }, { symbol: 'Cr', Z: 24, A: 52 }, { symbol: 'Mn', Z: 25, A: 55 }, { symbol: 'Fe', Z: 26, A: 56 }, { symbol: 'Co', Z: 27, A: 59 }, { symbol: 'Ni', Z: 28, A: 58 }, { symbol: 'Cu', Z: 29, A: 63 }, { symbol: 'Zn', Z: 30, A: 65 }
         ];
 
-        atomPool.forEach(atom => {
-            atom.p = atom.Z; atom.e = atom.Z; atom.n = atom.A - atom.Z;
-        });
-
         const tableBody = document.getElementById('quiz-table-body');
-        const checkButton = document.getElementById('check-button');
         const nextActionButton = document.getElementById('next-action-button');
         const reportButton = document.getElementById('report-button');
-        const reportModal = document.getElementById('report-modal');
-        const reportModalContent = document.getElementById('report-modal-content');
-        const closeReportButton = document.getElementById('close-report-button');
-        const downloadPdfButton = document.getElementById('download-pdf-button');
+        const homeButton = document.getElementById('home-button');
         const statusMessage = document.getElementById('status-message');
         const userInfoModal = document.getElementById('user-info-modal');
         const userInfoForm = document.getElementById('user-info-form');
         const closeUserInfoButton = document.getElementById('close-user-info-button');
         
-        const propertyKeys = ['symbol', 'Z', 'A', 'p', 'n', 'e'];
+        const propertyKeys = ['symbol', 'Z', 'A', 'p', 'n', 'e', 'q'];
         const NUM_QUESTIONS = 5;
         const NUM_ROUNDS = 2;
+        let currentLevel = null;
         let currentQuizAtoms = [];
         let sessionHistory = [];
         let usedAtomsSymbols = new Set();
@@ -174,7 +216,11 @@
                     cell.classList.add('px-4', 'py-3', 'text-sm', 'whitespace-nowrap');
                     if (element.show.includes(key)) {
                         const fixedValueContainer = document.createElement('div');
-                        fixedValueContainer.textContent = element[key];
+                        let displayValue = element[key];
+                        if (key === 'q' && element[key] > 0) {
+                            displayValue = `+${element[key]}`;
+                        }
+                        fixedValueContainer.textContent = displayValue;
                         fixedValueContainer.classList.add(
                             'w-full', 'p-2', 'text-center', 'border', 
                             'border-yellow-300', 'rounded-md', 'bg-yellow-100', 
@@ -193,6 +239,16 @@
                 tableBody.appendChild(row);
             });
         }
+
+        function showLevelSelection() {
+            document.getElementById('level-selection-view').classList.remove('hidden');
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.querySelector('header').classList.add('hidden');
+            const reportView = document.getElementById('report-view');
+            reportView.classList.add('hidden');
+            reportView.innerHTML = '';
+            currentLevel = null;
+        }
         
         function startNewSession() {
             sessionHistory = [];
@@ -202,17 +258,32 @@
         }
 
         function startNewRound() {
-            clearFeedback();
-            reportModal.classList.add('hidden');
-            const possibleClues = [['Z', 'n'], ['p', 'A'], ['e', 'n'], ['Z', 'A'], ['p', 'e'], ['A', 'n']];
-            
             const availableAtoms = atomPool.filter(atom => !usedAtomsSymbols.has(atom.symbol));
             shuffleArray(availableAtoms);
 
             currentQuizAtoms = JSON.parse(JSON.stringify(availableAtoms.slice(0, NUM_QUESTIONS)));
+            
             currentQuizAtoms.forEach((atom, index) => {
                 atom.id = index;
                 usedAtomsSymbols.add(atom.symbol);
+
+                if (currentLevel === 'advanced') {
+                    const isIon = Math.random() > 0.4; // 60% chance of being an ion
+                    const possibleCharges = [-3, -2, -1, 1, 2, 3].filter(c => atom.Z - c >= 0);
+                    atom.q = isIon && possibleCharges.length > 0 ? possibleCharges[Math.floor(Math.random() * possibleCharges.length)] : 0;
+                } else {
+                    atom.q = 0; // Nivell inicial, sempre neutre
+                }
+
+                atom.p = atom.Z;
+                atom.n = atom.A - atom.Z;
+                atom.e = atom.Z - atom.q;
+
+                const possibleClues = [
+                    ['Z', 'n'], ['p', 'A'], ['e', 'n'], ['Z', 'A'],
+                    ['p', 'e'], ['A', 'n'], ['Z', 'q'], ['p', 'q'],
+                    ['A', 'q'], ['e', 'q'], ['n', 'q']
+                ];
                 const randomClueIndex = Math.floor(Math.random() * possibleClues.length);
                 atom.show = possibleClues[randomClueIndex];
             });
@@ -226,57 +297,46 @@
             
             if (completedRounds < NUM_ROUNDS) {
                 statusMessage.textContent = `Ronda ${completedRounds + 1} de ${NUM_ROUNDS}`;
-                checkButton.disabled = false;
                 reportButton.disabled = true;
-                nextActionButton.textContent = 'Següent Ronda';
-                nextActionButton.classList.remove('bg-rose-600', 'hover:bg-rose-700');
-                nextActionButton.classList.add('bg-amber-500', 'hover:bg-amber-600');
+                nextActionButton.classList.remove('hidden');
             } else {
-                statusMessage.innerHTML = "Sessió completada! No t'oblidis de <strong>generar l'informe</strong>, desar-lo com a PDF i enviar-lo al Classroom.";
-                checkButton.disabled = true;
+                statusMessage.innerHTML = "Sessió completada! Ja pots <strong>generar l'informe</strong>.";
                 reportButton.disabled = false;
-                nextActionButton.textContent = 'Tornar a començar';
-                nextActionButton.classList.remove('bg-amber-500', 'hover:bg-amber-600');
-                nextActionButton.classList.add('bg-rose-600', 'hover:bg-rose-700');
+                nextActionButton.classList.add('hidden');
             }
-        }
-        
-        function clearFeedback() {
-            const inputs = tableBody.querySelectorAll('input');
-            inputs.forEach(input => input.classList.remove('correct-cell', 'incorrect-cell'));
         }
         
         function generateReport(userInfo) {
-            if (sessionHistory.length < NUM_ROUNDS) {
-                reportModalContent.innerHTML = `<p class="text-center text-gray-600">Has de completar les ${NUM_ROUNDS} rondes per generar l'informe.</p>`;
-                reportModal.classList.remove('hidden');
-                return;
-            }
+            const reportView = document.getElementById('report-view');
+            const levelText = currentLevel === 'advanced' ? 'Avançat (Àtoms i Ions)' : 'Inicial (Àtoms Neutres)';
 
             const userInfoHTML = `
                 <div class="mb-6 p-4 bg-yellow-100 rounded-lg border border-yellow-300">
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">Dades de l'Alumne/a</h3>
                     <p class="text-gray-700"><strong>Nom:</strong> ${userInfo.name} ${userInfo.surname}</p>
                     <p class="text-gray-700"><strong>Classe:</strong> ${userInfo.class}</p>
+                    <p class="text-gray-700"><strong>Nivell:</strong> ${levelText}</p>
                 </div>`;
 
             let sessionCorrect = 0, sessionTotal = 0;
             let reportHTML = '<div class="space-y-6">';
 
             sessionHistory.forEach((round, index) => {
-                reportHTML += `<div class="border-t pt-4"><h3 class="text-xl font-semibold text-gray-800 mb-3">Ronda ${index + 1}</h3><div class="space-y-4">`;
+                reportHTML += `<div class="border-t pt-4 page-break-before"><h3 class="text-xl font-semibold text-gray-800 mb-3">Ronda ${index + 1}</h3><div class="space-y-4">`;
                 round.attempts.forEach(element => {
-                    let questionHTML = `<div class="p-3 bg-yellow-50 rounded-lg"><h4 class="font-bold text-md text-gray-800">Element (Z=${element.Z})</h4><ul class="list-disc list-inside pl-4 mt-1 text-sm">`;
+                    const chargeStr = element.q > 0 ? `+${element.q}` : element.q;
+                    let questionHTML = `<div class="p-3 bg-gray-100 rounded-lg"><h4 class="font-bold text-md text-gray-800">Partícula: ${element.symbol} (Z=${element.Z}, A=${element.A}, q=${chargeStr})</h4><ul class="list-disc list-inside pl-4 mt-1 text-sm">`;
                     propertyKeys.forEach(key => {
                         if (!element.show.includes(key)) {
                             sessionTotal++;
                             const userAnswer = element.userAnswers[key] || "buit";
                             const correctAnswer = String(element[key]);
-                            if (userAnswer.toLowerCase().replace(/\s/g, '') === correctAnswer.toLowerCase().replace(/\s/g, '')) {
+                            const isCorrect = userAnswer.toLowerCase().replace(/\s/g, '').replace('+', '') === correctAnswer.toLowerCase().replace(/\s/g, '');
+                            if (isCorrect) {
                                 sessionCorrect++;
-                                questionHTML += `<li class="text-green-700"><strong>${key}:</strong> Resposta "${userAnswer}" és correcta.</li>`;
+                                questionHTML += `<li class="correct-cell-report"><strong>${key}:</strong> Resposta "${userAnswer}" és correcta.</li>`;
                             } else {
-                                questionHTML += `<li class="text-red-700"><strong>${key}:</strong> Resposta "${userAnswer}" és incorrecta (la correcta era: <strong>${correctAnswer}</strong>).</li>`;
+                                questionHTML += `<li class="incorrect-cell-report break-inside-avoid"><strong>${key}:</strong> Resposta "${userAnswer}" és incorrecta (la correcta era: <strong>${correctAnswer}</strong>).</li>`;
                             }
                         }
                     });
@@ -288,12 +348,32 @@
 
             const percentage = sessionTotal > 0 ? ((sessionCorrect / sessionTotal) * 100).toFixed(1) : 0;
             let summaryHTML = `<div class="text-center mb-6"><p class="text-xl text-gray-700">Resultat total de la sessió:</p><p class="text-xl text-gray-700">Has encertat <strong>${sessionCorrect}</strong> de <strong>${sessionTotal}</strong> respostes.</p><p class="text-5xl font-bold mt-2 text-green-600">${percentage}%</p></div>`;
-            reportModalContent.innerHTML = userInfoHTML + summaryHTML + reportHTML + '</div>';
-            reportModal.classList.remove('hidden');
+            
+            const fullReportHTML = `
+                <div id="printable-area">
+                    <header class="text-center mb-8">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-green-800">Informe de Sessió</h1>
+                    </header>
+                    ${userInfoHTML}
+                    ${summaryHTML}
+                    ${reportHTML}</div>
+                </div>
+                <div class="mt-8 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 no-print">
+                    <button id="download-pdf-button-report" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Descarregar PDF</button>
+                    <button id="restart-button-report" class="w-full sm:w-auto px-6 py-3 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-opacity-75">Tornar a començar</button>
+                </div>`;
+            
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.querySelector('header').classList.add('hidden');
+            reportView.innerHTML = fullReportHTML;
+            reportView.classList.remove('hidden');
+
+            document.getElementById('download-pdf-button-report').addEventListener('click', downloadPDF);
+            document.getElementById('restart-button-report').addEventListener('click', showLevelSelection);
         }
 
         function downloadPDF() {
-            const element = document.getElementById('report-modal-content');
+            const element = document.getElementById('printable-area');
             const userName = (currentUserInfo.name || 'Alumne').replace(/\s/g, '_');
             const userSurname = (currentUserInfo.surname || '').replace(/\s/g, '_');
             const userClass = (currentUserInfo.class || 'Classe').replace(/\s/g, '_');
@@ -301,14 +381,21 @@
             const filename = `Informe_${userName}${userSurname}_${userClass}.pdf`;
 
             const opt = {
-              margin:       0.5,
+              margin:       [0.5, 0.5, 0.5, 0.5], // top, right, bottom, left
               filename:     filename,
               image:        { type: 'jpeg', quality: 0.98 },
-              html2canvas:  { scale: 2, useCORS: true },
-              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+              html2canvas:  { 
+                  scale: 2, 
+                  useCORS: true,
+                  scrollY: 0,
+                  windowHeight: element.scrollHeight,
+                  letterRendering: true
+              },
+              jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+              pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            html2pdf().from(element).set(opt).save();
+            html2pdf().set(opt).from(element).save();
         }
 
         function saveAttempt() {
@@ -325,21 +412,23 @@
             sessionHistory.push({ attempts: roundAttempts });
         }
 
-        checkButton.addEventListener('click', () => {
-            clearFeedback();
-            currentQuizAtoms.forEach(element => {
-                propertyKeys.forEach(key => {
-                    if (!element.show.includes(key)) {
-                        const input = document.getElementById(`input-${element.id}-${key}`);
-                        if (input.value.trim().toLowerCase().replace(/\s/g, '') === String(element[key]).toLowerCase().replace(/\s/g, '')) {
-                            input.classList.add('correct-cell');
-                        } else {
-                            input.classList.add('incorrect-cell');
-                        }
-                    }
-                });
-            });
+        document.getElementById('level-initial').addEventListener('click', () => {
+            currentLevel = 'initial';
+            document.getElementById('level-selection-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            document.querySelector('header').classList.remove('hidden');
+            startNewSession();
         });
+
+        document.getElementById('level-advanced').addEventListener('click', () => {
+            currentLevel = 'advanced';
+            document.getElementById('level-selection-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            document.querySelector('header').classList.remove('hidden');
+            startNewSession();
+        });
+
+        homeButton.addEventListener('click', showLevelSelection);
 
         reportButton.addEventListener('click', () => {
             userInfoModal.classList.remove('hidden');
@@ -362,27 +451,26 @@
                 userInfoModal.classList.add('hidden');
                 generateReport(userInfo);
             } else {
-                alert("Si us plau, omple tots els camps.");
+                const submitButton = userInfoForm.querySelector('button[type="submit"]');
+                const originalText = submitButton.textContent;
+                submitButton.textContent = 'Omple tots els camps!';
+                setTimeout(() => {
+                    submitButton.textContent = originalText;
+                }, 2000);
             }
         });
         
-        closeReportButton.addEventListener('click', () => reportModal.classList.add('hidden'));
-        downloadPdfButton.addEventListener('click', downloadPDF);
-        
         nextActionButton.addEventListener('click', () => {
-            if (nextActionButton.textContent === 'Següent Ronda') {
-                saveAttempt();
-                if (sessionHistory.length < NUM_ROUNDS) {
-                    startNewRound();
-                } else {
-                    updateUIState();
-                }
-            } else { // 'Tornar a començar'
-                startNewSession();
+            saveAttempt();
+            if (sessionHistory.length < NUM_ROUNDS) {
+                startNewRound();
+            } else {
+                updateUIState();
             }
         });
 
-        window.onload = startNewSession;
+        window.onload = showLevelSelection;
     </script>
 </body>
 </html>
+
