@@ -344,9 +344,13 @@
             info_title: "Sabies que...?",
             instructions_button: "Instruccions",
             explanation: "💡 Aquests elements són excepcions a la regla d'Aufbau. Per aconseguir una major estabilitat, promouen un o més electrons per tenir subnivells semiplemerts (com d⁵) o complets (com d¹⁰), ja que aquestes configuracions són energèticament més favorables.",
-            error_group: (g, correctG) => `Incorrecte. Aquest element no pertany al grup ${g}. Hauria de ser el grup ${correctG}.`,
-            error_period: (p, correctP) => `Incorrecte. La configuració no correspon al període ${p}. Hauria de ser el període ${correctP}.`,
-            error_both: (p, g, correctP, correctG) => `Incorrecte. No correspon ni al període ${p} (hauria de ser ${correctP}) ni al grup ${g} (hauria de ser ${correctG}).`
+            error_incorrect_placement: "Incorrecte. Prova-ho de nou.",
+            error_max_attempts: (symbol) => `Has esgotat els 3 intents per a l\'element ${symbol}. Passant al següent.`,
+            round_completed: "Ronda completada!",
+            what_to_do_next: "Molt bé! Què vols fer ara?",
+            play_another_round: "Jugar una altra ronda",
+            next_level: "Següent nivell",
+            final_grade: "Nota Final"
         },
         es: {
             title: "Tabla Periódica Interactiva",
@@ -364,9 +368,13 @@
             report_title: "Informe de Resultados",
             info_title: "¿Sabías que...?",
             explanation: "💡 Estos elementos son excepciones a la regla de Aufbau. Para conseguir una mayor estabilidad, promueven uno o más electrones para tener subniveles semilleros (como d⁵) o completos (como d¹⁰), ya que estas configuraciones son energéticamente más favorables.",
-            error_group: (g, correctG) => `Incorrecto. Este elemento no pertenece al grupo ${g}. Debería ser el grupo ${correctG}.`,
-            error_period: (p, correctP) => `Incorrecto. La configuración no corresponde al periodo ${p}. Debería ser el periodo ${correctP}.`,
-            error_both: (p, g, correctP, correctG) => `Incorrecto. No corresponde ni al periodo ${p} (debería ser ${correctP}) ni al grupo ${g} (debería ser ${correctG}).`
+            error_incorrect_placement: "Incorrecto. Inténtalo de nuevo.",
+            error_max_attempts: (symbol) => `Has agotado los 3 intentos para el elemento ${symbol}. Pasando al siguiente.`,
+            round_completed: "¡Ronda completada!",
+            what_to_do_next: "¡Muy bien! ¿Qué quieres hacer ahora?",
+            play_another_round: "Jugar otra ronda",
+            next_level: "Siguiente nivel",
+            final_grade: "Nota Final"
         }
     };
 
@@ -376,6 +384,10 @@
     let errorCount = 0;
     let questionsCorrectCount = 0;
     let totalQuestionsAsked = 0;
+    let elementAttempts = {};
+    const MAX_ATTEMPTS = 3;
+    const ELEMENTS_PER_ROUND = 5;
+    const TOTAL_ROUNDS = 2;
     
     const canvas = document.getElementById('periodic-table-canvas');
     const ctx = canvas.getContext('2d');
@@ -737,25 +749,55 @@
 
         const shuffled = [...unplacedElements].sort(() => 0.5 - Math.random());
         
-        sessionElements = shuffled.slice(0, 5);
+        sessionElements = shuffled.slice(0, ELEMENTS_PER_ROUND * TOTAL_ROUNDS);
         currentCardIndex = 0;
         correctlyPlacedInSession = []; 
-        placedCards = [...allCorrectlyPlacedElements]; 
+        placedCards = [...allCorrectlyPlacedElements];
+        elementAttempts = {}; 
     }
 
     function showNextCard() {
         cards = [];
+        clearFeedback();
 
-        if (currentCardIndex >= sessionElements.length) {
-            if (correctlyPlacedInSession.length > 0) {
-                 showAttentionQuestion();
-            } else { 
-                 showEndOfSessionOptions();
+        const isEndOfRound = currentCardIndex > 0 && currentCardIndex % ELEMENTS_PER_ROUND === 0;
+        const isEndOfGame = currentCardIndex >= sessionElements.length;
+
+        if (isEndOfGame) {
+            showEndOfSessionOptions();
+            return;
+        }
+
+        if (isEndOfRound) {
+            const roundNumber = currentCardIndex / ELEMENTS_PER_ROUND;
+            const startIndex = (roundNumber - 1) * ELEMENTS_PER_ROUND;
+            const elementsOfRound = sessionElements.slice(startIndex, currentCardIndex);
+            const correctlyPlacedInRound = correctlyPlacedInSession.filter(placedEl => 
+                elementsOfRound.some(roundEl => roundEl.atomicNumber === placedEl.atomicNumber)
+            );
+
+            if (correctlyPlacedInRound.length > 0) {
+                showAttentionQuestion(correctlyPlacedInRound);
+            } else {
+                continueToNextCard();
             }
+            return;
+        }
+        
+        continueToNextCard();
+    }
+
+    function continueToNextCard() {
+        if (currentCardIndex >= sessionElements.length) {
+            showEndOfSessionOptions();
             return;
         }
 
         const elData = sessionElements[currentCardIndex];
+        if (!elementAttempts[elData.atomicNumber]) {
+            elementAttempts[elData.atomicNumber] = 0;
+        }
+        
         const cardX = layout.cardArea.x + (layout.cardArea.width - layout.cardW) / 2;
         const cardY = layout.cardArea.y + (layout.cardArea.height - layout.cardH) / 2;
         
@@ -851,12 +893,25 @@
                 showNextCard();
             }
         } else {
-            card.isReturning = true;
-            animationLoop();
             updateScore(false);
-            if (!isPeriodCorrect && !isGroupCorrect) showFeedback('error_both', [cell.period, cell.group, card.period, card.group]);
-            else if (!isPeriodCorrect) showFeedback('error_period', [cell.period, card.period]);
-            else showFeedback('error_group', [cell.group, card.group]);
+            if (!elementAttempts[card.atomicNumber]) {
+                elementAttempts[card.atomicNumber] = 0;
+            }
+            elementAttempts[card.atomicNumber]++;
+
+            if (elementAttempts[card.atomicNumber] >= MAX_ATTEMPTS) {
+                showFeedback('error_max_attempts', [card.symbol]);
+                card.isReturning = true;
+                animationLoop();
+                setTimeout(() => {
+                    currentCardIndex++;
+                    showNextCard();
+                }, 1500);
+            } else {
+                card.isReturning = true;
+                animationLoop();
+                showFeedback('error_incorrect_placement');
+            }
         }
     }
     function updateScore(isCorrect) { if (isCorrect) { correctCount++; } else { errorCount++; } draw(); }
@@ -920,14 +975,14 @@
     }
     
     // --- 9. PREGUNTES D'ATENCIÓ, INFORMES I FINAL DE SESSIÓ ---
-    function showAttentionQuestion() {
-        if (correctlyPlacedInSession.length === 0) {
-            showEndOfSessionOptions();
+    function showAttentionQuestion(elementsForQuestion) {
+        if (!elementsForQuestion || elementsForQuestion.length === 0) {
+            continueToNextCard();
             return;
         }
 
-        const randomIndex = Math.floor(Math.random() * correctlyPlacedInSession.length);
-        const randomElement = correctlyPlacedInSession[randomIndex];
+        const randomIndex = Math.floor(Math.random() * elementsForQuestion.length);
+        const randomElement = elementsForQuestion[randomIndex];
 
         if (!randomElement) { 
             showEndOfSessionOptions();
@@ -970,12 +1025,51 @@
         draw();
         
         document.getElementById('question-modal').classList.remove('visible');
-        showEndOfSessionOptions();
+        continueToNextCard();
     }
 
     function promptForReportDetails() {
         document.getElementById('info-modal').classList.remove('visible');
         document.getElementById('report-modal').classList.add('visible');
+    }
+
+    function calculateGrade() {
+        const pointsFirstTry = 10;
+        const pointsSecondTry = 6;
+        const pointsThirdTry = 3;
+        let placementScore = 0;
+
+        const elementsInGame = sessionElements.slice(0, currentCardIndex);
+
+        elementsInGame.forEach(el => {
+            const isCorrectlyPlaced = allCorrectlyPlacedElements.some(p => p.atomicNumber === el.atomicNumber);
+            if (isCorrectlyPlaced) {
+                const attempts = elementAttempts[el.atomicNumber] || 0;
+                if (attempts === 0) {
+                    placementScore += pointsFirstTry;
+                } else if (attempts === 1) {
+                    placementScore += pointsSecondTry;
+                } else if (attempts === 2) {
+                    placementScore += pointsThirdTry;
+                }
+            }
+        });
+
+        const maxPlacementScore = elementsInGame.length * pointsFirstTry;
+        const questionScore = questionsCorrectCount * 5; 
+        const maxQuestionScore = totalQuestionsAsked * 5;
+
+        const totalScore = placementScore + questionScore;
+        const maxTotalScore = maxPlacementScore + maxQuestionScore;
+
+        let finalGrade = 0;
+        if (maxTotalScore > 0) {
+            finalGrade = (totalScore / maxTotalScore) * 10;
+        }
+
+        return {
+            grade: finalGrade
+        };
     }
 
     function createPDF(studentName, studentClass) {
@@ -995,6 +1089,8 @@
         doc.setFontSize(16);
         doc.text(currentLang === 'ca' ? 'Resultats' : 'Resultados', 105, 75, { align: 'center' });
 
+        const gradeData = calculateGrade();
+
         doc.setFontSize(11);
         let y = 85;
         const results = [
@@ -1007,12 +1103,18 @@
             y += 8;
         });
 
+        y += 5; // Espai extra
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${uiTexts[currentLang].final_grade}: ${gradeData.grade.toFixed(2)} / 10`, 105, y, { align: 'center' });
+        doc.setFont(undefined, 'normal');
+
         // --- Dibuix de la Taula Periòdica ---
         doc.setFontSize(16);
-        doc.text(currentLang === 'ca' ? 'Elements Col·locats' : 'Elementos Colocados', 105, y + 10, { align: 'center' });
+        doc.text(currentLang === 'ca' ? 'Elements Col·locats' : 'Elementos Colocados', 105, y + 15, { align: 'center' });
         
         const tableStartX = 15;
-        const tableStartY = y + 20;
+        const tableStartY = y + 25;
         const cellW = 9.5;
         const cellH = 12;
         const gap = 0.5;
@@ -1072,19 +1174,19 @@
 
     function showEndOfSessionOptions() {
         const modal = document.getElementById('info-modal');
-        document.getElementById('info-title').textContent = currentLang === 'ca' ? 'Ronda completada!' : '¡Ronda completada!';
+        document.getElementById('info-title').textContent = uiTexts[currentLang].round_completed;
         
         const nextLevelKey = getNextLevelKey();
         const nextLevelButtonHTML = nextLevelKey 
-            ? `<button onclick="startNextLevel()">${getNextLevelLabel()}</button>` 
+            ? `<button onclick="startNextLevel()">${uiTexts[currentLang].next_level} (${uiTexts[currentLang][nextLevelKey]})</button>` 
             : '';
 
         const optionsHTML = `
             <div class="end-session-options">
-                <p>${currentLang === 'ca' ? 'Molt bé! Què vols fer ara?' : '¡Muy bien! ¿Qué quieres hacer ahora?'}</p>
-                <button onclick="startSameLevel()">${currentLang === 'ca' ? 'Jugar una altra ronda (' + uiTexts[currentLang][currentDifficulty] + ')' : 'Jugar otra ronda (' + uiTexts[currentLang][currentDifficulty] + ')'}</button>
-                ${nextLevelButtonHTML}
+                <p>${uiTexts[currentLang].what_to_do_next}</p>
+                <button onclick="fullResetAndRestart()">${uiTexts[currentLang].reset}</button>
                 <button onclick="promptForReportDetails()">${uiTexts[currentLang].report}</button>
+                ${nextLevelButtonHTML}
             </div>
         `;
         
@@ -1093,11 +1195,9 @@
         modal.classList.add('visible');
     }
 
-    function startSameLevel() {
+    function fullResetAndRestart() {
         document.getElementById('info-modal').classList.remove('visible');
-        selectSessionElements();
-        showNextCard();
-        draw();
+        setupGame(true);
     }
 
     function startNextLevel() {
