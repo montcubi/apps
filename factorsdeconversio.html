@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factors de Conversió - Arrossega i Deixa Anar</title>
+    
     <style>
         /* --- General Styles --- */
         * {
@@ -26,7 +27,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            /* overflow: hidden;  <-- S'ha eliminat aquesta línia que causava el problema */
         }
 
         /* --- Header --- */
@@ -91,6 +92,12 @@
         .level-btn.advanced { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #8b008b; }
         .level-btn:hover, .level-btn.active { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
+        .report-generator {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn-report { background: linear-gradient(135deg, #483D8B 0%, #6A5ACD 100%); color: white; }
+
         .stats {
             display: flex;
             justify-content: space-around;
@@ -133,11 +140,21 @@
         .problem {
             text-align: center;
             margin-bottom: 30px;
+            /* Millora d'usabilitat: Manté la zona de treball visible en fer scroll */
+            position: -webkit-sticky; /* Per a compatibilitat amb Safari */
+            position: sticky;
+            top: 10px; /* Espai respecte la part superior */
+            z-index: 10;
+            background-color: white; /* Evita que el contingut inferior es vegi a través */
+            padding-top: 10px; /* Reduït de 15px */
+            padding-bottom: 10px; /* Reduït de 15px */
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
         }
         
         .problem h2 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
+            font-size: 1.6em; /* Reduït de 1.8em */
+            margin-bottom: 15px; /* Reduït de 20px */
             color: #2c3e50;
         }
 
@@ -148,15 +165,15 @@
             justify-content: center;
             flex-wrap: wrap;
             gap: 10px;
-            padding: 20px;
+            padding: 15px; /* Reduït de 20px */
             border-radius: 15px;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100px;
+            min-height: 80px; /* Reduït de 100px */
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .value-display {
-            font-size: 1.8em;
+            font-size: 1.6em; /* Reduït de 1.8em */
             font-weight: bold;
             color: #34495e;
             padding: 10px 15px;
@@ -165,7 +182,7 @@
         }
         
         .operator {
-            font-size: 1.8em;
+            font-size: 1.6em; /* Reduït de 1.8em */
             font-weight: bold;
             color: #34495e;
         }
@@ -175,7 +192,7 @@
             align-items: center;
             gap: 10px;
             flex-grow: 1;
-            min-height: 80px;
+            min-height: 60px; /* Reduït de 80px */
             border: 3px dashed #bdc3c7;
             border-radius: 10px;
             padding: 10px;
@@ -274,13 +291,13 @@
         .controls {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
+            gap: 10px; /* Més a prop */
+            margin-top: 10px; /* Reduït de 15px */
         }
 
         .btn {
-            padding: 12px 24px; border: none; border-radius: 25px; cursor: pointer;
-            font-weight: bold; font-size: 1.1em; transition: all 0.3s ease;
+            padding: 10px 20px; border: none; border-radius: 25px; cursor: pointer;
+            font-weight: bold; font-size: 1em; transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         .btn-primary { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
@@ -289,7 +306,10 @@
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
         .feedback {
-            padding: 15px; border-radius: 10px; margin: 20px auto 0 auto; text-align: center;
+            padding: 10px; /* Reduït de 15px */
+            border-radius: 10px;
+            margin: 15px auto 0 auto; /* Reduït de 20px */
+            text-align: center;
             font-weight: bold; opacity: 0; transform: translateY(-10px);
             transition: all 0.3s ease;
             max-width: 80%;
@@ -322,6 +342,10 @@
             <button class="level-btn basic active" onclick="setLevel('basic')" id="basic-btn">Bàsic</button>
             <button class="level-btn intermediate" onclick="setLevel('intermediate')" id="intermediate-btn">Intermedi</button>
             <button class="level-btn advanced" onclick="setLevel('advanced')" id="advanced-btn">Avançat</button>
+        </div>
+
+        <div class="report-generator">
+            <button class="btn btn-report" onclick="generateReport()" id="report-btn">Generar Informe</button>
         </div>
 
         <div class="stats">
@@ -366,31 +390,37 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         // --- TRANSLATIONS ---
         const translations = {
             ca: {
                 'main-title': 'Factors de Conversió', 'basic-btn': 'Bàsic', 'intermediate-btn': 'Intermedi', 'advanced-btn': 'Avançat',
                 'correct-label': 'Correctes', 'total-label': 'Total', 'percentage-label': 'Percentatge', 'problem-title-prefix': 'Converteix',
-                'check-btn': 'Comprovar', 'reset-btn': 'Reiniciar', 'next-btn': 'Següent',
+                'check-btn': 'Comprovar', 'reset-btn': 'Reiniciar', 'next-btn': 'Següent', 'report-btn': 'Generar Informe',
                 'correct-feedback': 'Correcte! Molt bé!', 'incorrect-feedback': 'Incorrecte. La seqüència o els factors no són correctes.',
+                'empty-report-feedback': 'Encara no has completat cap activitat per a l\'informe.',
                 'drop-zone-placeholder': 'Arrossega els factors aquí',
                 'cat_longitud': 'Longitud', 'cat_massa': 'Massa', 'cat_temps': 'Temps', 'cat_superficie': 'Superfície', 'cat_volum': 'Volum',
                 'instructions-title': 'Instruccions', 'instructions-step1': 'Tria un nivell de dificultat.', 'instructions-step2': 'Observa la conversió que has de fer.',
                 'instructions-step3': 'Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.', 'instructions-step4': 'Fes clic a "Comprovar" per veure si la teva solució és correcta.',
-                'instructions-step5': 'Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.'
+                'instructions-step5': 'Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.',
+                'prompt-name': 'Introdueix el teu nom i cognoms:',
+                'prompt-course': 'Introdueix el teu curs:',
             },
             es: {
                 'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado',
                 'correct-label': 'Correctos', 'total-label': 'Total', 'percentage-label': 'Porcentaje', 'problem-title-prefix': 'Convierte',
-                'check-btn': 'Comprobar', 'reset-btn': 'Reiniciar', 'next-btn': 'Siguiente',
+                'check-btn': 'Comprobar', 'reset-btn': 'Reiniciar', 'next-btn': 'Siguiente', 'report-btn': 'Generar Informe',
                 'correct-feedback': '¡Correcto! ¡Muy bien!', 'incorrect-feedback': 'Incorrecto. La secuencia o los factores no son correctos.',
+                'empty-report-feedback': 'Aún no has completado ninguna actividad para el informe.',
                 'drop-zone-placeholder': 'Arrastra los factores aquí',
                 'cat_longitud': 'Longitud', 'cat_massa': 'Masa', 'cat_temps': 'Tiempo', 'cat_superficie': 'Superficie', 'cat_volum': 'Volumen',
                 'instructions-title': 'Instrucciones', 'instructions-step1': 'Elige un nivel de dificultad.', 'instructions-step2': 'Observa la conversión que tienes que realizar.',
                 'instructions-step3': 'Arrastra los factores o haz doble clic en ellos para añadirlos a la zona de trabajo.', 'instructions-step4': 'Haz clic en "Comprobar" para ver si tu solución es correcta.',
-                'instructions-step5': 'Para retirar un factor de la zona de trabajo, haz doble clic sobre él.'
+                'instructions-step5': 'Para retirar un factor de la zona de trabajo, haz doble clic sobre él.',
+                'prompt-name': 'Introduce tu nombre y apellidos:',
+                'prompt-course': 'Introduce tu curso:',
             }
         };
 
@@ -400,6 +430,7 @@
         let currentProblem = null;
         let droppedFactors = [];
         let stats = { correct: 0, total: 0 };
+        let activityLog = []; // Per registrar cada intent
 
         // --- DATA ---
         const conversionFactors = {
@@ -518,6 +549,19 @@
         function checkAnswer() {
             const isCorrect = arraysEqual(droppedFactors, currentProblem.factors);
             
+            // Registra l'activitat
+            const logEntry = {
+                problem: { 
+                    from: currentProblem.from, 
+                    fromUnit: currentProblem.fromUnit, 
+                    toUnit: currentProblem.toUnit 
+                },
+                userAnswer: [...droppedFactors], // Copia l'array
+                isCorrect: isCorrect,
+                timestamp: new Date()
+            };
+            activityLog.push(logEntry);
+
             stats.total++;
             if (isCorrect) {
                 stats.correct++;
@@ -739,6 +783,108 @@
             return a.length === b.length && a.every((val, index) => val === b[index]);
         }
 
+        // --- REPORT GENERATION ---
+        function generateReport() {
+            const studentName = prompt(translations[currentLanguage]['prompt-name']);
+            if (studentName === null || studentName.trim() === '') return;
+
+            const studentCourse = prompt(translations[currentLanguage]['prompt-course']);
+            if (studentCourse === null || studentCourse.trim() === '') return;
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString(currentLanguage, { year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString(currentLanguage, { hour: '2-digit', minute: '2-digit' });
+
+            let reportHtml = `
+                <!DOCTYPE html>
+                <html lang="${currentLanguage}">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Informe d'Activitats - ${studentName}</title>
+                    <style>
+                        body { font-family: sans-serif; margin: 20px; color: #333; }
+                        h1, h2 { color: #333; }
+                        .report-container { max-width: 800px; margin: auto; }
+                        .student-info, .summary { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #f9f9f9; }
+                        .activity { border-bottom: 1px solid #eee; padding: 10px 0; }
+                        .activity:last-child { border-bottom: none; }
+                        .correct { color: green; font-weight: bold; }
+                        .incorrect { color: red; font-weight: bold; }
+                        .problem-statement { font-weight: bold; }
+                        .user-answer { margin-left: 20px; }
+                        .fraction { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; margin: 0 5px; }
+                        .numerator, .denominator { padding: 0 5px; }
+                        .fraction-line { height: 1px; background-color: #333; }
+                        sup { vertical-align: super; font-size: smaller; }
+                        .print-controls { text-align: center; margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 8px; }
+                        .print-controls button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background-color: #e0e0e0; }
+                        @media print {
+                            .print-controls { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-container">
+                        <div class="print-controls">
+                            <p>Per guardar com a PDF, feu clic al botó i seleccioneu "Desa com a PDF" a les opcions d'impressió.</p>
+                            <button onclick="window.print()">Imprimeix o Desa com a PDF</button>
+                        </div>
+                        <h1>Informe d'Activitats</h1>
+                        <div class="student-info">
+                            <h2>Dades de l'Alumne/a</h2>
+                            <p><strong>Nom:</strong> ${studentName}</p>
+                            <p><strong>Curs:</strong> ${studentCourse}</p>
+                            <p><strong>Data i Hora:</strong> ${dateStr}, ${timeStr}</p>
+                        </div>
+                        <div class="summary">
+                            <h2>Resum</h2>
+                            <p>Total d'activitats: <strong>${stats.total}</strong></p>
+                            <p>Respostes correctes: <strong class="correct">${stats.correct}</strong></p>
+                            <p>Respostes incorrectes: <strong class="incorrect">${stats.total - stats.correct}</strong></p>
+                            <p>Percentatge d'encerts: <strong>${stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0}%</strong></p>
+                        </div>
+            `;
+
+            // Show message if no activities completed
+            if (activityLog.length === 0) {
+                reportHtml += `
+                        <div class="no-activities">
+                            <p><strong>Encara no has completat cap activitat.</strong></p>
+                            <p>Aquest informe mostra l'estat actual del teu progrés.</p>
+                        </div>
+                `;
+            } else {
+                reportHtml += `<h2>Detall de l'Activitat</h2>`;
+                
+                activityLog.forEach((entry, index) => {
+                    const problemText = `${entry.problem.from} ${formatUnitString(entry.problem.fromUnit)} → ? ${formatUnitString(entry.problem.toUnit)}`;
+                    const userAnswerText = entry.userAnswer.map(key => {
+                        const factor = conversionFactors[key];
+                        return `<span class="fraction">
+                                    <span class="numerator">${factor.num.val} ${formatUnitString(factor.num.unit)}</span>
+                                    <span class="fraction-line" style="width: 100%;"></span>
+                                    <span class="denominator">${factor.den.val} ${formatUnitString(factor.den.unit)}</span>
+                                </span>`;
+                    }).join(' × ') || 'Cap factor seleccionat';
+
+                    reportHtml += `
+                        <div class="activity">
+                            <p><strong>Activitat #${index + 1}</strong> - <span class="${entry.isCorrect ? 'correct' : 'incorrect'}">${entry.isCorrect ? 'Correcte' : 'Incorrecte'}</span></p>
+                            <p class="problem-statement">Pregunta: ${problemText}</p>
+                            <p class="user-answer">La teva resposta: ${userAnswerText}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            reportHtml += `</div></body></html>`;
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHtml);
+            reportWindow.document.close();
+        }
+
+
         // --- START APP ---
         window.addEventListener('load', init);
         
@@ -749,6 +895,8 @@
             generateProblem();
         };
         window.nextProblem = nextProblem;
+        window.generateReport = generateReport;
     </script>
 </body>
 </html>
+
