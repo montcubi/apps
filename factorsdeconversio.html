@@ -170,6 +170,8 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 80px; /* Reduït de 100px */
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .value-display {
@@ -187,6 +189,17 @@
             color: #34495e;
         }
 
+        .result-input {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #34495e;
+            padding: 10px 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            width: 180px;
+            text-align: center;
+        }
+
         .drop-zone {
             display: flex;
             align-items: center;
@@ -197,6 +210,7 @@
             border-radius: 10px;
             padding: 10px;
             transition: all 0.3s ease;
+            min-width: 200px;
         }
 
         .drop-zone.drag-over {
@@ -360,7 +374,7 @@
                 <li id="instructions-step1">Tria un nivell de dificultat.</li>
                 <li id="instructions-step2">Observa la conversió que has de fer.</li>
                 <li id="instructions-step3">Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.</li>
-                <li id="instructions-step4">Fes clic a "Comprovar" per veure si la teva solució és correcta.</li>
+                <li id="instructions-step4">Introdueix el resultat numèric i fes clic a "Comprovar".</li>
                 <li id="instructions-step5">Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.</li>
             </ul>
         </div>
@@ -375,7 +389,8 @@
                         <div class="placeholder" id="drop-zone-placeholder"></div>
                     </div>
                     <div class="operator" id="operator-equals" style="display: none;">=</div>
-                    <div id="final-result-container" class="value-display" style="display: none;"></div>
+                    <input type="number" id="result-input" class="result-input" placeholder="?" style="display: none;">
+                    <div id="final-unit-container" class="value-display" style="display: none;"></div>
                 </div>
                 <div class="feedback" id="feedback"></div>
                 <div class="controls">
@@ -398,12 +413,12 @@
                 'main-title': 'Factors de Conversió', 'basic-btn': 'Bàsic', 'intermediate-btn': 'Intermedi', 'advanced-btn': 'Avançat',
                 'correct-label': 'Correctes', 'total-label': 'Total', 'percentage-label': 'Percentatge', 'problem-title-prefix': 'Converteix',
                 'check-btn': 'Comprovar', 'reset-btn': 'Reiniciar', 'next-btn': 'Següent', 'report-btn': 'Generar Informe',
-                'correct-feedback': 'Correcte! Molt bé!', 'incorrect-feedback': 'Incorrecte. La seqüència o els factors no són correctes.',
+                'correct-feedback': 'Correcte! Molt bé!', 'incorrect-feedback': 'Incorrecte.',
                 'empty-report-feedback': 'Encara no has completat cap activitat per a l\'informe.',
                 'drop-zone-placeholder': 'Arrossega els factors aquí',
                 'cat_longitud': 'Longitud', 'cat_massa': 'Massa', 'cat_temps': 'Temps', 'cat_superficie': 'Superfície', 'cat_volum': 'Volum',
                 'instructions-title': 'Instruccions', 'instructions-step1': 'Tria un nivell de dificultat.', 'instructions-step2': 'Observa la conversió que has de fer.',
-                'instructions-step3': 'Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.', 'instructions-step4': 'Fes clic a "Comprovar" per veure si la teva solució és correcta.',
+                'instructions-step3': 'Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.', 'instructions-step4': 'Introdueix el resultat numèric i fes clic a "Comprovar".',
                 'instructions-step5': 'Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.',
                 'prompt-name': 'Introdueix el teu nom i cognoms:',
                 'prompt-course': 'Introdueix el teu curs:',
@@ -412,12 +427,12 @@
                 'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado',
                 'correct-label': 'Correctos', 'total-label': 'Total', 'percentage-label': 'Porcentaje', 'problem-title-prefix': 'Convierte',
                 'check-btn': 'Comprobar', 'reset-btn': 'Reiniciar', 'next-btn': 'Siguiente', 'report-btn': 'Generar Informe',
-                'correct-feedback': '¡Correcto! ¡Muy bien!', 'incorrect-feedback': 'Incorrecto. La secuencia o los factores no son correctos.',
+                'correct-feedback': '¡Correcto! ¡Muy bien!', 'incorrect-feedback': 'Incorrecto.',
                 'empty-report-feedback': 'Aún no has completado ninguna actividad para el informe.',
                 'drop-zone-placeholder': 'Arrastra los factores aquí',
                 'cat_longitud': 'Longitud', 'cat_massa': 'Masa', 'cat_temps': 'Tiempo', 'cat_superficie': 'Superficie', 'cat_volum': 'Volumen',
                 'instructions-title': 'Instrucciones', 'instructions-step1': 'Elige un nivel de dificultad.', 'instructions-step2': 'Observa la conversión que tienes que realizar.',
-                'instructions-step3': 'Arrastra los factores o haz doble clic en ellos para añadirlos a la zona de trabajo.', 'instructions-step4': 'Haz clic en "Comprobar" para ver si tu solución es correcta.',
+                'instructions-step3': 'Arrastra los factores o haz doble clic en ellos para añadirlos a la zona de trabajo.', 'instructions-step4': 'Introduce el resultado numérico y haz clic en "Comprobar".',
                 'instructions-step5': 'Para retirar un factor de la zona de trabajo, haz doble clic sobre él.',
                 'prompt-name': 'Introduce tu nombre y apellidos:',
                 'prompt-course': 'Introduce tu curso:',
@@ -466,6 +481,14 @@
             'cm3-mL': { factor: 1, num: { val: 1, unit: 'mL' }, den: { val: 1, unit: 'cm3' }, category: 'volum' },
             'm3-L': { factor: 1000, num: { val: 1000, unit: 'L' }, den: { val: 1, unit: 'm3' }, category: 'volum' },
             'L-m3': { factor: 1/1000, num: { val: 1, unit: 'm3' }, den: { val: 1000, unit: 'L' }, category: 'volum' },
+            'dL-L': { factor: 1/10, num: { val: 1, unit: 'L' }, den: { val: 10, unit: 'dL' }, category: 'volum' },
+            'L-dL': { factor: 10, num: { val: 10, unit: 'dL' }, den: { val: 1, unit: 'L' }, category: 'volum' },
+            'dL-mL': { factor: 100, num: { val: 100, unit: 'mL' }, den: { val: 1, unit: 'dL' }, category: 'volum' },
+            'mL-dL': { factor: 1/100, num: { val: 1, unit: 'dL' }, den: { val: 100, unit: 'mL' }, category: 'volum' },
+            'dL-cm3': { factor: 100, num: { val: 100, unit: 'cm3' }, den: { val: 1, unit: 'dL' }, category: 'volum' },
+            'cm3-dL': { factor: 1/100, num: { val: 1, unit: 'dL' }, den: { val: 100, unit: 'cm3' }, category: 'volum' },
+            'dL-dm3': { factor: 1/10, num: { val: 1, unit: 'dm3' }, den: { val: 10, unit: 'dL' }, category: 'volum' },
+            'dm3-dL': { factor: 10, num: { val: 10, unit: 'dL' }, den: { val: 1, unit: 'dm3' }, category: 'volum' },
         };
 
         const problems = {
@@ -475,12 +498,46 @@
                 { from: 120, fromUnit: 'min', toUnit: 'h', factors: ['min-h'] },
                 { from: 300, fromUnit: 'cm', toUnit: 'm', factors: ['cm-m'] },
                 { from: 1500, fromUnit: 'mL', toUnit: 'L', factors: ['mL-L'] },
+                { from: 8, fromUnit: 'm', toUnit: 'cm', factors: ['m-cm'] },
+                { from: 5000, fromUnit: 'g', toUnit: 'kg', factors: ['g-kg'] },
+                { from: 3, fromUnit: 'h', toUnit: 'min', factors: ['h-min'] },
+                { from: 2, fromUnit: 'L', toUnit: 'mL', factors: ['L-mL'] },
+                { from: 1800, fromUnit: 's', toUnit: 'min', factors: ['s-min'] },
+                { from: 250, fromUnit: 'cm', toUnit: 'm', factors: ['cm-m'] },
+                { from: 7, fromUnit: 'kg', toUnit: 'g', factors: ['kg-g'] },
+                { from: 45, fromUnit: 'min', toUnit: 's', factors: ['min-s'] },
+                { from: 3.5, fromUnit: 'L', toUnit: 'mL', factors: ['L-mL'] },
+                { from: 900, fromUnit: 's', toUnit: 'h', factors: ['s-h'] },
+                { from: 10, fromUnit: 'km', toUnit: 'm', factors: ['km-m'] },
+                { from: 250, fromUnit: 'kg', toUnit: 'g', factors: ['kg-g'] },
+                { from: 180, fromUnit: 'min', toUnit: 'h', factors: ['min-h'] },
+                { from: 450, fromUnit: 'cm', toUnit: 'm', factors: ['cm-m'] },
+                { from: 3000, fromUnit: 'mL', toUnit: 'L', factors: ['mL-L'] },
             ],
             intermediate: [
                 { from: 72, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
                 { from: 1.5, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
                 { from: 5, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
                 { from: 10, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 36, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 2.5, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
+                { from: 7, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
+                { from: 25, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 18, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 0.8, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
+                { from: 12, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
+                { from: 5, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 90, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 3.2, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
+                { from: 15, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
+                { from: 15, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 144, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 4.7, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
+                { from: 20, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
+                { from: 30, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                // Multiple paths for volume conversions
+                { from: 5, fromUnit: 'dL', toUnit: 'cm3', factors: ['dL-L', 'L-dm3', 'dm3-cm3'] },  // dL to L to dm3 to cm3
+                { from: 3, fromUnit: 'dL', toUnit: 'mL', factors: ['dL-L', 'L-mL'] },  // dL to L to mL
             ],
             advanced: [
                 { from: 1200, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
@@ -488,6 +545,21 @@
                 { from: 0.5, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
                 { from: 2500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
                 { from: 1.2, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+                { from: 1500, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
+                { from: 750, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
+                { from: 0.8, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
+                { from: 3500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
+                { from: 0.9, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+                { from: 900, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
+                { from: 1200, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
+                { from: 0.3, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
+                { from: 1500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
+                { from: 2.1, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+                { from: 2000, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
+                { from: 650, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
+                { from: 1.2, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
+                { from: 4500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
+                { from: 0.6, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
             ]
         };
 
@@ -535,19 +607,58 @@
             dropZone.appendChild(placeholder);
 
             document.getElementById('operator-multiply').style.display = 'none';
-            document.getElementById('operator-equals').style.display = 'none';
-            const finalResultContainer = document.getElementById('final-result-container');
-            finalResultContainer.style.display = 'none';
-            finalResultContainer.innerHTML = '';
+            document.getElementById('operator-equals').style.display = 'inline-block'; // Always show equals now
+            const resultInput = document.getElementById('result-input');
+            resultInput.style.display = 'inline-block';
+            resultInput.value = '';
+            const finalUnitContainer = document.getElementById('final-unit-container');
+            finalUnitContainer.style.display = 'inline-block';
+            finalUnitContainer.innerHTML = '';
+            const finalUnitEl = createValueDisplay('', currentProblem.toUnit);
+            finalUnitContainer.appendChild(finalUnitEl);
             hideFeedback();
         }
         
         function nextProblem() {
             generateProblem();
+            // Reset input field styling after generating a new problem
+            const resultInput = document.getElementById('result-input');
+            resultInput.style.borderColor = '#bdc3c7'; // Default border
+            resultInput.style.backgroundColor = 'white'; // Default background
         }
 
         function checkAnswer() {
-            const isCorrect = arraysEqual(droppedFactors, currentProblem.factors);
+            // Calculate the expected conversion factor for the problem
+            let expectedConversionFactor = 1;
+            currentProblem.factors.forEach(key => {
+                const factorData = conversionFactors[key];
+                expectedConversionFactor *= factorData.factor;
+            });
+            
+            // Calculate the user's conversion factor
+            let userConversionFactor = 1;
+            droppedFactors.forEach(key => {
+                if (conversionFactors[key]) {
+                    userConversionFactor *= conversionFactors[key].factor;
+                }
+            });
+            
+            // Check if the conversion factors match (allowing for small floating point variations)
+            const factorsCorrect = Math.abs(userConversionFactor - expectedConversionFactor) < 0.000001;
+            
+            // Calculate the expected result
+            let expectedValue = currentProblem.from * expectedConversionFactor;
+            expectedValue = parseFloat(expectedValue.toPrecision(4));
+            
+            // Get user's input
+            const resultInput = document.getElementById('result-input');
+            const userValue = parseFloat(resultInput.value);
+            
+            // Check if numerical result is correct (within small tolerance for floating point)
+            const numericalCorrect = userValue !== null && userValue !== undefined && 
+                                     userValue !== '' && Math.abs(userValue - expectedValue) < 0.001;
+            
+            const isCorrect = factorsCorrect && numericalCorrect;
             
             // Registra l'activitat
             const logEntry = {
@@ -556,8 +667,12 @@
                     fromUnit: currentProblem.fromUnit, 
                     toUnit: currentProblem.toUnit 
                 },
-                userAnswer: [...droppedFactors], // Copia l'array
+                userAnswer: {
+                    factors: [...droppedFactors], // Copia l'array
+                    value: userValue
+                },
                 isCorrect: isCorrect,
+                expectedValue: expectedValue,
                 timestamp: new Date()
             };
             activityLog.push(logEntry);
@@ -566,15 +681,21 @@
             if (isCorrect) {
                 stats.correct++;
                 showFeedback(translations[currentLanguage]['correct-feedback'], 'success');
-                showSolution(true);
+                showSolution(true, expectedValue);
             } else {
-                showFeedback(translations[currentLanguage]['incorrect-feedback'], 'error');
-                showSolution(false);
+                let feedbackMsg = translations[currentLanguage]['incorrect-feedback'];
+                if (!factorsCorrect) {
+                    feedbackMsg += ' ' + (currentLanguage === 'ca' ? 'La conversió no és correcta. Potser hi ha una altra manera de fer-ho?' : 'La conversión no es correcta. ¿Tal vez hay otra manera de hacerlo?');
+                } else if (!numericalCorrect) {
+                    feedbackMsg += ' ' + (currentLanguage === 'ca' ? 'El resultat numèric no és correcte.' : 'El resultado numérico no es correcto.');
+                }
+                showFeedback(feedbackMsg, 'error');
+                showSolution(false, expectedValue);
             }
             updateStatsDisplay();
         }
         
-        function showSolution(isCorrect) {
+        function showSolution(isCorrect, expectedValue) {
             const droppedElements = document.querySelectorAll('#drop-zone .fraction');
             droppedElements.forEach((el, index) => {
                 const factorKey = el.dataset.factor;
@@ -590,21 +711,15 @@
                 }
             });
 
-            if (isCorrect) {
-                 let finalValue = currentProblem.from;
-                 droppedFactors.forEach(key => {
-                    const factorData = conversionFactors[key];
-                    finalValue *= factorData.factor;
-                 });
-                 finalValue = parseFloat(finalValue.toPrecision(4));
-
-                 const finalResultContainer = document.getElementById('final-result-container');
-                 finalResultContainer.innerHTML = '';
-                 const resultEl = createValueDisplay(finalValue, currentProblem.toUnit);
-                 
-                 finalResultContainer.appendChild(resultEl);
-                 finalResultContainer.style.display = 'inline-flex';
-                 document.getElementById('operator-equals').style.display = 'inline-block';
+            if (isCorrect && expectedValue !== undefined) {
+                 const resultInput = document.getElementById('result-input');
+                 resultInput.value = expectedValue;
+                 resultInput.style.borderColor = '#27ae60'; // Green border for correct
+                 resultInput.style.backgroundColor = '#d4edda'; // Light green background
+            } else if (expectedValue !== undefined) {
+                 const resultInput = document.getElementById('result-input');
+                 resultInput.style.borderColor = '#c0392b'; // Red border for incorrect
+                 resultInput.style.backgroundColor = '#f8d7da'; // Light red background
             }
         }
 
@@ -660,13 +775,25 @@
             if (unitString.includes('/')) {
                 const [numUnit, denUnit] = unitString.split('/');
                 container.className = 'fraction';
-                container.innerHTML = `
-                    <div class="numerator">${value} ${formatUnitString(numUnit)}</div>
-                    <div class="fraction-line"></div>
-                    <div class="denominator">${formatUnitString(denUnit)}</div>
-                `;
+                if (value !== '') {
+                    container.innerHTML = `
+                        <div class="numerator">${value} ${formatUnitString(numUnit)}</div>
+                        <div class="fraction-line"></div>
+                        <div class="denominator">${formatUnitString(denUnit)}</div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="numerator">${formatUnitString(numUnit)}</div>
+                        <div class="fraction-line"></div>
+                        <div class="denominator">${formatUnitString(denUnit)}</div>
+                    `;
+                }
             } else {
-                container.innerHTML = `${value} ${formatUnitString(unitString)}`;
+                if (value !== '') {
+                    container.innerHTML = `${value} ${formatUnitString(unitString)}`;
+                } else {
+                    container.innerHTML = formatUnitString(unitString);
+                }
             }
             return container;
         }
@@ -734,8 +861,8 @@
             
             const problemTitleEl = document.getElementById('problem-title');
             const fromUnitFormatted = formatUnitString(`${currentProblem.from} ${currentProblem.fromUnit}`);
-            const toUnitFormatted = formatUnitString(`? ${currentProblem.toUnit}`);
-            problemTitleEl.innerHTML = `${translations[currentLanguage]['problem-title-prefix']} ${fromUnitFormatted}  →  ${toUnitFormatted}`;
+            const toUnitFormatted = formatUnitString(currentProblem.toUnit);
+            problemTitleEl.innerHTML = `${translations[currentLanguage]['problem-title-prefix']} ${fromUnitFormatted}  →  ? ${toUnitFormatted}`;
         }
 
         function setLanguage(lang) {
@@ -858,7 +985,11 @@
                 
                 activityLog.forEach((entry, index) => {
                     const problemText = `${entry.problem.from} ${formatUnitString(entry.problem.fromUnit)} → ? ${formatUnitString(entry.problem.toUnit)}`;
-                    const userAnswerText = entry.userAnswer.map(key => {
+                    // Handle the new activity log structure with both factors and value
+                    const userFactors = Array.isArray(entry.userAnswer) ? entry.userAnswer : entry.userAnswer.factors;
+                    const userValue = Array.isArray(entry.userAnswer) ? null : entry.userAnswer.value;
+                    
+                    const userAnswerText = userFactors.map(key => {
                         const factor = conversionFactors[key];
                         return `<span class="fraction">
                                     <span class="numerator">${factor.num.val} ${formatUnitString(factor.num.unit)}</span>
@@ -866,12 +997,15 @@
                                     <span class="denominator">${factor.den.val} ${formatUnitString(factor.den.unit)}</span>
                                 </span>`;
                     }).join(' × ') || 'Cap factor seleccionat';
+                    
+                    // Add the numerical value if it exists
+                    const numericalValueText = userValue !== null && userValue !== undefined ? ` = ${userValue} ${formatUnitString(entry.problem.toUnit)}` : '';
 
                     reportHtml += `
                         <div class="activity">
                             <p><strong>Activitat #${index + 1}</strong> - <span class="${entry.isCorrect ? 'correct' : 'incorrect'}">${entry.isCorrect ? 'Correcte' : 'Incorrecte'}</span></p>
                             <p class="problem-statement">Pregunta: ${problemText}</p>
-                            <p class="user-answer">La teva resposta: ${userAnswerText}</p>
+                            <p class="user-answer">La teva resposta: ${userAnswerText}${numericalValueText}</p>
                         </div>
                     `;
                 });
