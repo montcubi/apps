@@ -262,6 +262,25 @@
             background-color: #f4f7f6;
             border-radius: 5px;
         }
+        #pantalla-bloqueig {
+            display: none;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 8px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        #pantalla-bloqueig h2 {
+            margin-top: 0;
+            color: #8a6d3b;
+            border: none;
+        }
+        #pantalla-bloqueig p {
+            color: #66512c;
+            margin-bottom: 0;
+        }
 
         /* Estil per amagar coses a l'imprimir */
         @media print {
@@ -729,6 +748,85 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
+        const EXAM_LOCK_KEY = 'examen_finalitzat';
+        const llegirBlocatge = () => {
+            if (typeof localStorage === 'undefined') return null;
+            try {
+                const dades = localStorage.getItem(EXAM_LOCK_KEY);
+                return dades ? JSON.parse(dades) : null;
+            } catch (error) {
+                console.warn('No es pot accedir al localStorage', error);
+                return null;
+            }
+        };
+        const desaBlocatge = (nom) => {
+            if (typeof localStorage === 'undefined') return;
+            try {
+                localStorage.setItem(EXAM_LOCK_KEY, JSON.stringify({ bloquejat: true, nom }));
+            } catch (error) {
+                console.warn('No s’ha pogut desar el blocatge', error);
+            }
+        };
+        const eliminaBlocatge = () => {
+            if (typeof localStorage === 'undefined') return;
+            try {
+                localStorage.removeItem(EXAM_LOCK_KEY);
+            } catch (error) {
+                console.warn('No s’ha pogut eliminar el blocatge', error);
+            }
+        };
+        const esAdmin = (nom) => (nom || '').trim().toLowerCase() === 'admin';
+        const obtenirPantallaBloqueig = () => {
+            let pantalla = document.getElementById('pantalla-bloqueig');
+            if (!pantalla) {
+                pantalla = document.createElement('div');
+                pantalla.id = 'pantalla-bloqueig';
+                document.body.appendChild(pantalla);
+            }
+            return pantalla;
+        };
+        const bloquejaUiExamen = (nom) => {
+            const elements = document.querySelectorAll('#contingut-principal input, #contingut-principal select, #contingut-principal button');
+            elements.forEach(element => {
+                if (element.id === 'modal-tancar') return;
+                element.disabled = true;
+            });
+            const boto = document.getElementById('boto-final');
+            if (boto) {
+                boto.disabled = true;
+                boto.textContent = "Examen enviat";
+            }
+            const main = document.getElementById('contingut-principal');
+            if (main) main.style.display = 'none';
+            const informe = document.getElementById('informe');
+            if (informe) informe.style.display = 'none';
+            const pantalla = obtenirPantallaBloqueig();
+            const textNom = nom ? ` per ${nom}` : '';
+            pantalla.innerHTML = `
+                <h2>Activitat bloquejada</h2>
+                <p>L'informe ja s'ha generat${textNom}. Contacta amb el professor si necessites repetir l'activitat.</p>
+            `;
+            pantalla.style.display = 'block';
+        };
+        const desbloquejaUiExamen = () => {
+            const elements = document.querySelectorAll('#contingut-principal input, #contingut-principal select, #contingut-principal button');
+            elements.forEach(element => {
+                if (element.id === 'modal-tancar') return;
+                element.disabled = false;
+            });
+            const boto = document.getElementById('boto-final');
+            if (boto) {
+                boto.disabled = false;
+                boto.textContent = "Finalitza, Genera l'Informe i Desa com a PDF";
+            }
+            const main = document.getElementById('contingut-principal');
+            if (main) main.style.display = 'block';
+            const informe = document.getElementById('informe');
+            if (informe) informe.style.display = 'none';
+            const pantalla = document.getElementById('pantalla-bloqueig');
+            if (pantalla) pantalla.style.display = 'none';
+        };
+
         // --- LÒGICA PER AL MODAL (SUBSTITUT D'ALERT) ---
         const modal = document.getElementById('modal-avís');
         const modalText = document.getElementById('modal-text');
@@ -825,6 +923,20 @@
         }
 
         // --- LÒGICA PER L'ACTIVITAT 2 (ARROSSEGAR) ---
+        const campNom = document.getElementById('nom-alumne');
+        if (campNom) {
+            campNom.addEventListener('input', () => {
+                if (esAdmin(campNom.value)) {
+                    eliminaBlocatge();
+                    desbloquejaUiExamen();
+                }
+            });
+        }
+        const estatBlocatge = llegirBlocatge();
+        if (estatBlocatge?.bloquejat && !esAdmin(estatBlocatge.nom)) {
+            bloquejaUiExamen(estatBlocatge.nom);
+        }
+
         const items = document.querySelectorAll('.drag-item');
         const zones = document.querySelectorAll('.drop-zone');
         let itemArrossegat = null;
@@ -904,6 +1016,7 @@
             const respostesCorrectes1 = { q1: "s", q2: "m3", q3: "kg", q4: "m/s", q5: "m2", q6: "m" };
             let encerts1 = 0;
             const total1 = Object.keys(respostesCorrectes1).length;
+            const nomEsAdmin = esAdmin(nomAlumne);
             for (const clau in respostesCorrectes1) {
                 const select = document.getElementById(clau);
                 const respostaAlumne = select.value;
@@ -1053,7 +1166,20 @@
             document.getElementById('contingut-principal').style.display = 'none';
             document.getElementById('informe').style.display = 'block';
             
+            if (!nomEsAdmin) {
+                desaBlocatge(nomAlumne);
+            } else {
+                eliminaBlocatge();
+            }
+            
             generaPdfInforme({ nomAlumne, notaFinal, errorsAct1, errorsAct2, errorsAct3 });
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.ctrlKey && event.altKey && event.shiftKey && event.code === 'KeyP') {
+                eliminaBlocatge();
+                desbloquejaUiExamen();
+            }
         });
     </script></body>
 </html>
