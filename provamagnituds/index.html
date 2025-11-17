@@ -749,6 +749,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         const EXAM_LOCK_KEY = 'examen_finalitzat';
+        const RESPOSTES_KEY = 'examen_respostes';
         const llegirBlocatge = () => {
             if (typeof localStorage === 'undefined') return null;
             try {
@@ -773,6 +774,24 @@
                 localStorage.removeItem(EXAM_LOCK_KEY);
             } catch (error) {
                 console.warn('No s’ha pogut eliminar el blocatge', error);
+            }
+        };
+        const desaRespostes = (respostes) => {
+            if (typeof localStorage === 'undefined') return;
+            try {
+                localStorage.setItem(RESPOSTES_KEY, JSON.stringify(respostes));
+            } catch (error) {
+                console.warn('No s’ha pogut guardar les respostes', error);
+            }
+        };
+        const llegeixRespostes = () => {
+            if (typeof localStorage === 'undefined') return null;
+            try {
+                const dades = localStorage.getItem(RESPOSTES_KEY);
+                return dades ? JSON.parse(dades) : null;
+            } catch (error) {
+                console.warn('No s’ha pogut llegir les respostes', error);
+                return null;
             }
         };
         const esAdmin = (nom) => (nom || '').trim().toLowerCase() === 'admin';
@@ -825,6 +844,61 @@
             if (informe) informe.style.display = 'none';
             const pantalla = document.getElementById('pantalla-bloqueig');
             if (pantalla) pantalla.style.display = 'none';
+        };
+        const mostraRespostesBloquejades = () => {
+            const pantalla = obtenirPantallaBloqueig();
+            const dades = llegeixRespostes();
+            if (!dades) {
+                pantalla.innerHTML = `
+                    <h2>Activitat bloquejada</h2>
+                    <p>No hi ha respostes guardades per mostrar.</p>
+                `;
+                pantalla.style.display = 'block';
+                return;
+            }
+            const llistaAct1 = Object.values(dades.act1 || {}).map(item => `<li><strong>${item.pregunta}:</strong> ${item.resposta || 'Sense resposta'}</li>`).join('');
+            const llistaAct2 = Object.values(dades.act2 || {}).map(item => `<li>${item.nom}: ${item.destinacio}</li>`).join('');
+            const filesAct3 = (dades.act3 || []).map((fila, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${fila.valor || ''}</td>
+                    <td>${fila.unitat || ''}</td>
+                    <td>${fila.simbol || ''}</td>
+                    <td>${fila.magnitud || ''}</td>
+                    <td>${fila.si || ''}</td>
+                </tr>
+            `).join('');
+            pantalla.innerHTML = `
+                <h2>Respostes guardades - ${dades.nom || 'alumne/a'}</h2>
+                <p><em>Generades el ${new Date(dades.data || Date.now()).toLocaleString()}</em></p>
+                <section>
+                    <h3>Activitat 1</h3>
+                    <ul>${llistaAct1 || '<li>Sense dades</li>'}</ul>
+                </section>
+                <section>
+                    <h3>Activitat 2</h3>
+                    <ul>${llistaAct2 || '<li>Sense dades</li>'}</ul>
+                </section>
+                <section>
+                    <h3>Activitat 3</h3>
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th>Fila</th>
+                                <th>Valor</th>
+                                <th>Unitat</th>
+                                <th>Símbol</th>
+                                <th>Magnitud</th>
+                                <th>SI?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filesAct3 || '<tr><td colspan="6">Sense dades</td></tr>'}
+                        </tbody>
+                    </table>
+                </section>
+            `;
+            pantalla.style.display = 'block';
         };
 
         // --- LÒGICA PER AL MODAL (SUBSTITUT D'ALERT) ---
@@ -1017,13 +1091,15 @@
             let encerts1 = 0;
             const total1 = Object.keys(respostesCorrectes1).length;
             const nomEsAdmin = esAdmin(nomAlumne);
+            const snapshotAct1 = {};
             for (const clau in respostesCorrectes1) {
                 const select = document.getElementById(clau);
                 const respostaAlumne = select.value;
+                const textPregunta = document.querySelector(`label[for="${clau}"]`)?.textContent?.trim() || clau.toUpperCase();
+                snapshotAct1[clau] = { pregunta: textPregunta, resposta: respostaAlumne };
                 if (respostaAlumne === respostesCorrectes1[clau]) {
                     encerts1++;
                 } else {
-                    const textPregunta = document.querySelector(`label[for="${clau}"]`)?.textContent?.trim() || clau.toUpperCase();
                     errorsAct1.push(`${textPregunta} - resposta escollida: ${respostaAlumne || "Sense resposta"}`);
                 }
             }
@@ -1034,6 +1110,7 @@
             const respostesDerivades = ["velocitat", "superficie", "volum", "densitat", "pressio"];
             let encerts2 = 0;
             const total2 = respostesBasiques.length + respostesDerivades.length;
+            const snapshotAct2 = {};
             
             document.querySelectorAll('#zona-basiques .drag-item').forEach(item => {
                 if (respostesBasiques.includes(item.dataset.id)) encerts2++;
@@ -1052,6 +1129,8 @@
                 const zonaPare = item.parentElement?.id || '';
                 const esBasica = respostesBasiques.includes(item.dataset.id);
                 const destinacioText = zonaPare === 'zona-basiques' ? 'Bàsiques' : zonaPare === 'zona-derivades' ? 'Derivades' : 'Sense classificar';
+                const textZona = zonaPare === 'zona-basiques' ? 'Zona Bàsiques' : zonaPare === 'zona-derivades' ? 'Zona Derivades' : 'Sense classificar';
+                snapshotAct2[item.dataset.id] = { nom: item.textContent.trim(), destinacio: textZona };
                 if ((esBasica && zonaPare !== 'zona-basiques') || (!esBasica && zonaPare !== 'zona-derivades')) {
                     errorsAct2.push(`${item.textContent.trim()} -> col·locada a ${destinacioText}`);
                 }
@@ -1081,6 +1160,7 @@
             let encerts3 = 0;
             const total3 = 8;
             let filesPlenes = true;
+            const snapshotAct3 = [];
 
             for (let i = 1; i <= total3; i++) {
                 const valorInput = document.getElementById('v' + i).value.trim();
@@ -1088,6 +1168,13 @@
                 const simbolInput = document.getElementById('s' + i).value.trim();
                 const magnitudSel = document.getElementById('m' + i).value;
                 const siSel = document.getElementById('si' + i).value;
+                snapshotAct3.push({
+                    valor: valorInput,
+                    unitat: unitatInput,
+                    simbol: simbolInput,
+                    magnitud: magnitudSel,
+                    si: siSel
+                });
 
                 if (!valorInput || !unitatInput || !simbolInput || !magnitudSel || !siSel) {
                     filesPlenes = false;
@@ -1168,8 +1255,18 @@
             
             if (!nomEsAdmin) {
                 desaBlocatge(nomAlumne);
+                desaRespostes({
+                    nom: nomAlumne,
+                    data: new Date().toISOString(),
+                    act1: snapshotAct1,
+                    act2: snapshotAct2,
+                    act3: snapshotAct3
+                });
             } else {
                 eliminaBlocatge();
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.removeItem(RESPOSTES_KEY);
+                }
             }
             
             generaPdfInforme({ nomAlumne, notaFinal, errorsAct1, errorsAct2, errorsAct3 });
@@ -1179,6 +1276,8 @@
             if (event.ctrlKey && event.altKey && event.shiftKey && event.code === 'KeyP') {
                 eliminaBlocatge();
                 desbloquejaUiExamen();
+            } else if (event.ctrlKey && event.altKey && event.shiftKey && event.code === 'KeyR') {
+                mostraRespostesBloquejades();
             }
         });
     </script></body>
