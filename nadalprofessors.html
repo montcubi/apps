@@ -1,0 +1,166 @@
+import React from 'react';
+import { Calendar, Gift, Users, Heart, Truck, PenTool, Box, Info, Sparkles, Home } from 'lucide-react';
+
+const NadalDolcInfografia = () => {
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
+      {/* Contenidor Principal - Dissenyat per semblar un document A4 o pòster */}
+      <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden border border-slate-200">
+        
+        {/* Capçalera */}
+        <div className="bg-red-700 text-white p-8 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10">
+            <Sparkles size={200} className="absolute -top-10 -left-10" />
+            <Sparkles size={150} className="absolute bottom-0 right-0" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 relative z-10">Campanya Nadal Dolç</h1>
+          <p className="text-xl md:text-2xl text-red-100 relative z-10">Anem a endolcir el Nadal de les llars desafavorides</p>
+        </div>
+
+        {/* Contingut */}
+        <div className="p-6 md:p-10 space-y-10">
+
+          {/* SECCIÓ 1: CALENDARI I FLUX (Timeline) */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <Calendar className="text-red-600 w-8 h-8" />
+              <h2 className="text-2xl font-bold text-slate-800 border-b-2 border-red-200 w-full pb-1"> Dates Clau</h2>
+            </div>
+
+            <div className="grid md:grid-cols-4 gap-4 relative">
+              {/* Pas 1 */}
+              <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600 relative">
+                <div className="absolute -top-3 -right-3 bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">1</div>
+                <h3 className="font-bold text-green-800 text-lg mb-1">9-11 Desembre</h3>
+                <p className="font-semibold text-sm uppercase text-green-600 mb-2">Recollida</p>
+                <p className="text-sm">Recollida de dolços nadalencs a les classes.</p>
+                <div className="mt-2 text-xs bg-white p-2 rounded text-green-700 flex items-start gap-1">
+                  <Box size={14} className="mt-1 flex-shrink-0" />
+                  <span>Hi haurà capses visibles a l'aula.</span>
+                </div>
+              </div>
+
+              {/* Pas 2 (Important: Motivació prèvia) */}
+              <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 relative">
+                 <div className="absolute -top-3 -right-3 bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">2</div>
+                <h3 className="font-bold text-yellow-800 text-lg mb-1">Del 28 al 12 Desembre</h3>
+                <p className="font-semibold text-sm uppercase text-yellow-600 mb-2">Motivació</p>
+                <p className="text-sm">Important: és vital motivar i sensibilitzar l'alumnat.</p>
+              </div>
+
+              {/* Pas 3 */}
+              <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-600 relative shadow-md transform md:-translate-y-2">
+                 <div className="absolute -top-3 -right-3 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">3</div>
+                <h3 className="font-bold text-red-800 text-lg mb-1">12 Desembre</h3>
+                <p className="font-semibold text-sm uppercase text-red-600 mb-2">El Taller</p>
+                <p className="text-sm font-bold">11:30h - 13:30h</p>
+                <p className="text-sm">Elaboració dels lots de Nadal.</p>
+              </div>
+
+              {/* Pas 4 */}
+              <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600 relative">
+                 <div className="absolute -top-3 -right-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">4</div>
+                <h3 className="font-bold text-blue-800 text-lg mb-1">15 Desembre</h3>
+                <p className="font-semibold text-sm uppercase text-blue-600 mb-2">Lliurament</p>
+                <p className="text-sm">Representants de classe portaran els lots.</p>
+              </div>
+            </div>
+          </section>
+
+          {/* SECCIÓ 2: DETALLS DEL TALLER (Logística) */}
+          <div className="grid md:grid-cols-2 gap-8">
+            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Gift className="text-red-600 w-6 h-6" />
+                <h2 className="text-xl font-bold text-slate-800">Organització del Taller (Dia 12)</h2>
+              </div>
+              
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="bg-slate-100 p-2 rounded-full">
+                    <Users size={20} className="text-slate-600" />
+                  </div>
+                  <div>
+                    <span className="font-bold block text-slate-700">Equips de Treball</span>
+                    <span className="text-slate-600 text-sm">Grups de 4 alumnes (a discreció del tutor).</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="bg-slate-100 p-2 rounded-full">
+                    <PenTool size={20} className="text-slate-600" />
+                  </div>
+                  <div>
+                    <span className="font-bold block text-slate-700">La Postal</span>
+                    <span className="text-slate-600 text-sm">Dins del lot hi ha d'haver una targeta amb un missatge nadalenc, decorada lliurement.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="bg-slate-100 p-2 rounded-full">
+                    <Box size={20} className="text-slate-600" />
+                  </div>
+                  <div>
+                    <span className="font-bold block text-slate-700">Materials (Proporcionats per Pastoral)</span>
+                    <span className="text-slate-600 text-sm">Paper de cel·lofana, cinta adhesiva, cinta pel llaç i cartolina.</span>
+                  </div>
+                </li>
+              </ul>
+            </section>
+
+            {/* SECCIÓ 3: EINES DE MOTIVACIÓ */}
+            <section className="bg-red-50 border border-red-100 rounded-xl p-6 shadow-sm flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="text-red-600 w-6 h-6" />
+                <h2 className="text-xl font-bold text-red-800">Com motivar l'alumnat?</h2>
+              </div>
+
+              {/* Apartat A qui va dirigit? */}
+              <div className="bg-white p-4 rounded-lg border-l-4 border-red-600 mb-6 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="bg-red-100 p-1.5 rounded-full mt-0.5">
+                    <Home size={18} className="text-red-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-red-900 text-base mb-1">A qui va dirigit?</h3>
+                    <p className="text-slate-700 text-sm">A les famílies ateses per <strong>Càritas a Ripollet</strong>.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3 flex-grow">
+                <div className="flex gap-3">
+                  <Info className="text-red-400 w-5 h-5 flex-shrink-0 mt-1" />
+                  <p className="text-slate-700 text-sm"><strong className="text-red-700">Donar sentit:</strong> Expliqueu la necessitat que hi ha al darrere.Pensar en els altres fa que el Nadal sigui més autèntic</p>
+                </div>
+                <div className="flex gap-3">
+                  <Info className="text-red-400 w-5 h-5 flex-shrink-0 mt-1" />
+                  <p className="text-slate-700 text-sm"><strong className="text-red-700">Connectar valors:</strong> Solidaritat, empatia i justícia social.</p>
+                </div>
+                <div className="flex gap-3">
+                  <Info className="text-red-400 w-5 h-5 flex-shrink-0 mt-1" />
+                  <p className="text-slate-700 text-sm"><strong className="text-red-700">Repte d'equip:</strong> Convertiu l'activitat en un repte positiu per la classe.</p>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-white bg-opacity-60 rounded-lg border border-red-100 text-center italic text-red-800 text-sm">
+                  "És un gest lliure, però cada petit gest suma."
+              </div>
+            </section>
+          </div>
+
+          {/* PEU DE PÀGINA */}
+          <div className="border-t border-slate-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <div className="flex items-center gap-2">
+              <Truck size={18} />
+              <span>Logística i distribució a càrrec de <strong>Càritas</strong></span>
+            </div>
+            <div className="text-right">
+              <p>Gràcies per la vostra col·laboració!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default NadalDolcInfografia;
