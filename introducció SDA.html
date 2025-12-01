@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDA: Misteri al Laboratori</title>
+    <style>
+        /* --- ESTILS ORIGINALS I GENERALS --- */
+        :root {
+            --primary-color: #002B5B; /* Blau Policia */
+            --accent-color: #F4D03F; /* Groc Alerta */
+            --danger-color: #E74C3C; /* Vermell Perill */
+            --success-color: #27ae60;
+            --bg-color: #ECF0F1;
+            --text-color: #2C3E50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #2c3e50;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Canviat a flex-start per permetre scroll */
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Contenidor Principal - Estil Dossier */
+        .infografia-container {
+            background-color: white;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Capçalera */
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--accent-color);
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header .subtitle {
+            font-size: 1em;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            border: 3px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 5px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transform: rotate(-10deg);
+            opacity: 0.8;
+            font-size: 0.8rem;
+        }
+
+        /* Cos de la Infografia */
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 700px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            .header h1 { font-size: 1.5em; }
+            .stamp { position: static; display: inline-block; transform: none; margin-bottom: 10px; }
+        }
+
+        /* Secció de Text */
+        .text-section h2 {
+            color: var(--primary-color);
+            border-left: 5px solid var(--accent-color);
+            padding-left: 10px;
+            margin-top: 0;
+        }
+
+        .text-section p {
+            line-height: 1.6;
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }
+
+        .alert-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1.5rem; }
+
+        /* Secció Visual (Els Flascons Intro) */
+        .visual-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px dashed #bdc3c7;
+            text-align: center;
+        }
+
+        .visual-title {
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .flasks-grid-intro {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            justify-items: center;
+        }
+
+        .flask {
+            width: 50px;
+            height: 70px;
+            background: linear-gradient(to bottom, transparent 30%, #e0e0e0 30%);
+            border: 2px solid #7f8c8d;
+            border-radius: 0 0 10px 10px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        /* Intro flasks no hover effect needed as much, but game ones yes */
+        .game-flask:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
+        }
+
+        /* Coll del flascó */
+        .flask::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            width: 25px;
+            height: 10px;
+            border: 2px solid #7f8c8d;
+            border-bottom: none;
+            background-color: white;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .flask-label {
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Footer / Missió */
+        .mission-footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .mission-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 30px;
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            border: none;
+            font-size: 1rem;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 25px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            background-color: #f7dc6f;
+        }
+
+        /* --- ESTILS DE LA PART JUGABLE (LABORATORI) --- */
+        #game-view {
+            display: none;
+        }
+
+        .lab-bench {
+            background-color: #dcdde1;
+            padding: 20px;
+            border-bottom: 4px solid #bdc3c7;
+        }
+
+        .lab-tools {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tool-btn {
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .tool-btn img, .tool-btn span { pointer-events: none; }
+        .tool-btn i { font-size: 1.5rem; }
+
+        .tool-btn.selected {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 43, 91, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .flask-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .flask-game-area {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        /* Reacció visual al flascó */
+        .reaction-bubble {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .reaction-bubble.show {
+            opacity: 1;
+            animation: floatUp 1s forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, -20px); opacity: 0; }
+        }
+
+        select.substance-select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background-color: white;
+        }
+        
+        select.correct { border-color: var(--success-color); background-color: #e8f8f5; }
+        select.incorrect { border-color: var(--danger-color); background-color: #fdedec; }
+
+        .lab-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .instructions {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            max-width: 60%;
+        }
+
+        /* Resultat Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .modal h2 { color: var(--primary-color); }
+        .score { font-size: 2rem; font-weight: bold; color: var(--primary-color); margin: 20px 0; }
+        
+        .reset-btn {
+            background-color: #7f8c8d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+    </style>
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+        <!-- VISTA 1: INTRODUCCIÓ (El teu codi original adaptat) -->
+        <div id="intro-view" class="infografia-container">
+            <header class="header">
+                <div class="stamp">EVIDÈNCIA #006</div>
+                <h1>Alerta al Laboratori</h1>
+                <div class="subtitle">Unitat de Ciència Forense</div>
+            </header>
+
+            <div class="content">
+                <div class="text-section">
+                    <h2>L'Incident</h2>
+                    <p>S'ha detectat una <strong>negligència greu</strong> al laboratori de la policia. Durant el torn de nit, s'han barrejat les proves d'una investigació crucial.</p>
+                    <p>Tenim <strong>6 flascons</strong> sobre la taula. Tots contenen substàncies blanques similars, però han perdut les etiquetes.</p>
+
+                    <div class="alert-box">
+                        <span class="alert-icon">⚠️</span>
+                        <div><strong>COMPTE!</strong> Aquestes substàncies podrien ser reactives. Fes servir l'equip de protecció (EPI).</div>
+                    </div>
+                </div>
+
+                <div class="visual-section">
+                    <span class="visual-title">PROVES RECOLLIDES:</span>
+                    <div class="flasks-grid-intro">
+                        <!-- Generats amb JS o HTML estàtic -->
+                        <div class="flask"><div class="flask-label">1</div></div>
+                        <div class="flask"><div class="flask-label">2</div></div>
+                        <div class="flask"><div class="flask-label">3</div></div>
+                        <div class="flask"><div class="flask-label">4</div></div>
+                        <div class="flask"><div class="flask-label">5</div></div>
+                        <div class="flask"><div class="flask-label">6</div></div>
+                    </div>
+                    <p style="font-size: 0.9rem; margin-top: 15px; color: #7f8c8d;">
+                        <em>Estat: <span style="color: var(--danger-color);">NO IDENTIFICAT</span></em>
+                    </p>
+                </div>
+            </div>
+
+            <footer class="mission-footer">
+                <div class="mission-text">
+                    LA TEVA MISSIÓ:
+                    <br>
+                    <span style="font-weight: normal; font-size: 1rem;">Utilitza els reactius (Aigua, Vinagre, Iode) per identificar cada substància.</span>
+                </div>
+                <button onclick="startGame()" class="cta-button">INICIAR INVESTIGACIÓ</button>
+            </footer>
+        </div>
+
+        <!-- VISTA 2: EL JOC (LABORATORI) -->
+        <div id="game-view" class="infografia-container">
+            <header class="header" style="padding: 10px;">
+                <h1 style="font-size: 1.2rem;">Taula d'Anàlisi</h1>
+            </header>
+
+            <div class="lab-bench">
+                <!-- Eines -->
+                <div class="lab-tools">
+                    <button class="tool-btn" onclick="selectTool('water')" id="btn-water">
+                        <i data-lucide="droplet"></i>
+                        <span>Aigua</span>
+                    </button>
+                    <button class="tool-btn" onclick="selectTool('vinegar')" id="btn-vinegar">
+                        <i data-lucide="flask-conical"></i>
+                        <span>Vinagre</span>
+                    </button>
+                    <button class="tool-btn" onclick="selectTool('iodine')" id="btn-iodine">
+                        <i data-lucide="eye"></i>
+                        <span>Iode</span>
+                    </button>
+                </div>
+
+                <div class="instructions" style="text-align: center; margin-bottom: 10px; width: 100%; max-width: 100%;">
+                    <span id="tool-instruction">Selecciona una eina per començar les proves.</span>
+                </div>
+
+                <!-- Graella de Flascons Interactius -->
+                <div class="game-grid" id="flask-grid">
+                    <!-- S'omple amb JavaScript -->
+                </div>
+            </div>
+
+            <div class="lab-footer">
+                <div class="instructions">
+                    Assigna un nom a cada flascó segons els resultats.
+                </div>
+                <button onclick="checkResults()" class="cta-button">VERIFICAR CAS</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL DE RESULTAT -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2 id="modal-title">Resultat</h2>
+            <div id="modal-message">Missatge</div>
+            <div class="score" id="modal-score">0/6</div>
+            <button onclick="closeModal()" class="cta-button">Continuar</button>
+            <br>
+            <button onclick="resetGame()" class="reset-btn">Reiniciar Investigació</button>
+        </div>
+    </div>
+
+    <script>
+        // Inicialitzar icones
+        lucide.createIcons();
+
+        // Dades del joc
+        const substances = [
+            { id: 1, name: "Sucre", reactions: { water: "Es dissol ràpid", vinegar: "Cap reacció", iodine: "Color taronja (negatiu)" } },
+            { id: 2, name: "Bicarbonat", reactions: { water: "Es dissol", vinegar: "BOMBOLLES!", iodine: "Color taronja (negatiu)" } },
+            { id: 3, name: "Midó (Maizena)", reactions: { water: "Es fa pastós", vinegar: "Cap reacció", iodine: "ES FA NEGRE/LILA!" } },
+            { id: 4, name: "Guix", reactions: { water: "No es dissol", vinegar: "Cap reacció", iodine: "Color taronja (negatiu)" } },
+            { id: 5, name: "Sal", reactions: { water: "Es dissol", vinegar: "Cap reacció", iodine: "Color taronja (negatiu)" } },
+            { id: 6, name: "Àcid Cítric", reactions: { water: "Es dissol", vinegar: "Cap reacció", iodine: "Color taronja (negatiu)" } }
+        ];
+
+        let gameSubstances = [];
+        let currentTool = null;
+
+        // Configuració inicial
+        function init() {
+            // Barregem les substàncies perquè cada partida sigui diferent
+            gameSubstances = [...substances].sort(() => Math.random() - 0.5);
+            renderFlasks();
+        }
+
+        // Renderitzar els flascons al joc
+        function renderFlasks() {
+            const grid = document.getElementById('flask-grid');
+            grid.innerHTML = '';
+
+            gameSubstances.forEach((sub, index) => {
+                const flaskDiv = document.createElement('div');
+                flaskDiv.className = 'flask-container';
+                flaskDiv.innerHTML = `
+                    <div class="flask-game-area" onclick="applyTest(${index})">
+                        <div class="reaction-bubble" id="bubble-${index}"></div>
+                        <div class="flask game-flask">
+                            <div class="flask-label">${index + 1}</div>
+                        </div>
+                    </div>
+                    <select class="substance-select" id="select-${index}">
+                        <option value="">-- Identificar --</option>
+                        <option value="Sucre">Sucre</option>
+                        <option value="Sal">Sal</option>
+                        <option value="Bicarbonat">Bicarbonat</option>
+                        <option value="Midó (Maizena)">Midó (Maizena)</option>
+                        <option value="Guix">Guix</option>
+                        <option value="Àcid Cítric">Àcid Cítric</option>
+                    </select>
+                `;
+                grid.appendChild(flaskDiv);
+            });
+        }
+
+        // Navegació
+        function startGame() {
+            document.getElementById('intro-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'block';
+            document.getElementById('game-view').classList.add('infografia-container');
+            init();
+        }
+
+        // Eines
+        function selectTool(tool) {
+            currentTool = tool;
+            
+            // Actualitzar UI botons
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`btn-${tool}`).classList.add('selected');
+
+            // Text d'ajuda
+            const txt = document.getElementById('tool-instruction');
+            if(tool === 'water') txt.textContent = "Has agafat l'AIGUA. Fes clic a un flascó per veure la solubilitat.";
+            if(tool === 'vinegar') txt.textContent = "Has agafat el VINAGRE. Fes clic a un flascó per veure si reacciona amb àcids.";
+            if(tool === 'iodine') txt.textContent = "Has agafat el IODE. Fes clic a un flascó per detectar midó.";
+        }
+
+        // Aplicar test
+        function applyTest(index) {
+            if (!currentTool) {
+                alert("Selecciona primer una eina (Aigua, Vinagre o Iode) de la part superior!");
+                return;
+            }
+
+            const substance = gameSubstances[index];
+            const resultText = substance.reactions[currentTool];
+            
+            // Mostrar bombolla
+            const bubble = document.getElementById(`bubble-${index}`);
+            bubble.textContent = resultText;
+            bubble.classList.remove('show'); // Reset
+            void bubble.offsetWidth; // Trigger reflow
+            bubble.classList.add('show');
+            
+            // So opcional (visual només)
+            if(resultText.includes("!")) {
+                bubble.style.backgroundColor = "#E74C3C"; // Vermell per reaccions fortes
+            } else {
+                bubble.style.backgroundColor = "#2C3E50"; // Blau normal
+            }
+        }
+
+        // Verificar resultats
+        function checkResults() {
+            let correctCount = 0;
+            let allFilled = true;
+
+            gameSubstances.forEach((sub, index) => {
+                const select = document.getElementById(`select-${index}`);
+                const userGuess = select.value;
+
+                if (userGuess === "") allFilled = false;
+
+                if (userGuess === sub.name) {
+                    correctCount++;
+                    select.classList.add('correct');
+                    select.classList.remove('incorrect');
+                } else {
+                    select.classList.add('incorrect');
+                    select.classList.remove('correct');
+                }
+            });
+
+            if (!allFilled) {
+                if(!confirm("No has etiquetat tots els flascons. Vols verificar igualment?")) return;
+            }
+
+            const modal = document.getElementById('modal-overlay');
+            const title = document.getElementById('modal-title');
+            const msg = document.getElementById('modal-message');
+            const score = document.getElementById('modal-score');
+
+            modal.style.display = 'flex';
+            score.textContent = `${correctCount} / 6`;
+
+            if (correctCount === 6) {
+                title.textContent = "CAS RESOLT! 🏆";
+                title.style.color = "#27ae60";
+                msg.textContent = "Excel·lent treball forense! Has identificat totes les substàncies correctament i has evitat el desastre.";
+            } else {
+                title.textContent = "INFORME INCOMPLET";
+                title.style.color = "#E74C3C";
+                msg.textContent = "Algunes proves no coincideixen. Revisa els flascons marcats en vermell i torna a fer les proves.";
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        function resetGame() {
+            closeModal();
+            startGame(); // Reinicia i barreja
+        }
+
+    </script>
+</body>
+</html>
