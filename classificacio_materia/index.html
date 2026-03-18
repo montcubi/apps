@@ -51,6 +51,23 @@
         .recipient-item {
              display: inline-flex;
              vertical-align: middle;
+             cursor: pointer;
+             transition: transform 0.2s, opacity 0.2s;
+        }
+        .recipient-item:hover {
+             transform: scale(0.9);
+             opacity: 0.7;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+        .floating-score {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.2rem;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -62,8 +79,9 @@
         <header class="flex flex-col sm:flex-row justify-between items-center p-4 border-b-2 border-gray-200">
             <h1 class="text-2xl md:text-3xl font-bold text-blue-800 mb-2 sm:mb-0">🌍 Classificador de Matèria</h1>
             <div class="flex items-center space-x-4">
-                <div class="text-lg font-semibold">
+                <div class="text-lg font-semibold relative">
                     Punts: <span id="score" class="bg-blue-600 text-white rounded-full px-3 py-1">0</span>
+                    <div id="score-feedback-container" class="absolute top-0 right-0 h-full w-full pointer-events-none z-50"></div>
                 </div>
                 <button id="generate-report-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
                     Genera Informe
@@ -103,12 +121,20 @@
                         </div>
                     </div>
                     
-                    <!-- Pas 2 -->
+                                        <!-- Pas 2 -->
                     <div id="l1-step2" class="hidden mt-6">
-                        <p class="font-semibold mb-3">Pas 2: Com està formada?</p>
-                        <div id="l1-step2-pure-buttons" class="flex justify-center gap-4">
+                        <p id="l1-step2-question" class="font-semibold mb-3">Pas 2: Com està formada?</p>
+                        
+                        <!-- Botons per substància pura -->
+                        <div id="l1-step2-pure-buttons" class="flex justify-center gap-4 hidden">
                             <button data-answer="element" class="l1-step2-btn bg-blue-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-blue-600 transition">Element</button>
                             <button data-answer="compost" class="l1-step2-btn bg-red-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-red-600 transition">Compost</button>
+                        </div>
+
+                        <!-- Botons per mescla -->
+                        <div id="l1-step2-mixture-buttons" class="flex justify-center gap-4 hidden">
+                            <button data-answer="homogènia" class="l1-step2-btn bg-purple-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-purple-600 transition">Homogènia</button>
+                            <button data-answer="heterogènia" class="l1-step2-btn bg-orange-500 text-white font-bold py-3 px-6 rounded-lg w-40 hover:bg-orange-600 transition">Heterogènia</button>
                         </div>
                     </div>
                 </div>
@@ -159,11 +185,11 @@
     </div>
 
     <!-- Finestra Modal per a Feedback -->
-    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div id="feedback-modal-content" class="feedback-modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
             <h3 id="modal-title" class="text-2xl font-bold mb-4">--</h3>
             <p id="modal-explanation" class="mb-6">--</p>
-            <button id="modal-close-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 w-full">Tanca i continua</button>
+            <button id="modal-close-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 w-full focus:ring-4 focus:ring-blue-300">Tanca i continua</button>
         </div>
     </div>
 
@@ -188,7 +214,13 @@
                 { substance: "Plata (Ag)", type1: "pura", type2: "element", hint: "És un metall preciós que trobaràs a la taula periòdica.", explanation: "La plata és un element químic. Totes les seves partícules són àtoms de Plata." },
                 { substance: "Nitrogen (N₂)", type1: "pura", type2: "element", hint: "És el gas més abundant de l'aire. Les seves partícules estan formades per dos àtoms iguals.", explanation: "El Nitrogen és un element, ja que totes les seves partícules estan fetes d'àtoms de nitrogen, agrupats en molècules diatòmiques (N₂)." },
                 { substance: "Lleixiu", type1: "mescla", type2: "homogènia", hint: "És aigua amb hipoclorit de sodi (NaClO) dissolt.", explanation: "El lleixiu és una mescla homogènia, una dissolució d'hipoclorit de sodi en aigua." },
-                { substance: "Alcohol etílic", type1: "pura", type2: "compost", hint: "La seva fórmula química és C₂H₅OH.", explanation: "L'alcohol etílic és un compost químic, format per molècules idèntiques." }
+                { substance: "Alcohol etílic", type1: "pura", type2: "compost", hint: "La seva fórmula química és C₂H₅OH.", explanation: "L'alcohol etílic és un compost químic, format per molècules idèntiques." },
+                { substance: "Aigua oxigenada (H₂O₂)", type1: "pura", type2: "compost", hint: "La seva fórmula química ens indica que està formada per Oxigen i Hidrogen.", explanation: "L'aigua oxigenada (peròxid d'hidrogen) és un compost pur format per molècules idèntiques." },
+                { substance: "Aigua gasosa (amb gas)", type1: "mescla", type2: "heterogènia", hint: "A simple vista s'hi poden veure bombolles de gas barrejades amb l'aigua.", explanation: "Com que hi veiem bombolles de gas (generalment CO₂) enmig del líquid, es considera una mescla heterogènia." },
+                { substance: "Metà (CH₄)", type1: "pura", type2: "compost", hint: "És el component principal del gas natural. Llegeix la seva fórmula per veure quins àtoms el formen.", explanation: "El metà és una substància pura composta, ja que totes les seves partícules són molècules idèntiques de CH₄." },
+                { substance: "Gas butà (C₄H₁₀)", type1: "pura", type2: "compost", hint: "És el gas que conté una bombona de butà. Fixa't que està format per dos elements diferents.", explanation: "El butà és un compost químic format per molècules idèntiques, cadascuna amb 4 àtoms de carboni i 10 d'hidrogen." },
+                { substance: "Bateria de liti", type1: "mescla", type2: "heterogènia", hint: "A l'interior d'una bateria hi ha diferents materials sòlids, capes de metalls i substàncies químiques.", explanation: "Una bateria és una mescla heterogènia molt complexa, formada per diferents peces, metalls, polímers i electròlits." },
+                { substance: "Vinagre", type1: "mescla", type2: "homogènia", hint: "És una barreja d'aigua amb un àcid que li dóna el sabor característic. Es veu un líquid uniforme.", explanation: "El vinagre és una mescla homogènia (una dissolució) formada principalment per aigua i àcid acètic." }
             ];
             
             let level1Questions = []; // Aquest array contindrà les 10 preguntes de la sessió actual
@@ -198,8 +230,12 @@
                 { id: 'Fe', type: 'atom', isElement: true, displayName: "Àtom de Ferro", atoms: [{ color: 'bg-gray-500' }] },
                 { id: 'O2', type: 'molecule', isElement: true, displayName: "Molècula d'Oxigen", atoms: [{ color: 'bg-blue-500' }, { color: 'bg-blue-500' }] },
                 { id: 'N2', type: 'molecule', isElement: true, displayName: "Molècula de Nitrogen", atoms: [{ color: 'bg-purple-400' }, { color: 'bg-purple-400' }] },
+                { id: 'Cl2', type: 'molecule', isElement: true, displayName: "Molècula de Clor", atoms: [{ color: 'bg-green-400' }, { color: 'bg-green-400' }] },
+                { id: 'O3', type: 'molecule', isElement: true, displayName: "Molècula d'Ozó", atoms: [{ color: 'bg-blue-600' }, { color: 'bg-blue-600' }, { color: 'bg-blue-600' }] },
                 { id: 'H2O', type: 'molecule', isElement: false, displayName: "Molècula d'Aigua", atoms: [{ color: 'bg-gray-200' }, { color: 'bg-blue-500' }, { color: 'bg-gray-200' }] },
-                { id: 'CO2', type: 'molecule', isElement: false, displayName: "Molècula de CO₂", atoms: [{ color: 'bg-gray-700' }, { color: 'bg-red-500' }, { color: 'bg-red-500' }] }
+                { id: 'CO2', type: 'molecule', isElement: false, displayName: "Molècula de CO₂", atoms: [{ color: 'bg-gray-700' }, { color: 'bg-red-500' }, { color: 'bg-red-500' }] },
+                { id: 'NaCl', type: 'molecule', isElement: false, displayName: "Unitat de Sal (NaCl)", atoms: [{ color: 'bg-green-300' }, { color: 'bg-blue-200' }] },
+                { id: 'CO', type: 'molecule', isElement: false, displayName: "Molècula de CO", atoms: [{ color: 'bg-gray-700' }, { color: 'bg-red-500' }] }
             ];
 
             const level2Challenges = [
@@ -233,22 +269,36 @@
                         if (items.length === 0) return false;
                         const firstItem = items[0];
                         const allSame = items.every(item => item.id === firstItem.id);
-                        return allSame && firstItem.isElement && firstItem.type === 'molecule';
+                        return allSame && firstItem.isElement && firstItem.atoms.length === 2;
                     },
-                    hint: "Alguns elements, com l'oxigen, formen molècules de dos àtoms iguals. Totes les partícules han de ser idèntiques.",
-                    explanation_correct: "Excel·lent! L'oxigen o el nitrogen són elements, però les seves partícules són molècules diatòmiques. Com que totes les partícules són iguals, és una substància pura.",
-                    explanation_incorrect: "Per a un element diatòmic pur, totes les partícules han de ser el mateix tipus de molècula diatòmica."
+                    hint: "Alguns elements, com l'oxigen o el clor, formen molècules de dos àtoms iguals. Totes les partícules han de ser idèntiques.",
+                    explanation_correct: "Excel·lent! L'oxigen, el nitrogen o el clor són elements diatòmics. Com que totes les partícules són iguals, és una substància pura.",
+                    explanation_incorrect: "Per a un element diatòmic pur, totes les partícules han de ser el mateix tipus de molècula de dos àtoms iguals."
                 },
                 {
-                    goal: "Construeix una mescla de dos elements diatòmics",
+                    goal: "Construeix una substància pura (Element triatòmic)",
+                    validation: (items) => {
+                        if (items.length === 0) return false;
+                        const firstItem = items[0];
+                        const allSame = items.every(item => item.id === firstItem.id);
+                        return allSame && firstItem.isElement && firstItem.atoms.length === 3;
+                    },
+                    hint: "L'Ozó (O₃) és un element format per molècules de 3 àtoms iguals. Tria l'Ozó de la paleta.",
+                    explanation_correct: "Molt bé! L'Ozó és una forma elemental de l'oxigen on els àtoms s'agrupen de tres en tres.",
+                    explanation_incorrect: "Has de triar una molècula que sigui un element (àtoms iguals) però triatòmica (3 àtoms)."
+                },
+                {
+                    goal: "Construeix una mescla de dos elements diferents",
                      validation: (items) => {
                         const uniqueIds = new Set(items.map(item => item.id));
                         if (uniqueIds.size !== 2) return false;
-                        return uniqueIds.has('O2') && uniqueIds.has('N2');
+                        const firstType = masterPalette.find(p => p.id === Array.from(uniqueIds)[0]);
+                        const secondType = masterPalette.find(p => p.id === Array.from(uniqueIds)[1]);
+                        return firstType.isElement && secondType.isElement;
                     },
-                    hint: "Una mescla d'elements diatòmics conté molècules de diferents elements, on cada molècula està formada per dos àtoms iguals. Tria els dos tipus de molècules diatòmiques de la paleta.",
-                    explanation_correct: "Correcte! Has barrejat molècules de dos elements diatòmics diferents, com l'Oxigen (O₂) i el Nitrogen (N₂).",
-                    explanation_incorrect: "Això no és una mescla de dos elements diatòmics. Necessites incloure els dos tipus de molècules diatòmiques (O₂ i N₂) i res més."
+                    hint: "Barreja dos tipus d'elements, per exemple un àtom sol (Heli) i una molècula elemental (Oxigen).",
+                    explanation_correct: "Correcte! Has barrejat partícules de dos elements químics diferents.",
+                    explanation_incorrect: "Això no és una mescla de dos elements. Assegura't de triar dues peces que siguin elements (un sol color d'esferes)."
                 },
                 {
                     goal: "Construeix una mescla d'un element i un compost",
@@ -263,31 +313,43 @@
                     explanation_correct: "Molt bé! Has barrejat les partícules d'un element amb les d'un compost.",
                     explanation_incorrect: "Recorda, una mescla d'un element i un compost ha de contenir exactament un tipus de partícula elemental i un tipus de partícula de compost."
                 },
+                {
+                    goal: "Construeix una mescla de TRES substàncies diferents",
+                    validation: (items) => {
+                        const uniqueIds = new Set(items.map(item => item.id));
+                        return uniqueIds.size === 3;
+                    },
+                    hint: "Tria tres tipus de partícules diferents de la paleta i afegeix-les al recipient.",
+                    explanation_correct: "Perfecte! Has creat una mescla amb tres components diferents.",
+                    explanation_incorrect: "T'has equivocat de número. Has de posar exactament tres tipus de partícules diferents al recipient."
+                },
                  {
                     goal: "Repte Especial: Construeix AIRE",
                     validation: (items) => {
                         const uniqueIds = new Set(items.map(item => item.id));
-                        if (uniqueIds.size < 2) return false; // Almenys N2 i O2
+                        if (uniqueIds.size < 2) return false; 
                         
                         const hasN2 = items.some(item => item.id === 'N2');
                         const hasO2 = items.some(item => item.id === 'O2');
                         
-                        // Permet altres components minoritaris però exigeix N2 i O2
                         return hasN2 && hasO2;
                     },
-                    hint: "L'aire és una mescla principalment de dos gasos. Tots dos són elements diatòmics. El més abundant és el Nitrogen.",
+                    hint: "L'aire és una mescla principalment de dos gasos (N₂ i O₂). Tots dos són elements diatòmics.",
                     explanation_correct: "Fantàstic! Has representat l'aire, que és una mescla principalment de Nitrogen (N₂, ~78%) i Oxigen (O₂, ~21%).",
                     explanation_incorrect: "La teva construcció no representa l'aire. Recorda que està format principalment per molècules de Nitrogen (N₂) i Oxigen (O₂)."
                 }
             ];
-            
-            // Estat de l'aplicació
-            let currentLevel = 1;
-            let score = 0;
-            let l1_currentQuestionIndex = 0;
-            let l2_currentChallengeIndex = 0;
-            let l2_recipientItems = [];
-            let reportData = [];
+
+            // Estat de l'aplicació (Refactoritzat en un sol objecte)
+            const state = {
+                currentLevel: 1,
+                score: 0,
+                l1_currentQuestionIndex: 0,
+                l2_currentChallengeIndex: 0,
+                l2_recipientItems: [],
+                reportData: [],
+                advanceOnModalClose: false
+            };
 
             // Elements del DOM
             const scoreEl = document.getElementById('score');
@@ -331,6 +393,13 @@
                     if (e.target === modalEl) closeModal();
                 });
 
+                // Tancar modal amb tecla ESC
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) {
+                        closeModal();
+                    }
+                });
+
                 document.querySelectorAll('.l1-step1-btn').forEach(btn => btn.addEventListener('click', handleL1Step1));
                 document.querySelectorAll('.l1-step2-btn').forEach(btn => btn.addEventListener('click', handleL1Step2));
 
@@ -338,7 +407,7 @@
             }
             
             function switchLevel(level) {
-                currentLevel = level;
+                state.currentLevel = level;
                 if (level === 1) {
                     level1Container.classList.remove('hidden');
                     level2Container.classList.add('hidden');
@@ -355,12 +424,27 @@
             }
 
             function updateScore(points) {
-                score += points;
-                scoreEl.textContent = score;
+                state.score += points;
+                scoreEl.textContent = state.score;
+                
+                const feedbackEl = document.createElement('span');
+                feedbackEl.textContent = points > 0 ? `+${points}` : points;
+                feedbackEl.className = `floating-score ${points > 0 ? 'text-green-500' : 'text-red-500'} -ml-4 -mt-6`;
+                
+                const container = document.getElementById('score-feedback-container');
+                if (container) {
+                    container.appendChild(feedbackEl);
+                    setTimeout(() => {
+                        if(container.contains(feedbackEl)) {
+                            feedbackEl.remove();
+                        }
+                    }, 1000);
+                }
             }
 
             // --- LÒGICA MODAL ---
-            function showModal(title, explanation, isCorrect) {
+            function showModal(title, explanation, isCorrect, shouldAdvance = true) {
+                state.advanceOnModalClose = shouldAdvance;
                 modalTitleEl.textContent = title;
                 modalExplanationEl.textContent = explanation;
                 modalContentEl.className = 'feedback-modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full'; // Reset
@@ -374,17 +458,20 @@
 
             function closeModal() {
                 modalEl.classList.add('hidden');
-                if (currentLevel === 1) {
-                   nextLevel1Question();
-                }
-                 if (currentLevel === 2) {
-                    nextLevel2Challenge();
+                if (state.advanceOnModalClose) {
+                    if (state.currentLevel === 1) {
+                       nextLevel1Question();
+                    }
+                     if (state.currentLevel === 2) {
+                        nextLevel2Challenge();
+                    }
                 }
             }
 
             // --- LÒGICA NIVELL 1 ---
             function loadLevel1Question() {
-                if (l1_currentQuestionIndex >= level1Questions.length) {
+
+                if (state.l1_currentQuestionIndex >= level1Questions.length) {
                     l1_substanceNameEl.textContent = "Nivell 1 completat!";
                     l1_step1El.classList.add('hidden');
                     l1_step2El.classList.add('hidden');
@@ -392,29 +479,34 @@
                     l1_questionCounterEl.textContent = `10 de 10`;
                     return;
                 }
-                const question = level1Questions[l1_currentQuestionIndex];
+                const question = level1Questions[state.l1_currentQuestionIndex];
                 l1_substanceNameEl.textContent = question.substance;
-                l1_questionCounterEl.textContent = `${l1_currentQuestionIndex + 1} de ${level1Questions.length}`;
+                l1_questionCounterEl.textContent = `${state.l1_currentQuestionIndex + 1} de ${level1Questions.length}`;
                 resetLevel1State();
             }
 
             function resetLevel1State() {
                 l1_step1El.classList.remove('hidden');
                 l1_step2El.classList.add('hidden');
+                document.getElementById('l1-step2-pure-buttons').classList.add('hidden');
+                document.getElementById('l1-step2-mixture-buttons').classList.add('hidden');
                 l1_hintBtn.disabled = false;
                 document.querySelectorAll('.l1-step1-btn, .l1-step2-btn').forEach(btn => btn.disabled = false);
             }
 
             function handleL1Step1(e) {
                 const userAnswer1 = e.target.dataset.answer;
-                const question = level1Questions[l1_currentQuestionIndex];
+                const question = level1Questions[state.l1_currentQuestionIndex];
 
                 if (userAnswer1 === question.type1) {
+                    l1_step1El.classList.add('hidden');
+                    l1_step2El.classList.remove('hidden');
                     if (question.type1 === 'pura') {
-                        l1_step1El.classList.add('hidden');
-                        l1_step2El.classList.remove('hidden');
-                    } else {
-                        handleL1Result(true, userAnswer1, null);
+                        document.getElementById('l1-step2-question').textContent = "Pas 2: Com està formada?";
+                        document.getElementById('l1-step2-pure-buttons').classList.remove('hidden');
+                    } else if (question.type1 === 'mescla') {
+                        document.getElementById('l1-step2-question').textContent = "Pas 2: Es distingeixen els components a simple vista?";
+                        document.getElementById('l1-step2-mixture-buttons').classList.remove('hidden');
                     }
                 } else {
                     handleL1Result(false, userAnswer1, null);
@@ -423,14 +515,14 @@
 
             function handleL1Step2(e) {
                 const userAnswer2 = e.target.dataset.answer;
-                const question = level1Questions[l1_currentQuestionIndex];
+                const question = level1Questions[state.l1_currentQuestionIndex];
                 const firstAnswer = question.type1; // We know this is correct to reach step 2
                 const isCorrect = userAnswer2 === question.type2;
                 handleL1Result(isCorrect, firstAnswer, userAnswer2);
             }
             
             function handleL1Result(isCorrect, ans1, ans2) {
-                 const question = level1Questions[l1_currentQuestionIndex];
+                 const question = level1Questions[state.l1_currentQuestionIndex];
                  document.querySelectorAll('.l1-step1-btn, .l1-step2-btn').forEach(btn => btn.disabled = true);
                  l1_hintBtn.disabled = true;
                  
@@ -441,7 +533,7 @@
                  }
                  
                  const finalAnswer = ans2 ? `${ans1}, ${ans2}` : ans1;
-                 reportData.push({
+                 state.reportData.push({
                      level: 1,
                      question: `Classificar: ${question.substance}`,
                      answer: finalAnswer,
@@ -451,16 +543,16 @@
             }
 
             function nextLevel1Question() {
-                l1_currentQuestionIndex++;
+                state.l1_currentQuestionIndex++;
                 loadLevel1Question();
             }
             
             function showLevel1Hint() {
-                const question = level1Questions[l1_currentQuestionIndex];
-                showModal("Pista", question.hint, null);
+                const question = level1Questions[state.l1_currentQuestionIndex];
+                showModal("Pista", question.hint, null, false);
                 updateScore(-2);
                 l1_hintBtn.disabled = true;
-                reportData.push({
+                state.reportData.push({
                      level: 1,
                      question: `Pista per a: ${question.substance}`,
                      answer: `(ha demanat pista)`,
@@ -472,7 +564,7 @@
 
             // --- LÒGICA NIVELL 2 ---
              function loadLevel2Challenge() {
-                if (l2_currentChallengeIndex >= level2Challenges.length) {
+                if (state.l2_currentChallengeIndex >= level2Challenges.length) {
                     l2_goalEl.textContent = "Nivell 2 completat!";
                     l2_paletteEl.innerHTML = "";
                     l2_recipientEl.innerHTML = "";
@@ -481,14 +573,15 @@
                     l2_hintBtn.classList.add('hidden');
                     return;
                 }
-                const challenge = level2Challenges[l2_currentChallengeIndex];
+                const challenge = level2Challenges[state.l2_currentChallengeIndex];
                 l2_goalEl.textContent = challenge.goal;
                 l2_paletteEl.innerHTML = '';
                 
                 masterPalette.forEach(comp => {
-                    const compContainer = document.createElement('div');
-                    compContainer.className = 'atom-button flex flex-col items-center justify-center p-2 rounded-lg';
+                    const compContainer = document.createElement('button');
+                    compContainer.className = 'atom-button flex flex-col items-center justify-center p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400';
                     compContainer.title = comp.displayName;
+                    compContainer.ariaLabel = comp.displayName;
                     
                     const visualEl = document.createElement('div');
                     visualEl.className = comp.type === 'atom' ? 'atom-container' : 'molecule-container';
@@ -499,7 +592,12 @@
                         visualEl.appendChild(atomSphere);
                     });
                     
+                    const labelEl = document.createElement('span');
+                    labelEl.className = 'text-xs font-bold mt-1 text-gray-700';
+                    labelEl.textContent = comp.id;
+                    
                     compContainer.appendChild(visualEl);
+                    compContainer.appendChild(labelEl);
                     compContainer.addEventListener('click', () => addComponentToRecipient(comp));
                     l2_paletteEl.appendChild(compContainer);
                 });
@@ -512,9 +610,10 @@
             }
 
             function addComponentToRecipient(comp) {
-                l2_recipientItems.push(comp);
+                state.l2_recipientItems.push(comp);
                 const visualClone = document.createElement('div');
                 visualClone.className = 'recipient-item';
+                visualClone.title = "Fes clic per esborrar";
                 const container = document.createElement('div');
                 container.className = comp.type === 'atom' ? 'atom-container' : 'molecule-container';
                 comp.atoms.forEach(atom => {
@@ -523,11 +622,20 @@
                     container.appendChild(atomSphere);
                 });
                 visualClone.appendChild(container);
+                
+                visualClone.addEventListener('click', () => {
+                    const index = state.l2_recipientItems.indexOf(comp);
+                    if (index > -1) {
+                        state.l2_recipientItems.splice(index, 1);
+                    }
+                    visualClone.remove();
+                });
+                
                 l2_recipientEl.appendChild(visualClone);
             }
 
             function resetLevel2Recipient() {
-                l2_recipientItems = [];
+                state.l2_recipientItems = [];
                 l2_recipientEl.innerHTML = '';
             }
             
@@ -536,8 +644,8 @@
                 l2_verifyBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="4" stroke-dasharray="20 10" stroke-linecap="round"></circle></svg> Verificant...`;
                 
                 setTimeout(() => {
-                    const challenge = level2Challenges[l2_currentChallengeIndex];
-                    const isCorrect = challenge.validation(l2_recipientItems);
+                    const challenge = level2Challenges[state.l2_currentChallengeIndex];
+                    const isCorrect = challenge.validation(state.l2_recipientItems);
                     const explanation = isCorrect ? challenge.explanation_correct : challenge.explanation_incorrect;
                     
                     showModal(isCorrect ? "Correcte!" : "Incorrecte.", explanation, isCorrect);
@@ -547,10 +655,10 @@
                     }
 
                     l2_hintBtn.disabled = true;
-                    reportData.push({
+                    state.reportData.push({
                          level: 2,
                          question: `Construir: ${challenge.goal}`,
-                         answer: l2_recipientItems.map(item => item.displayName).join(', ') || '(buit)',
+                         answer: state.l2_recipientItems.map(item => item.displayName).join(', ') || '(buit)',
                          isCorrect: isCorrect,
                          points: isCorrect ? 15 : 0
                      });
@@ -559,16 +667,16 @@
             }
 
             function nextLevel2Challenge() {
-                l2_currentChallengeIndex++;
+                state.l2_currentChallengeIndex++;
                 loadLevel2Challenge();
             }
 
             function showLevel2Hint() {
-                 const challenge = level2Challenges[l2_currentChallengeIndex];
-                 showModal("Pista", challenge.hint, null);
+                 const challenge = level2Challenges[state.l2_currentChallengeIndex];
+                 showModal("Pista", challenge.hint, null, false);
                  updateScore(-2);
                  l2_hintBtn.disabled = true;
-                 reportData.push({
+                 state.reportData.push({
                      level: 2,
                      question: `Pista per a: ${challenge.goal}`,
                      answer: `(ha demanat pista)`,
@@ -587,18 +695,13 @@
                 const pageWidth = doc.internal.pageSize.width;
                 let y = 0;
 
-                let totalObtainedPoints = 0;
                 let totalPossiblePoints = 0;
-                reportData.forEach(item => {
-                    if (item.isCorrect === true) {
-                        totalObtainedPoints += item.points;
-                        totalPossiblePoints += item.points;
-                    } else if (item.isCorrect === false) {
-                        if (item.level === 1) totalPossiblePoints += 10;
-                        if (item.level === 2) totalPossiblePoints += 15;
-                    }
+                state.reportData.forEach(item => {
+                    if (item.level === 1 && item.isCorrect !== null) totalPossiblePoints += 10;
+                    if (item.level === 2 && item.isCorrect !== null) totalPossiblePoints += 15;
                 });
-                const percentage = totalPossiblePoints > 0 ? Math.round((totalObtainedPoints / totalPossiblePoints) * 100) : 0;
+                const validScore = state.score > 0 ? state.score : 0;
+                const percentage = totalPossiblePoints > 0 ? Math.round((validScore / totalPossiblePoints) * 100) : 0;
                 
                 doc.setFillColor(79, 70, 229);
                 doc.rect(0, 0, pageWidth, 25, 'F');
@@ -624,7 +727,7 @@
                 doc.text(`Alumne/a: ${studentName}`, 20, y + 8);
                 doc.text(`Data: ${date}`, 20, y + 15);
                 doc.setFont(undefined, 'bold');
-                doc.text(`Puntuació Final: ${score} (${percentage}% d'encerts)`, pageWidth - 20, y + 15, { align: 'right' });
+                doc.text(`Puntuació Final: ${state.score} (${percentage}% d'encerts)`, pageWidth - 20, y + 15, { align: 'right' });
                 y += 35;
                 
                 doc.setFontSize(14);
@@ -642,7 +745,7 @@
                 doc.text("Punts", 185, y + 7);
                 y += 10;
 
-                reportData.forEach((item) => {
+                state.reportData.forEach((item) => {
                     if (y > pageHeight - 30) {
                         doc.addPage();
                         y = 20;
