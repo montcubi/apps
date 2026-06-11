@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passaparaula - Competició per Equips</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-start: #0f172a;
+            --bg-end: #1d4ed8;
+            --panel: rgba(255, 255, 255, 0.12);
+            --panel-border: rgba(255, 255, 255, 0.22);
+            --text: #f8fafc;
+            --team-a: #2dd4bf;
+            --team-b: #fb7185;
+            --accent: #facc15;
+            --success: #22c55e;
+            --error: #ef4444;
+            --pass: #38bdf8;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(250, 204, 21, 0.18), transparent 30%),
+                linear-gradient(145deg, var(--bg-start), var(--bg-end));
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+
+        .setup-container,
+        .game-area {
+            width: 100%;
+            max-width: 1200px;
+            padding: 28px;
+            border-radius: 22px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .team-setup {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .team-card,
+        .control-panel,
+        .team-info {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .team-card.team-a,
+        .team-info.team-a {
+            border: 2px solid var(--team-a);
+        }
+
+        .team-card.team-b,
+        .team-info.team-b {
+            border: 2px solid var(--team-b);
+        }
+
+        .team-card h3,
+        .team-info h3 {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .team-card.team-a h3 {
+            color: var(--team-a);
+        }
+
+        .team-card.team-b h3 {
+            color: var(--team-b);
+        }
+
+        .input-group,
+        .timer-input {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label,
+        .timer-input label {
+            font-weight: 700;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 1rem;
+            color: #111827;
+            background: rgba(255, 255, 255, 0.94);
+        }
+
+        .timer-setup {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .timer-setup h3 {
+            margin-bottom: 14px;
+        }
+
+        .timer-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .timer-input input {
+            width: 84px;
+            text-align: center;
+        }
+
+        .teams-display {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .team-info {
+            flex: 1;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .team-info.active {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12), 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 12px;
+            margin: 14px 0;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .timer-display {
+            display: inline-block;
+            min-width: 120px;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-size: 2rem;
+            font-weight: 700;
+            background: rgba(15, 23, 42, 0.45);
+            border: 2px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .timer-display.warning {
+            color: #fecaca;
+            animation: pulse 1s infinite;
+        }
+
+        .control-panel {
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .current-team {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .question {
+            min-height: 96px;
+            padding: 18px;
+            border-radius: 14px;
+            border-left: 6px solid var(--team-a);
+            background: rgba(15, 23, 42, 0.35);
+            font-size: 1.15rem;
+            line-height: 1.55;
+            margin-bottom: 18px;
+        }
+
+        .input-container,
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .input-container {
+            margin-bottom: 12px;
+        }
+
+        .answer-input {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: var(--team-a);
+            color: #062c2a;
+            font-size: 1.1rem;
+            padding: 14px 28px;
+        }
+
+        .btn-answer {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-pass {
+            background: var(--pass);
+            color: white;
+        }
+
+        .btn-passaparaula {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .btn-restart {
+            background: var(--accent);
+            color: #111827;
+        }
+
+        .roscos-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .rosco-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .rosco-wrapper {
+            width: 320px;
+            height: 320px;
+            margin-bottom: 12px;
+        }
+
+        .rosco {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 65%);
+            box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.08), 0 12px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        .rosco.team-a {
+            border: 4px solid var(--team-a);
+        }
+
+        .rosco.team-b {
+            border: 4px solid var(--team-b);
+        }
+
+        .letter {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #1f2937;
+            background: white;
+            border: 3px solid rgba(203, 213, 225, 0.9);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .letter.current {
+            background: var(--accent);
+            border-color: #fde68a;
+            transform: scale(1.18);
+            z-index: 2;
+        }
+
+        .letter.correct {
+            background: var(--success);
+            border-color: #16a34a;
+            color: white;
+        }
+
+        .letter.incorrect {
+            background: var(--error);
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .letter.passed {
+            background: var(--pass);
+            border-color: #0284c7;
+            color: white;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.7);
+            padding: 20px;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 520px;
+            padding: 34px;
+            text-align: center;
+            border-radius: 20px;
+            color: white;
+            background: linear-gradient(145deg, #1e293b, #2563eb);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 900px) {
+            .team-setup,
+            .teams-display {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .setup-container,
+            .game-area {
+                padding: 20px;
+            }
+
+            .rosco-wrapper {
+                width: 280px;
+                height: 280px;
+            }
+
+            .letter {
+                width: 35px;
+                height: 35px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Passaparaula - Competició per Equips</h1>
+        <p>Física i Química - 3r ESO</p>
+    </div>
+
+    <div class="setup-container" id="setupContainer">
+        <div class="team-setup">
+            <div class="team-card team-a">
+                <h3>Equip A</h3>
+                <div class="input-group">
+                    <label for="teamAName">Nom de l'equip:</label>
+                    <input type="text" id="teamAName" placeholder="Ex.: Els Quarks">
+                </div>
+            </div>
+            <div class="team-card team-b">
+                <h3>Equip B</h3>
+                <div class="input-group">
+                    <label for="teamBName">Nom de l'equip:</label>
+                    <input type="text" id="teamBName" placeholder="Ex.: Els Bosons">
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-setup">
+            <h3>⏱️ Configuració del temporitzador</h3>
+            <div class="timer-inputs">
+                <div class="timer-input">
+                    <label for="timerMinutes">Minuts</label>
+                    <input type="number" id="timerMinutes" value="5" min="1" max="30">
+                </div>
+                <div class="timer-input">
+                    <label for="timerSeconds">Segons</label>
+                    <input type="number" id="timerSeconds" value="0" min="0" max="59">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn btn-start" id="startGameBtn">Començar competició</button>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <div class="teams-display">
+            <div class="team-info team-a" id="teamAInfo">
+                <h3 id="teamATitle">Equip A</h3>
+                <div class="stats">
+                    <div><span class="stat-number" id="teamACorrect">0</span><span>Correctes</span></div>
+                    <div><span class="stat-number" id="teamAIncorrect">0</span><span>Incorrectes</span></div>
+                </div>
+                <div class="timer-display" id="timerA">5:00</div>
+            </div>
+
+            <div class="team-info team-b" id="teamBInfo">
+                <h3 id="teamBTitle">Equip B</h3>
+                <div class="stats">
+                    <div><span class="stat-number" id="teamBCorrect">0</span><span>Correctes</span></div>
+                    <div><span class="stat-number" id="teamBIncorrect">0</span><span>Incorrectes</span></div>
+                </div>
+                <div class="timer-display" id="timerB">5:00</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="current-team" id="currentTeam">Torn de l'equip A</div>
+            <div class="question" id="question">Benvinguts. Prepareu-vos per començar la competició.</div>
+
+            <div class="input-container">
+                <input type="text" class="answer-input" id="answerInput" placeholder="Escriu la resposta..." disabled>
+                <button class="btn btn-answer" id="answerBtn" disabled>Respondre</button>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-pass" id="passBtn" disabled>Passar</button>
+                <button class="btn btn-passaparaula" id="passaparaulaBtn" disabled>Passaparaula</button>
+            </div>
+        </div>
+
+        <div class="roscos-container">
+            <div class="rosco-section">
+                <div class="rosco-wrapper">
+                    <div class="rosco team-a" id="roscoA"></div>
+                </div>
+            </div>
+
+            <div class="rosco-section">
+                <div class="rosco-wrapper">
+                    <div class="rosco team-b" id="roscoB"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="endGameModal">
+        <div class="modal-content">
+            <h2 id="endGameTitle">Fi de la partida</h2>
+            <p id="endGameMessage">Resultats...</p>
+            <button class="btn btn-restart" id="restartBtn">Tornar a jugar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const questions = {
+                A: { question: "Comença per A: partícula indivisible que forma la matèria segons el model de Dalton.", answers: ["àtom"] },
+                B: { question: "Comença per B: model atòmic on els electrons giren en òrbites circulars definides.", answers: ["bohr"] },
+                C: { question: "Comença per C: energia associada al moviment dels cossos.", answers: ["cinètica"] },
+                D: { question: "Comença per D: quantitat de matèria dividida pel volum que ocupa.", answers: ["densitat"] },
+                E: { question: "Comença per E: partícula elemental amb càrrega elèctrica negativa.", answers: ["electró"] },
+                F: { question: "Comença per F: canvi d'estat de sòlid a líquid.", answers: ["fusió"] },
+                G: { question: "Comença per G: estat de la matèria on les partícules no tenen forma ni volum fixos.", answers: ["gas"] },
+                H: { question: "Comença per H: element químic més lleuger i abundant de l'univers.", answers: ["hidrogen"] },
+                I: { question: "Comença per I: àtom o molècula que ha perdut o guanyat electrons i té càrrega elèctrica.", answers: ["ió"] },
+                J: { question: "Comença per J: unitat d'energia en el Sistema Internacional.", answers: ["joule"] },
+                K: { question: "Conté la K: mesura de la temperatura absoluta utilitzada en ciència.", answers: ["kelvin"] },
+                L: { question: "Comença per L: estat de la matèria que té un volum fix però no una forma fixa.", answers: ["líquid"] },
+                M: { question: "Comença per M: quantitat de matèria que té un cos.", answers: ["massa"] },
+                N: { question: "Comença per N: partícula subatòmica sense càrrega elèctrica que es troba al nucli.", answers: ["neutró"] },
+                O: { question: "Comença per O: element essencial per a la respiració, amb símbol O.", answers: ["oxigen"] },
+                P: { question: "Comença per P: partícula subatòmica amb càrrega positiva que es troba al nucli.", answers: ["protó"] },
+                Q: { question: "Comença per Q: branca de la ciència que estudia la matèria i les seves transformacions.", answers: ["química"] },
+                R: { question: "Comença per R: model atòmic que va descobrir el nucli atòmic.", answers: ["rutherford"] },
+                S: { question: "Comença per S: estat de la matèria amb forma i volum fixos.", answers: ["sòlid"] },
+                T: { question: "Comença per T: mesura de l'energia tèrmica d'un cos.", answers: ["temperatura"] },
+                U: { question: "Comença per U: element químic amb símbol U utilitzat com a combustible nuclear.", answers: ["urani"] },
+                V: { question: "Comença per V: espai que ocupa un cos.", answers: ["volum"] },
+                W: { question: "Conté la W: unitat de potència elèctrica.", answers: ["watt"] },
+                X: { question: "Conté la X: tipus de radiació electromagnètica utilitzada en medicina per fer radiografies.", answers: ["raigs x", "raigsx"] },
+                Y: { question: "Per la Y: element químic amb símbol Y, metall de terres rares.", answers: ["itri"] },
+                Z: { question: "Comença per Z: element químic metàl·lic de símbol Zn.", answers: ["zinc"] }
+            };
+
+            const LETTERS = Object.keys(questions);
+            const ROSCO_SIZE = 320;
+            const LETTER_SIZE = 40;
+            const LETTER_RADIUS = (ROSCO_SIZE / 2) - 20;
+
+            const setupContainer = document.getElementById("setupContainer");
+            const gameArea = document.getElementById("gameArea");
+            const startGameBtn = document.getElementById("startGameBtn");
+            const answerInput = document.getElementById("answerInput");
+            const answerBtn = document.getElementById("answerBtn");
+            const passBtn = document.getElementById("passBtn");
+            const passaparaulaBtn = document.getElementById("passaparaulaBtn");
+            const currentTeamEl = document.getElementById("currentTeam");
+            const questionEl = document.getElementById("question");
+            const teamATitle = document.getElementById("teamATitle");
+            const teamBTitle = document.getElementById("teamBTitle");
+            const timerA = document.getElementById("timerA");
+            const timerB = document.getElementById("timerB");
+            const teamAInfo = document.getElementById("teamAInfo");
+            const teamBInfo = document.getElementById("teamBInfo");
+            const roscoA = document.getElementById("roscoA");
+            const roscoB = document.getElementById("roscoB");
+            const teamACorrect = document.getElementById("teamACorrect");
+            const teamAIncorrect = document.getElementById("teamAIncorrect");
+            const teamBCorrect = document.getElementById("teamBCorrect");
+            const teamBIncorrect = document.getElementById("teamBIncorrect");
+            const endGameModal = document.getElementById("endGameModal");
+            const endGameTitle = document.getElementById("endGameTitle");
+            const endGameMessage = document.getElementById("endGameMessage");
+            const restartBtn = document.getElementById("restartBtn");
+
+            let gameActive = false;
+            let activeTeamId = "A";
+            let currentLetterIndex = -1;
+            let timerInterval = null;
+            let teams = {};
+
+            function normalizeAnswer(text) {
+                return text
+                    .trim()
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[·.,;:!?'"()]/g, "")
+                    .replace(/\s+/g, " ");
+            }
+
+            function createInitialStatus() {
+                return LETTERS.reduce((accumulator, letter) => {
+                    accumulator[letter] = "pending";
+                    return accumulator;
+                }, {});
+            }
+
+            function initializeTeams(totalSeconds) {
+                const teamAName = document.getElementById("teamAName").value.trim() || "Equip A";
+                const teamBName = document.getElementById("teamBName").value.trim() || "Equip B";
+
+                teams = {
+                    A: {
+                        id: "A",
+                        name: teamAName,
+                        time: totalSeconds,
+                        score: { correct: 0, incorrect: 0 },
+                        status: createInitialStatus(),
+                        infoEl: teamAInfo,
+                        timerEl: timerA,
+                        roscoEl: roscoA,
+                        correctEl: teamACorrect,
+                        incorrectEl: teamAIncorrect
+                    },
+                    B: {
+                        id: "B",
+                        name: teamBName,
+                        time: totalSeconds,
+                        score: { correct: 0, incorrect: 0 },
+                        status: createInitialStatus(),
+                        infoEl: teamBInfo,
+                        timerEl: timerB,
+                        roscoEl: roscoB,
+                        correctEl: teamBCorrect,
+                        incorrectEl: teamBIncorrect
+                    }
+                };
+
+                teamATitle.textContent = teamAName;
+                teamBTitle.textContent = teamBName;
+            }
+
+            function createRosco(teamId) {
+                const roscoElement = teams[teamId].roscoEl;
+                roscoElement.innerHTML = "";
+
+                LETTERS.forEach((letter, index) => {
+                    const angle = (index * 360 / LETTERS.length) - 90;
+                    const radians = angle * Math.PI / 180;
+                    const x = LETTER_RADIUS * Math.cos(radians) + (ROSCO_SIZE / 2) - (LETTER_SIZE / 2);
+                    const y = LETTER_RADIUS * Math.sin(radians) + (ROSCO_SIZE / 2) - (LETTER_SIZE / 2);
+
+                    const letterElement = document.createElement("div");
+                    letterElement.className = "letter";
+                    letterElement.id = `letter-${teamId}-${letter}`;
+                    letterElement.textContent = letter;
+                    letterElement.style.left = `${x}px`;
+                    letterElement.style.top = `${y}px`;
+                    roscoElement.appendChild(letterElement);
+                });
+            }
+
+            function updateStats() {
+                teams.A.correctEl.textContent = teams.A.score.correct;
+                teams.A.incorrectEl.textContent = teams.A.score.incorrect;
+                teams.B.correctEl.textContent = teams.B.score.correct;
+                teams.B.incorrectEl.textContent = teams.B.score.incorrect;
+            }
+
+            function updateTimerDisplay(teamId) {
+                const team = teams[teamId];
+                const minutes = Math.floor(Math.max(team.time, 0) / 60);
+                const seconds = Math.max(team.time, 0) % 60;
+                team.timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+                if (team.time <= 10 && team.time > 0) {
+                    team.timerEl.classList.add("warning");
+                } else {
+                    team.timerEl.classList.remove("warning");
+                }
+            }
+
+            function updateRoscoLetter(teamId, letter) {
+                const letterEl = document.getElementById(`letter-${teamId}-${letter}`);
+                if (!letterEl) {
+                    return;
+                }
+
+                letterEl.classList.remove("correct", "incorrect", "passed", "current");
+                const status = teams[teamId].status[letter];
+
+                if (status !== "pending") {
+                    letterEl.classList.add(status);
+                }
+            }
+
+            function clearCurrentHighlights() {
+                document.querySelectorAll(".letter.current").forEach((element) => {
+                    element.classList.remove("current");
+                });
+            }
+
+            function updateActiveTeamPanel() {
+                const inactiveTeamId = activeTeamId === "A" ? "B" : "A";
+                teams[activeTeamId].infoEl.classList.add("active");
+                teams[inactiveTeamId].infoEl.classList.remove("active");
+                currentTeamEl.textContent = `Torn de ${teams[activeTeamId].name}`;
+                questionEl.style.borderLeftColor = activeTeamId === "A" ? "var(--team-a)" : "var(--team-b)";
+
+                clearCurrentHighlights();
+
+                if (currentLetterIndex >= 0) {
+                    const currentLetter = LETTERS[currentLetterIndex];
+                    const currentLetterEl = document.getElementById(`letter-${activeTeamId}-${currentLetter}`);
+                    if (currentLetterEl) {
+                        currentLetterEl.classList.add("current");
+                    }
+                }
+            }
+
+            function setControls(enabled) {
+                answerInput.disabled = !enabled;
+                answerBtn.disabled = !enabled;
+                passBtn.disabled = !enabled;
+                passaparaulaBtn.disabled = !enabled;
+            }
+
+            function findNextPlayableLetter(teamId, startFromIndex = 0) {
+                const status = teams[teamId].status;
+
+                for (let offset = 0; offset < LETTERS.length; offset++) {
+                    const index = (startFromIndex + offset) % LETTERS.length;
+                    if (status[LETTERS[index]] === "pending") {
+                        return index;
+                    }
+                }
+
+                for (let index = 0; index < LETTERS.length; index++) {
+                    if (status[LETTERS[index]] === "passed") {
+                        return index;
+                    }
+                }
+
+                return -1;
+            }
+
+            function isTeamFinished(teamId) {
+                return findNextPlayableLetter(teamId, 0) === -1;
+            }
+
+            function updateQuestion() {
+                if (currentLetterIndex === -1) {
+                    questionEl.textContent = "Aquest equip ja no té preguntes pendents.";
+                    setControls(false);
+                    return;
+                }
+
+                const currentLetter = LETTERS[currentLetterIndex];
+                questionEl.textContent = questions[currentLetter].question;
+                answerInput.value = "";
+                answerInput.focus();
+                setControls(true);
+            }
+
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+
+            function checkEndGame() {
+                if (!teams.A || !teams.B) {
+                    return false;
+                }
+
+                const bothFinished = isTeamFinished("A") && isTeamFinished("B");
+                const bothOutOfTime = teams.A.time <= 0 && teams.B.time <= 0;
+
+                if (bothFinished || bothOutOfTime) {
+                    endGame();
+                    return true;
+                }
+
+                return false;
+            }
+
+            function startTimer() {
+                stopTimer();
+
+                timerInterval = setInterval(() => {
+                    const team = teams[activeTeamId];
+                    team.time -= 1;
+
+                    if (team.time < 0) {
+                        team.time = 0;
+                    }
+
+                    updateTimerDisplay(activeTeamId);
+
+                    if (team.time === 0) {
+                        stopTimer();
+                        if (checkEndGame()) {
+                            return;
+                        }
+                        switchTurn(true);
+                    }
+                }, 1000);
+            }
+
+            function switchTurn(changeTeam) {
+                if (!gameActive) {
+                    return;
+                }
+
+                stopTimer();
+
+                if (checkEndGame()) {
+                    return;
+                }
+
+                if (changeTeam) {
+                    activeTeamId = activeTeamId === "A" ? "B" : "A";
+                }
+
+                currentLetterIndex = findNextPlayableLetter(
+                    activeTeamId,
+                    currentLetterIndex >= 0 ? currentLetterIndex : 0
+                );
+
+                if (currentLetterIndex === -1) {
+                    if (checkEndGame()) {
+                        return;
+                    }
+                    switchTurn(true);
+                    return;
+                }
+
+                updateActiveTeamPanel();
+                updateQuestion();
+                startTimer();
+            }
+
+            function answerCurrentQuestion() {
+                if (!gameActive || currentLetterIndex === -1) {
+                    return;
+                }
+
+                const currentLetter = LETTERS[currentLetterIndex];
+                const normalizedUserAnswer = normalizeAnswer(answerInput.value);
+                const validAnswers = questions[currentLetter].answers.map(normalizeAnswer);
+                const team = teams[activeTeamId];
+
+                if (validAnswers.includes(normalizedUserAnswer)) {
+                    team.status[currentLetter] = "correct";
+                    team.score.correct += 1;
+                    updateRoscoLetter(activeTeamId, currentLetter);
+                    updateStats();
+
+                    const nextStart = (currentLetterIndex + 1) % LETTERS.length;
+                    currentLetterIndex = findNextPlayableLetter(activeTeamId, nextStart);
+
+                    if (currentLetterIndex === -1) {
+                        if (checkEndGame()) {
+                            return;
+                        }
+                        switchTurn(true);
+                        return;
+                    }
+
+                    updateActiveTeamPanel();
+                    updateQuestion();
+                    return;
+                }
+
+                team.status[currentLetter] = "incorrect";
+                team.score.incorrect += 1;
+                updateRoscoLetter(activeTeamId, currentLetter);
+                updateStats();
+
+                if (checkEndGame()) {
+                    return;
+                }
+
+                switchTurn(true);
+            }
+
+            function passQuestion() {
+                if (!gameActive || currentLetterIndex === -1) {
+                    return;
+                }
+
+                const currentLetter = LETTERS[currentLetterIndex];
+                teams[activeTeamId].status[currentLetter] = "passed";
+                updateRoscoLetter(activeTeamId, currentLetter);
+
+                const nextStart = (currentLetterIndex + 1) % LETTERS.length;
+                currentLetterIndex = findNextPlayableLetter(activeTeamId, nextStart);
+
+                if (currentLetterIndex === -1) {
+                    if (checkEndGame()) {
+                        return;
+                    }
+                    switchTurn(true);
+                    return;
+                }
+
+                updateActiveTeamPanel();
+                updateQuestion();
+            }
+
+            function passTurn() {
+                if (!gameActive) {
+                    return;
+                }
+                switchTurn(true);
+            }
+
+            function endGame() {
+                gameActive = false;
+                stopTimer();
+                setControls(false);
+                clearCurrentHighlights();
+                teamAInfo.classList.remove("active");
+                teamBInfo.classList.remove("active");
+
+                const scoreA = teams.A.score.correct;
+                const scoreB = teams.B.score.correct;
+                let title = "Fi de la partida";
+                let message = `Resultats finals:<br>${teams.A.name}: ${scoreA} encerts i ${teams.A.score.incorrect} errors.<br>${teams.B.name}: ${scoreB} encerts i ${teams.B.score.incorrect} errors.<br><br>`;
+
+                if (scoreA > scoreB) {
+                    title = `🏆 Guanya ${teams.A.name}`;
+                    message += "Enhorabona a l'equip guanyador.";
+                } else if (scoreB > scoreA) {
+                    title = `🏆 Guanya ${teams.B.name}`;
+                    message += "Enhorabona a l'equip guanyador.";
+                } else {
+                    title = "🤝 Empat";
+                    message += "Els dos equips han acabat empatats.";
+                }
+
+                endGameTitle.textContent = title;
+                endGameMessage.innerHTML = message;
+                endGameModal.style.display = "flex";
+            }
+
+            function initializeGame() {
+                const minutes = parseInt(document.getElementById("timerMinutes").value, 10) || 5;
+                const seconds = parseInt(document.getElementById("timerSeconds").value, 10) || 0;
+                const totalSeconds = (minutes * 60) + seconds;
+
+                initializeTeams(totalSeconds);
+                createRosco("A");
+                createRosco("B");
+                updateStats();
+                updateTimerDisplay("A");
+                updateTimerDisplay("B");
+                LETTERS.forEach((letter) => {
+                    updateRoscoLetter("A", letter);
+                    updateRoscoLetter("B", letter);
+                });
+
+                setupContainer.style.display = "none";
+                gameArea.style.display = "block";
+
+                gameActive = true;
+                activeTeamId = "A";
+                currentLetterIndex = 0;
+                switchTurn(false);
+            }
+
+            startGameBtn.addEventListener("click", initializeGame);
+            answerBtn.addEventListener("click", answerCurrentQuestion);
+            passBtn.addEventListener("click", passQuestion);
+            passaparaulaBtn.addEventListener("click", passTurn);
+            restartBtn.addEventListener("click", () => window.location.reload());
+
+            answerInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    answerCurrentQuestion();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
