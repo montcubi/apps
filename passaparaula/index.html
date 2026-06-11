@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passaparaula de Ciències</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-start: #0f172a;
+            --bg-end: #1d4ed8;
+            --panel: rgba(255, 255, 255, 0.1);
+            --panel-border: rgba(255, 255, 255, 0.18);
+            --text: #eff6ff;
+            --accent: #facc15;
+            --available: #38bdf8;
+            --correct: #22c55e;
+            --skipped: #f59e0b;
+            --incorrect: #ef4444;
+            --button-dark: #0f172a;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(250, 204, 21, 0.14), transparent 28%),
+                linear-gradient(145deg, var(--bg-start), var(--bg-end));
+        }
+
+        .toolbar,
+        .timer-container,
+        .definition-panel {
+            width: 100%;
+            max-width: 1180px;
+            border-radius: 22px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar label {
+            font-weight: 700;
+        }
+
+        select {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.94);
+            font-size: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.08rem;
+            opacity: 0.92;
+        }
+
+        .timer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .timer-display {
+            min-width: 180px;
+            text-align: center;
+            font-size: 3.4rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-shadow: 0 0 24px rgba(250, 204, 21, 0.28);
+        }
+
+        .timer-display.warning {
+            color: #fecaca;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: #38bdf8;
+            color: white;
+        }
+
+        .btn-pause {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #ef4444;
+            color: white;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1180px;
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .circle-container,
+        .definition-panel {
+            flex: 1;
+        }
+
+        .circle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 420px;
+        }
+
+        .letter-circle {
+            position: relative;
+            width: 350px;
+            height: 350px;
+        }
+
+        .letter {
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .letter.available {
+            background: var(--available);
+        }
+
+        .letter.current {
+            background: var(--accent);
+            color: var(--button-dark);
+            border-color: white;
+            transform: scale(1.18);
+        }
+
+        .letter.correct {
+            background: var(--correct);
+        }
+
+        .letter.skipped {
+            background: var(--skipped);
+            color: white;
+        }
+
+        .letter.incorrect {
+            background: var(--incorrect);
+        }
+
+        .definition-panel {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .current-word {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .definition {
+            min-height: 120px;
+            font-size: 1.16rem;
+            line-height: 1.6;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.35);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .answer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn-correct {
+            background: var(--correct);
+            color: white;
+        }
+
+        .btn-skip {
+            background: var(--skipped);
+            color: white;
+        }
+
+        .btn-incorrect {
+            background: var(--incorrect);
+            color: white;
+        }
+
+        .stats {
+            margin-top: auto;
+            text-align: center;
+            font-size: 1.06rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .progress-fill {
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #38bdf8);
+            transition: width 0.2s ease;
+        }
+
+        .legend {
+            margin-top: 12px;
+            opacity: 0.9;
+            font-size: 0.96rem;
+        }
+
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+            }
+
+            .timer-container {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .timer-display {
+                font-size: 2.6rem;
+            }
+
+            .letter-circle {
+                width: 280px;
+                height: 280px;
+            }
+
+            .letter {
+                width: 36px;
+                height: 36px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <label for="themeSelect">Tema:</label>
+            <select id="themeSelect">
+                <option value="night">Nit</option>
+                <option value="ocean">Oceà</option>
+                <option value="forest">Bosc</option>
+                <option value="sunset">Posta de sol</option>
+            </select>
+        </div>
+        <div class="toolbar-group">
+            <label for="timeSelect">Temps:</label>
+            <select id="timeSelect">
+                <option value="5">5 minuts</option>
+                <option value="10">10 minuts</option>
+                <option value="15" selected>15 minuts</option>
+                <option value="20">20 minuts</option>
+                <option value="30">30 minuts</option>
+                <option value="45">45 minuts</option>
+                <option value="60">60 minuts</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>Passaparaula de Ciències</h1>
+        <p>Rosco individual amb temporitzador i control manual de respostes</p>
+    </div>
+
+    <div class="timer-container">
+        <div class="timer-display" id="timer">15:00</div>
+        <div class="controls">
+            <button class="btn btn-start" id="startBtn">Començar</button>
+            <button class="btn btn-pause" id="pauseBtn">Pausa</button>
+            <button class="btn btn-reset" id="resetBtn">Reiniciar</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="circle-container">
+            <div class="letter-circle" id="letterCircle"></div>
+        </div>
+
+        <div class="definition-panel">
+            <div class="current-word" id="currentWord">Clica «Començar» per iniciar</div>
+            <div class="definition" id="definition">El docent o l'alumnat poden marcar cada resposta com a correcta, incorrecta o passada sense escriure-la.</div>
+
+            <div class="answer-controls">
+                <button class="btn btn-correct" id="correctBtn" disabled>Correcte</button>
+                <button class="btn btn-skip" id="skipBtn" disabled>Passaparaula</button>
+                <button class="btn btn-incorrect" id="incorrectBtn" disabled>Incorrecte</button>
+            </div>
+
+            <div class="stats">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div>Correctes: <span id="correctCount">0</span> | Incorrectes: <span id="incorrectCount">0</span> | Passades: <span id="skippedCount">0</span></div>
+                <div class="legend">Dreceres: `Enter` correcta, `Espai` passaparaula, `X` incorrecta.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const words = {
+            A: { clue: "Comença per A: partícula indivisible que forma la matèria segons el model de Dalton." },
+            B: { clue: "Comença per B: model atòmic on els electrons giren en òrbites circulars definides." },
+            C: { clue: "Comença per C: energia associada al moviment dels cossos." },
+            D: { clue: "Comença per D: quantitat de matèria dividida pel volum que ocupa." },
+            E: { clue: "Comença per E: partícula elemental amb càrrega elèctrica negativa." },
+            F: { clue: "Comença per F: canvi d'estat de sòlid a líquid." },
+            G: { clue: "Comença per G: estat de la matèria on les partícules no tenen forma ni volum fixos." },
+            H: { clue: "Comença per H: element químic més lleuger i abundant de l'univers." },
+            I: { clue: "Comença per I: àtom o molècula que ha perdut o guanyat electrons i té càrrega elèctrica." },
+            J: { clue: "Comença per J: unitat d'energia en el Sistema Internacional." },
+            K: { clue: "Conté la K: mesura de la temperatura absoluta utilitzada en ciència." },
+            L: { clue: "Comença per L: estat de la matèria que té un volum fix però no una forma fixa." },
+            M: { clue: "Comença per M: quantitat de matèria que té un cos." },
+            N: { clue: "Comença per N: partícula subatòmica sense càrrega elèctrica que es troba al nucli." },
+            O: { clue: "Comença per O: element essencial per a la respiració, amb símbol O." },
+            P: { clue: "Comença per P: partícula subatòmica amb càrrega positiva que es troba al nucli." },
+            Q: { clue: "Comença per Q: branca de la ciència que estudia la matèria i les seves transformacions." },
+            R: { clue: "Comença per R: model atòmic que va descobrir el nucli atòmic." },
+            S: { clue: "Comença per S: estat de la matèria amb forma i volum fixos." },
+            T: { clue: "Comença per T: mesura de l'energia tèrmica d'un cos." },
+            U: { clue: "Comença per U: element químic amb símbol U utilitzat com a combustible nuclear." },
+            V: { clue: "Comença per V: espai que ocupa un cos." },
+            W: { clue: "Conté la W: unitat de potència elèctrica." },
+            X: { clue: "Conté la X: tipus de radiació electromagnètica utilitzada en medicina per fer radiografies." },
+            Y: { clue: "Per la Y: element químic amb símbol Y, metall de terres rares." },
+            Z: { clue: "Comença per Z: element químic metàl·lic de símbol Zn." }
+        };
+
+        const letters = Object.keys(words);
+        const themes = {
+            night: ["#0f172a", "#1d4ed8"],
+            ocean: ["#0f766e", "#0ea5e9"],
+            forest: ["#14532d", "#16a34a"],
+            sunset: ["#7c2d12", "#ea580c"]
+        };
+
+        const ROSCO_SIZE = 350;
+        const LETTER_SIZE = 42;
+        const LETTER_RADIUS = 140;
+
+        const body = document.body;
+        const themeSelect = document.getElementById("themeSelect");
+        const timeSelect = document.getElementById("timeSelect");
+        const timerEl = document.getElementById("timer");
+        const letterCircle = document.getElementById("letterCircle");
+        const currentWordEl = document.getElementById("currentWord");
+        const definitionEl = document.getElementById("definition");
+        const progressFill = document.getElementById("progressFill");
+        const correctCountEl = document.getElementById("correctCount");
+        const incorrectCountEl = document.getElementById("incorrectCount");
+        const skippedCountEl = document.getElementById("skippedCount");
+        const startBtn = document.getElementById("startBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const correctBtn = document.getElementById("correctBtn");
+        const skipBtn = document.getElementById("skipBtn");
+        const incorrectBtn = document.getElementById("incorrectBtn");
+
+        let selectedMinutes = parseInt(timeSelect.value, 10);
+        let timeLeft = selectedMinutes * 60;
+        let timerInterval = null;
+        let gameStarted = false;
+        let gameFinished = false;
+        let currentLetterIndex = 0;
+        let letterStates = {};
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let skippedCount = 0;
+
+        function createInitialStates() {
+            letterStates = {};
+            letters.forEach((letter) => {
+                letterStates[letter] = "available";
+            });
+        }
+
+        function createLetterCircle() {
+            letterCircle.innerHTML = "";
+
+            letters.forEach((letter, index) => {
+                const angle = (index * 360 / letters.length) - 90;
+                const radians = angle * Math.PI / 180;
+                const x = (ROSCO_SIZE / 2) + LETTER_RADIUS * Math.cos(radians) - (LETTER_SIZE / 2);
+                const y = (ROSCO_SIZE / 2) + LETTER_RADIUS * Math.sin(radians) - (LETTER_SIZE / 2);
+
+                const letterEl = document.createElement("div");
+                letterEl.id = `letter-${letter}`;
+                letterEl.className = "letter available";
+                letterEl.textContent = letter;
+                letterEl.style.left = `${x}px`;
+                letterEl.style.top = `${y}px`;
+                letterEl.addEventListener("click", () => {
+                    if (!gameStarted || gameFinished) {
+                        return;
+                    }
+
+                    if (letterStates[letter] === "available" || letterStates[letter] === "skipped") {
+                        currentLetterIndex = index;
+                        updateCurrentLetter();
+                    }
+                });
+
+                letterCircle.appendChild(letterEl);
+            });
+        }
+
+        function updateTheme() {
+            const [start, end] = themes[themeSelect.value] || themes.night;
+            body.style.background = `radial-gradient(circle at top, rgba(250, 204, 21, 0.14), transparent 28%), linear-gradient(145deg, ${start}, ${end})`;
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+            if (timeLeft <= 30 && timeLeft > 0) {
+                timerEl.classList.add("warning");
+            } else {
+                timerEl.classList.remove("warning");
+            }
+        }
+
+        function updateStats() {
+            correctCountEl.textContent = correctCount;
+            incorrectCountEl.textContent = incorrectCount;
+            skippedCountEl.textContent = skippedCount;
+
+            const resolved = correctCount + incorrectCount;
+            const totalManaged = resolved + skippedCount;
+            progressFill.style.width = `${(totalManaged / letters.length) * 100}%`;
+        }
+
+        function updateLetterClass(letter) {
+            const letterEl = document.getElementById(`letter-${letter}`);
+            if (!letterEl) {
+                return;
+            }
+
+            letterEl.classList.remove("available", "current", "correct", "skipped", "incorrect");
+            letterEl.classList.add(letterStates[letter]);
+        }
+
+        function clearCurrentHighlight() {
+            document.querySelectorAll(".letter.current").forEach((element) => {
+                element.classList.remove("current");
+            });
+        }
+
+        function findNextPlayableIndex(startIndex) {
+            for (let offset = 0; offset < letters.length; offset++) {
+                const index = (startIndex + offset) % letters.length;
+                const state = letterStates[letters[index]];
+                if (state === "available") {
+                    return index;
+                }
+            }
+
+            for (let offset = 0; offset < letters.length; offset++) {
+                const index = (startIndex + offset) % letters.length;
+                if (letterStates[letters[index]] === "skipped") {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        function updateCurrentLetter() {
+            clearCurrentHighlight();
+
+            const currentLetter = letters[currentLetterIndex];
+            const currentState = letterStates[currentLetter];
+
+            if (currentState !== "available" && currentState !== "skipped") {
+                const nextIndex = findNextPlayableIndex((currentLetterIndex + 1) % letters.length);
+                if (nextIndex === -1) {
+                    finishGame("Joc acabat", `Has completat el rosco amb ${correctCount} respostes correctes i ${incorrectCount} incorrectes.`);
+                    return;
+                }
+                currentLetterIndex = nextIndex;
+            }
+
+            const activeLetter = letters[currentLetterIndex];
+            const activeLetterEl = document.getElementById(`letter-${activeLetter}`);
+            activeLetterEl.classList.add("current");
+            currentWordEl.textContent = `Lletra ${activeLetter}`;
+            definitionEl.textContent = words[activeLetter].clue;
+            setAnswerButtons(true);
+        }
+
+        function setAnswerButtons(enabled) {
+            correctBtn.disabled = !enabled;
+            skipBtn.disabled = !enabled;
+            incorrectBtn.disabled = !enabled;
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function finishGame(title, message) {
+            gameStarted = false;
+            gameFinished = true;
+            stopTimer();
+            setAnswerButtons(false);
+            clearCurrentHighlight();
+            currentWordEl.textContent = title;
+            definitionEl.textContent = message;
+        }
+
+        function goToNextLetter() {
+            const nextIndex = findNextPlayableIndex((currentLetterIndex + 1) % letters.length);
+
+            if (nextIndex === -1) {
+                finishGame("Joc acabat", `Has completat el rosco amb ${correctCount} respostes correctes, ${incorrectCount} incorrectes i ${skippedCount} passades.`);
+                return;
+            }
+
+            currentLetterIndex = nextIndex;
+            updateCurrentLetter();
+        }
+
+        function markCorrect() {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            const letter = letters[currentLetterIndex];
+            if (letterStates[letter] === "skipped") {
+                skippedCount = Math.max(0, skippedCount - 1);
+            }
+
+            letterStates[letter] = "correct";
+            correctCount += 1;
+            updateLetterClass(letter);
+            updateStats();
+            goToNextLetter();
+        }
+
+        function markIncorrect() {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            const letter = letters[currentLetterIndex];
+            if (letterStates[letter] === "skipped") {
+                skippedCount = Math.max(0, skippedCount - 1);
+            }
+
+            letterStates[letter] = "incorrect";
+            incorrectCount += 1;
+            updateLetterClass(letter);
+            updateStats();
+            goToNextLetter();
+        }
+
+        function skipWord() {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            const letter = letters[currentLetterIndex];
+            if (letterStates[letter] !== "skipped") {
+                letterStates[letter] = "skipped";
+                skippedCount += 1;
+                updateLetterClass(letter);
+                updateStats();
+            }
+
+            goToNextLetter();
+        }
+
+        function startGame() {
+            if (gameFinished) {
+                return;
+            }
+
+            if (!gameStarted) {
+                gameStarted = true;
+                currentLetterIndex = findNextPlayableIndex(currentLetterIndex);
+                updateCurrentLetter();
+            }
+
+            if (!timerInterval) {
+                timerInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    if (timeLeft < 0) {
+                        timeLeft = 0;
+                    }
+                    updateTimerDisplay();
+
+                    if (timeLeft === 0) {
+                        finishGame("Temps acabat", `Has aconseguit ${correctCount} respostes correctes abans que s'acabés el temps.`);
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseGame() {
+            stopTimer();
+            gameStarted = false;
+            setAnswerButtons(false);
+
+            if (!gameFinished) {
+                currentWordEl.textContent = "Joc en pausa";
+                definitionEl.textContent = "Prem «Començar» per continuar la partida des del mateix punt.";
+            }
+        }
+
+        function resetGame() {
+            stopTimer();
+            selectedMinutes = parseInt(timeSelect.value, 10);
+            timeLeft = selectedMinutes * 60;
+            gameStarted = false;
+            gameFinished = false;
+            currentLetterIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            skippedCount = 0;
+
+            createInitialStates();
+            createLetterCircle();
+            updateTimerDisplay();
+            updateStats();
+            setAnswerButtons(false);
+
+            currentWordEl.textContent = "Clica «Començar» per iniciar";
+            definitionEl.textContent = "El docent o l'alumnat poden marcar cada resposta com a correcta, incorrecta o passada sense escriure-la.";
+        }
+
+        themeSelect.addEventListener("change", updateTheme);
+        timeSelect.addEventListener("change", () => {
+            if (!timerInterval && !gameStarted) {
+                selectedMinutes = parseInt(timeSelect.value, 10);
+                timeLeft = selectedMinutes * 60;
+                updateTimerDisplay();
+            }
+        });
+
+        startBtn.addEventListener("click", startGame);
+        pauseBtn.addEventListener("click", pauseGame);
+        resetBtn.addEventListener("click", resetGame);
+        correctBtn.addEventListener("click", markCorrect);
+        skipBtn.addEventListener("click", skipWord);
+        incorrectBtn.addEventListener("click", markIncorrect);
+
+        document.addEventListener("keydown", (event) => {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            if (event.code === "Enter") {
+                event.preventDefault();
+                markCorrect();
+            } else if (event.code === "Space") {
+                event.preventDefault();
+                skipWord();
+            } else if (event.code === "KeyX") {
+                event.preventDefault();
+                markIncorrect();
+            }
+        });
+
+        resetGame();
+        updateTheme();
+    </script>
+</body>
+</html>
