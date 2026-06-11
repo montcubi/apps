@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passaparaula - Temporitzador 15 minuts</title>
+    <title>Passaparaula de Ciències</title>
     <style>
         * {
             margin: 0;
@@ -11,165 +11,171 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-start: #0f172a;
+            --bg-end: #1d4ed8;
+            --panel: rgba(255, 255, 255, 0.1);
+            --panel-border: rgba(255, 255, 255, 0.18);
+            --text: #eff6ff;
+            --accent: #facc15;
+            --available: #38bdf8;
+            --correct: #22c55e;
+            --skipped: #f59e0b;
+            --incorrect: #ef4444;
+            --button-dark: #0f172a;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
             min-height: 100vh;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: white;
-            transition: background 0.5s ease;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(250, 204, 21, 0.14), transparent 28%),
+                linear-gradient(145deg, var(--bg-start), var(--bg-end));
         }
 
-        .theme-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        .toolbar,
+        .timer-container,
+        .definition-panel {
+            width: 100%;
+            max-width: 1180px;
+            border-radius: 22px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
         }
 
-        .theme-selector select {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .theme-selector select option {
-            background: #2c3e50;
-            color: white;
-        }
-
-        .time-selector {
+        .toolbar-group {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
+            gap: 8px;
         }
 
-        .time-selector select {
-            background: rgba(255,255,255,0.2);
-            color: white;
+        .toolbar label {
+            font-weight: 700;
+        }
+
+        select {
             border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            min-width: 100px;
-        }
-
-        .time-selector select option {
-            background: #2c3e50;
-            color: white;
-        }
-
-        .time-selector label {
-            font-weight: bold;
-            font-size: 1.1rem;
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.94);
+            font-size: 1rem;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 2.8rem;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.08rem;
+            opacity: 0.92;
         }
 
         .timer-container {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 30px;
-            margin-bottom: 30px;
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            gap: 20px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
         }
 
         .timer-display {
-            font-size: 4rem;
-            font-weight: bold;
-            min-width: 200px;
+            min-width: 180px;
             text-align: center;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 20px rgba(255,107,107,0.5);
+            font-size: 3.4rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-shadow: 0 0 24px rgba(250, 204, 21, 0.28);
+        }
+
+        .timer-display.warning {
+            color: #fecaca;
         }
 
         .controls {
             display: flex;
-            gap: 15px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 24px;
             border: none;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            border-radius: 12px;
+            padding: 12px 18px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
         }
 
         .btn-start {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            background: #38bdf8;
             color: white;
         }
 
         .btn-pause {
-            background: linear-gradient(45deg, #ffa726, #fb8c00);
+            background: #f59e0b;
             color: white;
         }
 
         .btn-reset {
-            background: linear-gradient(45deg, #ef5350, #e53935);
+            background: #ef4444;
             color: white;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
         .game-container {
-            display: flex;
-            gap: 30px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1180px;
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .circle-container,
+        .definition-panel {
+            flex: 1;
         }
 
         .circle-container {
-            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 400px;
+            min-height: 420px;
         }
 
         .letter-circle {
@@ -180,217 +186,192 @@
 
         .letter {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 3px solid transparent;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
         .letter.available {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-            color: white;
-            box-shadow: 0 4px 15px rgba(79,172,254,0.4);
+            background: var(--available);
         }
 
         .letter.current {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-            border: 3px solid #fff;
-            transform: scale(1.2);
-            box-shadow: 0 6px 20px rgba(255,215,0,0.6);
+            background: var(--accent);
+            color: var(--button-dark);
+            border-color: white;
+            transform: scale(1.18);
         }
 
         .letter.correct {
-            background: linear-gradient(45deg, #4caf50, #45a049);
-            color: white;
-            box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+            background: var(--correct);
         }
 
         .letter.skipped {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+            background: var(--skipped);
+            color: white;
         }
 
         .letter.incorrect {
-            background: linear-gradient(45deg, #f44336, #d32f2f);
-            color: white;
-            box-shadow: 0 4px 15px rgba(244,67,54,0.4);
-        }
-
-        .letter:hover {
-            transform: scale(1.1);
+            background: var(--incorrect);
         }
 
         .definition-panel {
-            flex: 1;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
         }
 
         .current-word {
             font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
+            font-weight: 800;
+            color: var(--accent);
             text-align: center;
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 18px;
         }
 
         .definition {
-            font-size: 1.2rem;
+            min-height: 120px;
+            font-size: 1.16rem;
             line-height: 1.6;
-            margin-bottom: 30px;
             text-align: center;
-        }
-
-        .answer-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 15px;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-            text-align: center;
+            background: rgba(15, 23, 42, 0.35);
+            border-radius: 16px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .answer-input:focus {
-            outline: none;
-            box-shadow: 0 0 20px rgba(79,172,254,0.5);
         }
 
         .answer-controls {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
         .btn-correct {
-            background: linear-gradient(45deg, #4caf50, #45a049);
+            background: var(--correct);
             color: white;
         }
 
         .btn-skip {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-        }
-
-        .btn-incorrect {
-            background: linear-gradient(45deg, #f44336, #d32f2f);
+            background: var(--skipped);
             color: white;
         }
 
-        .feedback {
-            text-align: center;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            min-height: 30px;
-        }
-
-        .feedback.correct {
-            color: #4caf50;
-            font-weight: bold;
-        }
-
-        .feedback.incorrect {
-            color: #f44336;
-            font-weight: bold;
+        .btn-incorrect {
+            background: var(--incorrect);
+            color: white;
         }
 
         .stats {
-            margin-top: 20px;
+            margin-top: auto;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 1.06rem;
         }
 
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 4px;
-            margin: 10px 0;
+            height: 10px;
+            border-radius: 999px;
             overflow: hidden;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.16);
         }
 
         .progress-fill {
+            width: 0;
             height: 100%;
-            background: linear-gradient(45deg, #4caf50, #45a049);
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #22c55e, #38bdf8);
+            transition: width 0.2s ease;
+        }
+
+        .legend {
+            margin-top: 12px;
+            opacity: 0.9;
+            font-size: 0.96rem;
+        }
+
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+            }
+
+            .timer-container {
+                justify-content: center;
+            }
         }
 
         @media (max-width: 768px) {
-            .game-container {
-                flex-direction: column;
-                gap: 20px;
+            body {
+                padding: 12px;
             }
-            
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .timer-display {
+                font-size: 2.6rem;
+            }
+
             .letter-circle {
                 width: 280px;
                 height: 280px;
             }
-            
-            .timer-display {
-                font-size: 2.5rem;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
+
+            .letter {
+                width: 36px;
+                height: 36px;
+                font-size: 0.95rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="theme-selector">
-        <label for="theme">Tema:</label>
-        <select id="theme" onchange="changeTheme()">
-            <option value="dark">Fosc</option>
-            <option value="blue">Blau</option>
-            <option value="purple">Púrpura</option>
-            <option value="green">Verd</option>
-            <option value="sunset">Posta de Sol</option>
-            <option value="ocean">Oceà</option>
-        </select>
-    </div>
-
-    <div class="header">
-        <h1>🎯 PASSAPARAULA 🎯</h1>
-        <p>Temporitzador personalitzable - Paraules de Ciències</p>
-    </div>
-
-    <div class="timer-container">
-        <div class="time-selector">
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <label for="themeSelect">Tema:</label>
+            <select id="themeSelect">
+                <option value="night">Nit</option>
+                <option value="ocean">Oceà</option>
+                <option value="forest">Bosc</option>
+                <option value="sunset">Posta de sol</option>
+            </select>
+        </div>
+        <div class="toolbar-group">
             <label for="timeSelect">Temps:</label>
-            <select id="timeSelect" onchange="changeTime()">
+            <select id="timeSelect">
                 <option value="5">5 minuts</option>
                 <option value="10">10 minuts</option>
                 <option value="15" selected>15 minuts</option>
                 <option value="20">20 minuts</option>
                 <option value="30">30 minuts</option>
                 <option value="45">45 minuts</option>
-                <option value="60">1 hora</option>
+                <option value="60">60 minuts</option>
             </select>
         </div>
+    </div>
+
+    <div class="header">
+        <h1>Passaparaula de Ciències</h1>
+        <p>Rosco individual amb temporitzador i control manual de respostes</p>
+    </div>
+
+    <div class="timer-container">
         <div class="timer-display" id="timer">15:00</div>
         <div class="controls">
-            <button class="btn btn-start" onclick="startTimer()">▶️ Començar</button>
-            <button class="btn btn-pause" onclick="pauseTimer()">⏸️ Pausa</button>
-            <button class="btn btn-reset" onclick="resetTimer()">🔄 Reset</button>
+            <button class="btn btn-start" id="startBtn">Començar</button>
+            <button class="btn btn-pause" id="pauseBtn">Pausa</button>
+            <button class="btn btn-reset" id="resetBtn">Reiniciar</button>
         </div>
     </div>
 
@@ -398,341 +379,398 @@
         <div class="circle-container">
             <div class="letter-circle" id="letterCircle"></div>
         </div>
-        
+
         <div class="definition-panel">
-            <div class="current-word" id="currentWord">Clica "Començar" per iniciar!</div>
-            <div class="definition" id="definition">Preparat per jugar al Passaparaula de Ciències?</div>
-            
-            <input type="text" class="answer-input" id="answerInput" placeholder="Escriu la teva resposta aquí..." disabled>
-            
-            <div class="feedback" id="feedback"></div>
-            
+            <div class="current-word" id="currentWord">Clica «Començar» per iniciar</div>
+            <div class="definition" id="definition">El docent o l'alumnat poden marcar cada resposta com a correcta, incorrecta o passada sense escriure-la.</div>
+
             <div class="answer-controls">
-                <button class="btn btn-correct" onclick="checkAnswer()">✅ Comprovar</button>
-                <button class="btn btn-skip" onclick="skipWord()">⏭️ Passaparaula</button>
+                <button class="btn btn-correct" id="correctBtn" disabled>Correcte</button>
+                <button class="btn btn-skip" id="skipBtn" disabled>Passaparaula</button>
+                <button class="btn btn-incorrect" id="incorrectBtn" disabled>Incorrecte</button>
             </div>
 
             <div class="stats">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div>Correctes: <span id="correctCount">0</span> | Incorrectes: <span id="incorrectCount">0</span> | Passaparaula: <span id="skippedCount">0</span></div>
+                <div>Correctes: <span id="correctCount">0</span> | Incorrectes: <span id="incorrectCount">0</span> | Passades: <span id="skippedCount">0</span></div>
+                <div class="legend">Dreceres: `Enter` correcta, `Espai` passaparaula, `X` incorrecta.</div>
             </div>
         </div>
     </div>
 
     <script>
         const words = {
-            'A': { word: 'Acid', definition: 'Substància que té gust àcid i pot cremar coses.' },
-            'B': { word: 'Beaker', definition: 'Recipient de vidre utilitzat en experiments científics per contenir líquids.' },
-            'C': { word: 'Chemicals', definition: 'Substàncies utilitzades en ciència, sovint en experiments o reaccions.' },
-            'D': { word: 'Dichotomous key', definition: 'Eina que ajuda a identificar coses fent preguntes de sí/no.' },
-            'E': { word: 'Erlenmeyer', definition: 'Tipus de matràs de laboratori amb base ampla i coll estret.' },
-            'F': { word: 'Frozen', definition: 'Alguna cosa que s\'ha solidificat perquè està molt freda.' },
-            'G': { word: 'Gnomon', definition: 'La part d\'un rellotge de sol que projecta l\'ombra.' },
-            'H': { word: 'Honey', definition: 'Líquid espès i dolç fet per les abelles. És molt dens.' },
-            'I': { word: 'Indicator', definition: 'Substància que mostra si alguna cosa és un àcid o una base.' },
-            'J': { word: 'Juice', definition: 'Líquid fet de fruites.' },
-            'K': { word: 'Key', definition: 'Eina utilitzada per identificar éssers vius basada en característiques.' },
-            'L': { word: 'Layer', definition: 'Una part d\'alguna cosa que té diverses parts una sobre l\'altra.' },
-            'M': { word: 'Montserrat', definition: 'La professora de ciències de la nostra classe.' },
-            'N': { word: 'Nitrogen', definition: 'Gas que forma la major part de l\'aire que respirem.' },
-            'O': { word: 'Oxygen', definition: 'Gas que necessitem per respirar.' },
-            'P': { word: 'Pour', definition: 'Fer que un líquid flueixi d\'un recipient a un altre.' },
-            'Q': { word: 'Liquid', definition: 'Substància que flueix i pren la forma del seu recipient.' },
-            'R': { word: 'Rf', definition: 'Número que mostra fins on es mou una substància en cromatografia.' },
-            'S': { word: 'Sundial', definition: 'Eina que indica l\'hora utilitzant l\'ombra del sol.' },
-            'T': { word: 'Test tube', definition: 'Petit tub de vidre utilitzat en experiments per contenir líquids.' },
-            'U': { word: 'Umami', definition: 'Gust que és carni o salat.' },
-            'V': { word: 'Volume', definition: 'La quantitat d\'espai que ocupa alguna cosa.' },
-            'W': { word: 'Water', definition: 'Líquid clar que tots els éssers vius necessiten per sobreviure.' },
-            'X': { word: 'Experiment', definition: 'Prova per aprendre alguna cosa o veure què passa.' },
-            'Y': { word: 'Laboratory', definition: 'Habitació especial on es fan experiments científics.' },
-            'Z': { word: 'Freeze', definition: 'Canviar de líquid a sòlid quan es torna molt fred.' }
+            A: { clue: "Comença per A: partícula indivisible que forma la matèria segons el model de Dalton." },
+            B: { clue: "Comença per B: model atòmic on els electrons giren en òrbites circulars definides." },
+            C: { clue: "Comença per C: energia associada al moviment dels cossos." },
+            D: { clue: "Comença per D: quantitat de matèria dividida pel volum que ocupa." },
+            E: { clue: "Comença per E: partícula elemental amb càrrega elèctrica negativa." },
+            F: { clue: "Comença per F: canvi d'estat de sòlid a líquid." },
+            G: { clue: "Comença per G: estat de la matèria on les partícules no tenen forma ni volum fixos." },
+            H: { clue: "Comença per H: element químic més lleuger i abundant de l'univers." },
+            I: { clue: "Comença per I: àtom o molècula que ha perdut o guanyat electrons i té càrrega elèctrica." },
+            J: { clue: "Comença per J: unitat d'energia en el Sistema Internacional." },
+            K: { clue: "Conté la K: mesura de la temperatura absoluta utilitzada en ciència." },
+            L: { clue: "Comença per L: estat de la matèria que té un volum fix però no una forma fixa." },
+            M: { clue: "Comença per M: quantitat de matèria que té un cos." },
+            N: { clue: "Comença per N: partícula subatòmica sense càrrega elèctrica que es troba al nucli." },
+            O: { clue: "Comença per O: element essencial per a la respiració, amb símbol O." },
+            P: { clue: "Comença per P: partícula subatòmica amb càrrega positiva que es troba al nucli." },
+            Q: { clue: "Comença per Q: branca de la ciència que estudia la matèria i les seves transformacions." },
+            R: { clue: "Comença per R: model atòmic que va descobrir el nucli atòmic." },
+            S: { clue: "Comença per S: estat de la matèria amb forma i volum fixos." },
+            T: { clue: "Comença per T: mesura de l'energia tèrmica d'un cos." },
+            U: { clue: "Comença per U: element químic amb símbol U utilitzat com a combustible nuclear." },
+            V: { clue: "Comença per V: espai que ocupa un cos." },
+            W: { clue: "Conté la W: unitat de potència elèctrica." },
+            X: { clue: "Conté la X: tipus de radiació electromagnètica utilitzada en medicina per fer radiografies." },
+            Y: { clue: "Per la Y: element químic amb símbol Y, metall de terres rares." },
+            Z: { clue: "Comença per Z: element químic metàl·lic de símbol Zn." }
         };
 
-        let selectedTime = 15;
-        let timeLeft = 15 * 60; // 15 minutes in seconds
+        const letters = Object.keys(words);
+        const themes = {
+            night: ["#0f172a", "#1d4ed8"],
+            ocean: ["#0f766e", "#0ea5e9"],
+            forest: ["#14532d", "#16a34a"],
+            sunset: ["#7c2d12", "#ea580c"]
+        };
+
+        const ROSCO_SIZE = 350;
+        const LETTER_SIZE = 42;
+        const LETTER_RADIUS = 140;
+
+        const body = document.body;
+        const themeSelect = document.getElementById("themeSelect");
+        const timeSelect = document.getElementById("timeSelect");
+        const timerEl = document.getElementById("timer");
+        const letterCircle = document.getElementById("letterCircle");
+        const currentWordEl = document.getElementById("currentWord");
+        const definitionEl = document.getElementById("definition");
+        const progressFill = document.getElementById("progressFill");
+        const correctCountEl = document.getElementById("correctCount");
+        const incorrectCountEl = document.getElementById("incorrectCount");
+        const skippedCountEl = document.getElementById("skippedCount");
+        const startBtn = document.getElementById("startBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const correctBtn = document.getElementById("correctBtn");
+        const skipBtn = document.getElementById("skipBtn");
+        const incorrectBtn = document.getElementById("incorrectBtn");
+
+        let selectedMinutes = parseInt(timeSelect.value, 10);
+        let timeLeft = selectedMinutes * 60;
         let timerInterval = null;
-        let isRunning = false;
-        let currentLetterIndex = 0;
         let gameStarted = false;
+        let gameFinished = false;
+        let currentLetterIndex = 0;
         let letterStates = {};
         let correctCount = 0;
         let incorrectCount = 0;
         let skippedCount = 0;
 
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-        function initializeGame() {
-            createLetterCircle();
-            letters.forEach(letter => {
-                letterStates[letter] = 'available';
+        function createInitialStates() {
+            letterStates = {};
+            letters.forEach((letter) => {
+                letterStates[letter] = "available";
             });
-            updateDisplay();
         }
 
         function createLetterCircle() {
-            const circle = document.getElementById('letterCircle');
-            const radius = 140;
-            const centerX = 175;
-            const centerY = 175;
+            letterCircle.innerHTML = "";
 
             letters.forEach((letter, index) => {
-                const angle = (index * 360 / 26) - 90; // Start from top
-                const radian = (angle * Math.PI) / 180;
-                const x = centerX + radius * Math.cos(radian) - 20;
-                const y = centerY + radius * Math.sin(radian) - 20;
+                const angle = (index * 360 / letters.length) - 90;
+                const radians = angle * Math.PI / 180;
+                const x = (ROSCO_SIZE / 2) + LETTER_RADIUS * Math.cos(radians) - (LETTER_SIZE / 2);
+                const y = (ROSCO_SIZE / 2) + LETTER_RADIUS * Math.sin(radians) - (LETTER_SIZE / 2);
 
-                const letterDiv = document.createElement('div');
-                letterDiv.className = 'letter available';
-                letterDiv.id = `letter-${letter}`;
-                letterDiv.textContent = letter;
-                letterDiv.style.left = x + 'px';
-                letterDiv.style.top = y + 'px';
-                letterDiv.onclick = () => selectLetter(index);
+                const letterEl = document.createElement("div");
+                letterEl.id = `letter-${letter}`;
+                letterEl.className = "letter available";
+                letterEl.textContent = letter;
+                letterEl.style.left = `${x}px`;
+                letterEl.style.top = `${y}px`;
+                letterEl.addEventListener("click", () => {
+                    if (!gameStarted || gameFinished) {
+                        return;
+                    }
 
-                circle.appendChild(letterDiv);
+                    if (letterStates[letter] === "available" || letterStates[letter] === "skipped") {
+                        currentLetterIndex = index;
+                        updateCurrentLetter();
+                    }
+                });
+
+                letterCircle.appendChild(letterEl);
             });
         }
 
-        function selectLetter(index) {
-            if (!gameStarted) return;
-            currentLetterIndex = index;
-            updateCurrentLetter();
+        function updateTheme() {
+            const [start, end] = themes[themeSelect.value] || themes.night;
+            body.style.background = `radial-gradient(circle at top, rgba(250, 204, 21, 0.14), transparent 28%), linear-gradient(145deg, ${start}, ${end})`;
         }
 
-        function updateCurrentLetter() {
-            // Remove current class from all letters
-            letters.forEach(letter => {
-                const element = document.getElementById(`letter-${letter}`);
-                element.classList.remove('current');
-            });
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-            // Add current class to current letter
-            const currentLetter = letters[currentLetterIndex];
-            const element = document.getElementById(`letter-${currentLetter}`);
-            
-            if (letterStates[currentLetter] === 'available') {
-                element.classList.add('current');
-                
-                // Update letter and definition display
-                const wordData = words[currentLetter];
-                document.getElementById('currentWord').textContent = `Lletra ${currentLetter}`;
-                document.getElementById('definition').textContent = wordData.definition;
-                document.getElementById('answerInput').value = '';
-                document.getElementById('feedback').textContent = '';
-                document.getElementById('answerInput').focus();
+            if (timeLeft <= 30 && timeLeft > 0) {
+                timerEl.classList.add("warning");
             } else {
-                // Skip to next available letter
-                nextAvailableLetter();
+                timerEl.classList.remove("warning");
             }
-        }
-
-        function nextAvailableLetter() {
-            let attempts = 0;
-            do {
-                currentLetterIndex = (currentLetterIndex + 1) % 26;
-                attempts++;
-            } while (letterStates[letters[currentLetterIndex]] !== 'available' && attempts < 26);
-
-            if (attempts < 26) {
-                updateCurrentLetter();
-            } else {
-                // Game finished
-                endGame();
-            }
-        }
-
-        function checkAnswer() {
-            if (!gameStarted) return;
-            
-            const userAnswer = document.getElementById('answerInput').value.trim();
-            const currentLetter = letters[currentLetterIndex];
-            const correctAnswer = words[currentLetter].word;
-            const feedback = document.getElementById('feedback');
-            
-            if (userAnswer === '') {
-                feedback.textContent = 'Escriu una resposta!';
-                feedback.className = 'feedback';
-                return;
-            }
-            
-            // Check if answer is correct (case insensitive)
-            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
-                // Correct answer
-                letterStates[currentLetter] = 'correct';
-                const element = document.getElementById(`letter-${currentLetter}`);
-                element.className = 'letter correct';
-                
-                correctCount++;
-                feedback.textContent = `✅ Correcte! Era "${correctAnswer}"`;
-                feedback.className = 'feedback correct';
-                
-                setTimeout(() => {
-                    updateStats();
-                    nextAvailableLetter();
-                }, 1500);
-            } else {
-                // Incorrect answer
-                letterStates[currentLetter] = 'incorrect';
-                const element = document.getElementById(`letter-${currentLetter}`);
-                element.className = 'letter incorrect';
-                
-                incorrectCount++;
-                feedback.textContent = `❌ Incorrecte! Era "${correctAnswer}"`;
-                feedback.className = 'feedback incorrect';
-                
-                setTimeout(() => {
-                    updateStats();
-                    nextAvailableLetter();
-                }, 2000);
-            }
-        }
-
-        function skipWord() {
-            if (!gameStarted) return;
-            
-            const currentLetter = letters[currentLetterIndex];
-            const correctAnswer = words[currentLetter].word;
-            letterStates[currentLetter] = 'skipped';
-            const element = document.getElementById(`letter-${currentLetter}`);
-            element.className = 'letter skipped';
-            
-            skippedCount++;
-            const feedback = document.getElementById('feedback');
-            feedback.textContent = `⏭️ Passaparaula! Era "${correctAnswer}"`;
-            feedback.className = 'feedback';
-            
-            setTimeout(() => {
-                updateStats();
-                nextAvailableLetter();
-            }, 1500);
         }
 
         function updateStats() {
-            document.getElementById('correctCount').textContent = correctCount;
-            document.getElementById('incorrectCount').textContent = incorrectCount;
-            document.getElementById('skippedCount').textContent = skippedCount;
-            
-            const progress = ((correctCount + incorrectCount + skippedCount) / 26) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
+            correctCountEl.textContent = correctCount;
+            incorrectCountEl.textContent = incorrectCount;
+            skippedCountEl.textContent = skippedCount;
+
+            const resolved = correctCount + incorrectCount;
+            const totalManaged = resolved + skippedCount;
+            progressFill.style.width = `${(totalManaged / letters.length) * 100}%`;
         }
 
-        function endGame() {
-            gameStarted = false;
-            pauseTimer();
-            document.getElementById('answerInput').disabled = true;
-            document.getElementById('currentWord').textContent = '🎉 Joc Acabat! 🎉';
-            document.getElementById('definition').textContent = `Has completat ${correctCount} paraules correctament, ${incorrectCount} incorrectament i n'has passat ${skippedCount}.`;
-        }
-
-        function startTimer() {
-            if (!isRunning) {
-                gameStarted = true;
-                isRunning = true;
-                document.getElementById('answerInput').disabled = false;
-                updateCurrentLetter();
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    if (timeLeft <= 0) {
-                        timeUp();
-                    }
-                }, 1000);
+        function updateLetterClass(letter) {
+            const letterEl = document.getElementById(`letter-${letter}`);
+            if (!letterEl) {
+                return;
             }
+
+            letterEl.classList.remove("available", "current", "correct", "skipped", "incorrect");
+            letterEl.classList.add(letterStates[letter]);
         }
 
-        function pauseTimer() {
-            isRunning = false;
+        function clearCurrentHighlight() {
+            document.querySelectorAll(".letter.current").forEach((element) => {
+                element.classList.remove("current");
+            });
+        }
+
+        function findNextPlayableIndex(startIndex) {
+            for (let offset = 0; offset < letters.length; offset++) {
+                const index = (startIndex + offset) % letters.length;
+                const state = letterStates[letters[index]];
+                if (state === "available") {
+                    return index;
+                }
+            }
+
+            for (let offset = 0; offset < letters.length; offset++) {
+                const index = (startIndex + offset) % letters.length;
+                if (letterStates[letters[index]] === "skipped") {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        function updateCurrentLetter() {
+            clearCurrentHighlight();
+
+            const currentLetter = letters[currentLetterIndex];
+            const currentState = letterStates[currentLetter];
+
+            if (currentState !== "available" && currentState !== "skipped") {
+                const nextIndex = findNextPlayableIndex((currentLetterIndex + 1) % letters.length);
+                if (nextIndex === -1) {
+                    finishGame("Joc acabat", `Has completat el rosco amb ${correctCount} respostes correctes i ${incorrectCount} incorrectes.`);
+                    return;
+                }
+                currentLetterIndex = nextIndex;
+            }
+
+            const activeLetter = letters[currentLetterIndex];
+            const activeLetterEl = document.getElementById(`letter-${activeLetter}`);
+            activeLetterEl.classList.add("current");
+            currentWordEl.textContent = `Lletra ${activeLetter}`;
+            definitionEl.textContent = words[activeLetter].clue;
+            setAnswerButtons(true);
+        }
+
+        function setAnswerButtons(enabled) {
+            correctBtn.disabled = !enabled;
+            skipBtn.disabled = !enabled;
+            incorrectBtn.disabled = !enabled;
+        }
+
+        function stopTimer() {
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
         }
 
-        function resetTimer() {
-            pauseTimer();
-            timeLeft = selectedTime * 60;
+        function finishGame(title, message) {
             gameStarted = false;
+            gameFinished = true;
+            stopTimer();
+            setAnswerButtons(false);
+            clearCurrentHighlight();
+            currentWordEl.textContent = title;
+            definitionEl.textContent = message;
+        }
+
+        function goToNextLetter() {
+            const nextIndex = findNextPlayableIndex((currentLetterIndex + 1) % letters.length);
+
+            if (nextIndex === -1) {
+                finishGame("Joc acabat", `Has completat el rosco amb ${correctCount} respostes correctes, ${incorrectCount} incorrectes i ${skippedCount} passades.`);
+                return;
+            }
+
+            currentLetterIndex = nextIndex;
+            updateCurrentLetter();
+        }
+
+        function markCorrect() {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            const letter = letters[currentLetterIndex];
+            if (letterStates[letter] === "skipped") {
+                skippedCount = Math.max(0, skippedCount - 1);
+            }
+
+            letterStates[letter] = "correct";
+            correctCount += 1;
+            updateLetterClass(letter);
+            updateStats();
+            goToNextLetter();
+        }
+
+        function markIncorrect() {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            const letter = letters[currentLetterIndex];
+            if (letterStates[letter] === "skipped") {
+                skippedCount = Math.max(0, skippedCount - 1);
+            }
+
+            letterStates[letter] = "incorrect";
+            incorrectCount += 1;
+            updateLetterClass(letter);
+            updateStats();
+            goToNextLetter();
+        }
+
+        function skipWord() {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            const letter = letters[currentLetterIndex];
+            if (letterStates[letter] !== "skipped") {
+                letterStates[letter] = "skipped";
+                skippedCount += 1;
+                updateLetterClass(letter);
+                updateStats();
+            }
+
+            goToNextLetter();
+        }
+
+        function startGame() {
+            if (gameFinished) {
+                return;
+            }
+
+            if (!gameStarted) {
+                gameStarted = true;
+                currentLetterIndex = findNextPlayableIndex(currentLetterIndex);
+                updateCurrentLetter();
+            }
+
+            if (!timerInterval) {
+                timerInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    if (timeLeft < 0) {
+                        timeLeft = 0;
+                    }
+                    updateTimerDisplay();
+
+                    if (timeLeft === 0) {
+                        finishGame("Temps acabat", `Has aconseguit ${correctCount} respostes correctes abans que s'acabés el temps.`);
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseGame() {
+            stopTimer();
+            gameStarted = false;
+            setAnswerButtons(false);
+
+            if (!gameFinished) {
+                currentWordEl.textContent = "Joc en pausa";
+                definitionEl.textContent = "Prem «Començar» per continuar la partida des del mateix punt.";
+            }
+        }
+
+        function resetGame() {
+            stopTimer();
+            selectedMinutes = parseInt(timeSelect.value, 10);
+            timeLeft = selectedMinutes * 60;
+            gameStarted = false;
+            gameFinished = false;
             currentLetterIndex = 0;
             correctCount = 0;
             incorrectCount = 0;
             skippedCount = 0;
-            
-            // Reset all letter states
-            letters.forEach(letter => {
-                letterStates[letter] = 'available';
-                const element = document.getElementById(`letter-${letter}`);
-                element.className = 'letter available';
-            });
-            
-            document.getElementById('answerInput').disabled = true;
-            document.getElementById('answerInput').value = '';
-            document.getElementById('feedback').textContent = '';
-            
+
+            createInitialStates();
+            createLetterCircle();
             updateTimerDisplay();
             updateStats();
-            document.getElementById('currentWord').textContent = 'Clica "Començar" per iniciar!';
-            document.getElementById('definition').textContent = 'Preparat per jugar al Passaparaula de Ciències?';
+            setAnswerButtons(false);
+
+            currentWordEl.textContent = "Clica «Començar» per iniciar";
+            definitionEl.textContent = "El docent o l'alumnat poden marcar cada resposta com a correcta, incorrecta o passada sense escriure-la.";
         }
 
-        function timeUp() {
-            pauseTimer();
-            gameStarted = false;
-            document.getElementById('answerInput').disabled = true;
-            document.getElementById('currentWord').textContent = '⏰ Temps Acabat! ⏰';
-            document.getElementById('definition').textContent = `Has aconseguit ${correctCount} paraules correctes en ${selectedTime} minuts!`;
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            document.getElementById('timer').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function updateDisplay() {
-            updateTimerDisplay();
-        }
-
-        function changeTime() {
-            selectedTime = parseInt(document.getElementById('timeSelect').value);
-            timeLeft = selectedTime * 60;
-            updateTimerDisplay();
-        }
-
-        function changeTheme() {
-            const theme = document.getElementById('theme').value;
-            const body = document.body;
-            
-            const themes = {
-                'dark': 'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%)',
-                'blue': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                'purple': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                'green': 'linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)',
-                'sunset': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                'ocean': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            };
-            
-            body.style.background = themes[theme];
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (!gameStarted) return;
-            
-            if (e.code === 'Space') {
-                e.preventDefault();
-                skipWord();
-            } else if (e.code === 'Enter') {
-                e.preventDefault();
-                checkAnswer();
+        themeSelect.addEventListener("change", updateTheme);
+        timeSelect.addEventListener("change", () => {
+            if (!timerInterval && !gameStarted) {
+                selectedMinutes = parseInt(timeSelect.value, 10);
+                timeLeft = selectedMinutes * 60;
+                updateTimerDisplay();
             }
         });
 
-        // Initialize the game
-        initializeGame();
+        startBtn.addEventListener("click", startGame);
+        pauseBtn.addEventListener("click", pauseGame);
+        resetBtn.addEventListener("click", resetGame);
+        correctBtn.addEventListener("click", markCorrect);
+        skipBtn.addEventListener("click", skipWord);
+        incorrectBtn.addEventListener("click", markIncorrect);
+
+        document.addEventListener("keydown", (event) => {
+            if (!gameStarted || gameFinished) {
+                return;
+            }
+
+            if (event.code === "Enter") {
+                event.preventDefault();
+                markCorrect();
+            } else if (event.code === "Space") {
+                event.preventDefault();
+                skipWord();
+            } else if (event.code === "KeyX") {
+                event.preventDefault();
+                markIncorrect();
+            }
+        });
+
+        resetGame();
+        updateTheme();
     </script>
 </body>
 </html>
