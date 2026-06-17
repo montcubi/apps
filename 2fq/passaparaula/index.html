@@ -78,6 +78,994 @@
       padding: 10px 14px;
     }
 
+    input[type="number"] {
+      width: 110px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      font-weight: bold;
+      background: var(--blau);
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      filter: brightness(0.95);
+      transform: translateY(-1px);
+    }
+
+    .btn-green {
+      background: var(--verd);
+    }
+
+    .btn-red {
+      background: var(--vermell);
+    }
+
+    .btn-gray {
+      background: var(--gris);
+    }
+
+    .btn-yellow {
+      background: #ca8a04;
+    }
+
+    .btn-orange {
+      background: #ea580c;
+    }
+
+    .team-card {
+      border: 4px solid transparent;
+    }
+
+    .active-team {
+      border-color: var(--groc);
+      box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.35);
+    }
+
+    .team-card h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    .score {
+      font-size: 2.4rem;
+      text-align: center;
+      font-weight: bold;
+      color: var(--blau);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .time {
+      color: #b45309;
+      font-size: 1.2rem;
+    }
+
+    .game {
+      text-align: center;
+    }
+
+    .letter-big {
+      font-size: 5rem;
+      font-weight: bold;
+      color: var(--blau);
+      margin: 10px 0;
+    }
+
+    .hint {
+      background: #eff6ff;
+      border-left: 6px solid var(--blau);
+      padding: 18px;
+      border-radius: 12px;
+      font-size: 1.3rem;
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.4;
+    }
+
+    .answer-box {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .answer-box input {
+      width: min(420px, 100%);
+      font-size: 1.2rem;
+    }
+
+    .buttons {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .rosco {
+      position: relative;
+      width: 430px;
+      height: 430px;
+      max-width: 100%;
+      margin: 20px auto 0;
+    }
+
+    .letter {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      margin: -19px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      color: white;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .pending {
+      background: var(--blau);
+    }
+
+    .correct {
+      background: var(--verd);
+    }
+
+    .wrong {
+      background: var(--vermell);
+    }
+
+    .current {
+      outline: 5px solid var(--groc);
+    }
+
+    .message {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: #fff7ed;
+      border: 2px solid #fed7aa;
+      padding: 14px;
+      border-radius: 14px;
+      min-height: 54px;
+    }
+
+    @media (max-width: 950px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .rosco {
+        width: 330px;
+        height: 330px;
+      }
+
+      .letter {
+        width: 32px;
+        height: 32px;
+        margin: -16px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Passaparaula FQ — 2n ESO</h1>
+    <p>Magnituds · Factors de conversió · Matèria · Cinemàtica · Mètode científic · Separació de mescles</p>
+  </header>
+
+  <main>
+    <section class="panel controls">
+      <label for="roundSelect"><strong>Ronda:</strong></label>
+
+      <select id="roundSelect">
+        <option value="semifinal1">Semifinal 1</option>
+        <option value="semifinal2">Semifinal 2</option>
+        <option value="final">Final</option>
+      </select>
+
+      <label for="timeInput"><strong>Temps per equip:</strong></label>
+      <input id="timeInput" type="number" min="30" max="600" step="10" value="120" />
+      <span>segons</span>
+
+      <button onclick="startGame()">Començar ronda</button>
+      <button class="btn-gray" onclick="resetGame()">Reiniciar</button>
+    </section>
+
+    <section id="teamA" class="panel team-card">
+      <h2>Equip A</h2>
+      <div class="score" id="scoreA">0</div>
+
+      <div class="stats">
+        <div class="stat">Encerts<br><span id="correctA">0</span></div>
+        <div class="stat">Errors<br><span id="wrongA">0</span></div>
+        <div class="stat">Pendents<br><span id="pendingA">26</span></div>
+        <div class="stat">Torn<br><span id="turnA">—</span></div>
+        <div class="stat">Temps<br><span class="time" id="timeA">120</span>s</div>
+      </div>
+
+      <div class="rosco" id="roscoA"></div>
+    </section>
+
+    <section class="panel game">
+      <h2 id="roundTitle">Tria una ronda i comença</h2>
+
+      <div class="letter-big" id="currentLetter">?</div>
+
+      <div class="hint" id="hint">
+        Prem “Començar ronda”.
+      </div>
+
+      <div class="answer-box">
+        <input id="answerInput" type="text" placeholder="Escriu la resposta..." autocomplete="off" />
+      </div>
+
+      <div class="buttons">
+        <button class="btn-green" onclick="checkAnswer()">Comprovar</button>
+        <button class="btn-yellow" onclick="passWord()">Passaparaula</button>
+        <button class="btn-orange" onclick="showAnswer()">Mostrar resposta</button>
+        <button class="btn-green" onclick="manualCorrect()">Correcta</button>
+        <button class="btn-red" onclick="manualWrong()">Incorrecta</button>
+      </div>
+    </section>
+
+    <section id="teamB" class="panel team-card">
+      <h2>Equip B</h2>
+      <div class="score" id="scoreB">0</div>
+
+      <div class="stats">
+        <div class="stat">Encerts<br><span id="correctB">0</span></div>
+        <div class="stat">Errors<br><span id="wrongB">0</span></div>
+        <div class="stat">Pendents<br><span id="pendingB">26</span></div>
+        <div class="stat">Torn<br><span id="turnB">—</span></div>
+        <div class="stat">Temps<br><span class="time" id="timeB">120</span>s</div>
+      </div>
+
+      <div class="rosco" id="roscoB"></div>
+    </section>
+
+    <section class="message" id="message">
+      Joc preparat.
+    </section>
+  </main>
+
+  <script>
+    const dades = {
+      semifinal1: {
+        nom: "Semifinal 1",
+
+        A: [
+          ["A", "comença", "Magnitud que mesura el canvi de velocitat en el temps.", "acceleració", ["acceleracio"]],
+          ["B", "comença", "Instrument per mesurar masses.", "balança", ["balanca"]],
+          ["C", "comença", "Energia que passa d’un cos calent a un de fred.", "calor", []],
+          ["D", "comença", "Mètode per separar líquids immiscibles o un sòlid sedimentat.", "decantació", ["decantacio"]],
+          ["E", "comença", "Pas lent d’un líquid a gas des de la superfície.", "evaporació", ["evaporacio"]],
+          ["F", "comença", "Mètode per separar un sòlid d’un líquid amb un filtre.", "filtració", ["filtracio"]],
+          ["G", "comença", "Estat de la matèria sense forma ni volum fixos.", "gas", []],
+          ["H", "comença", "Possible explicació que es comprova amb un experiment.", "hipòtesi", ["hipotesi"]],
+          ["I", "comença", "Substància que canvia de color segons el medi.", "indicador", []],
+          ["J", "conté", "Unitat d’energia del sistema internacional.", "joule", ["j"]],
+          ["K", "conté", "Unitat de temperatura absoluta.", "kelvin", ["k"]],
+          ["L", "comença", "Unitat habitual de volum.", "litre", []],
+          ["M", "comença", "Propietat que es pot mesurar.", "magnitud", []],
+          ["N", "comença", "Unitat de força.", "newton", []],
+          ["O", "comença", "Primera fase del mètode científic: mirar i recollir informació.", "observació", ["observacio"]],
+          ["P", "comença", "Recipient graduat per mesurar volums de líquids.", "proveta", []],
+          ["Q", "comença", "Ciència que estudia la matèria i els seus canvis.", "química", ["quimica"]],
+          ["R", "comença", "Moviment que segueix una línia recta.", "rectilini", []],
+          ["S", "comença", "Pas directe de sòlid a gas.", "sublimació", ["sublimacio"]],
+          ["T", "comença", "Magnitud relacionada amb l’agitació de les partícules.", "temperatura", []],
+          ["U", "comença", "Referència que acompanya sempre una mesura.", "unitat", []],
+          ["V", "comença", "Espai recorregut per unitat de temps.", "velocitat", []],
+          ["W", "conté", "Unitat de potència.", "watt", ["w"]],
+          ["X", "conté", "Combinació de substàncies que no reaccionen químicament.", "mescla", []],
+          ["Y", "conté", "Conté el dígraf NY. Material metàl·lic; també és un element químic.", "estany", []],
+          ["Z", "comença", "Element químic de símbol Zn.", "zinc", []]
+        ],
+
+        B: [
+          ["A", "comença", "Partícula molt petita que forma la matèria.", "àtom", ["atom"]],
+          ["B", "comença", "Material de laboratori que permet mesurar volums amb precisió.", "bureta", []],
+          ["C", "comença", "Part de la física que estudia el moviment.", "cinemàtica", ["cinematica"]],
+          ["D", "comença", "Relació entre massa i volum.", "densitat", []],
+          ["E", "comença", "Pas de líquid a gas quan es formen bombolles.", "ebullició", ["ebullicio"]],
+          ["F", "comença", "Pas de sòlid a líquid.", "fusió", ["fusio"]],
+          ["G", "comença", "Representació de dades amb eixos.", "gràfica", ["grafica"]],
+          ["H", "comença", "Mescla en què es poden distingir els components.", "heterogènia", ["heterogenia"]],
+          ["I", "comença", "Separació d’una mescla amb un imant.", "imantació", ["imantacio"]],
+          ["J", "conté", "Cos o cosa que estudiem en un moviment.", "objecte", []],
+          ["K", "conté", "Prefix que significa mil.", "kilo", []],
+          ["L", "comença", "Estat de la matèria amb volum fix i forma variable.", "líquid", ["liquid"]],
+          ["M", "comença", "Quantitat de matèria d’un cos.", "massa", []],
+          ["N", "comença", "Partícula de l’àtom que no té càrrega elèctrica.", "neutró", ["neutro"]],
+          ["O", "comença", "Gas necessari per a la respiració i moltes combustions.", "oxigen", []],
+          ["P", "comença", "Petita porció de matèria segons la teoria cineticomolecular.", "partícula", ["particula"]],
+          ["Q", "comença", "Unitat de massa del sistema internacional.", "quilogram", []],
+          ["R", "comença", "Estat d’un cos que no canvia de posició.", "repòs", ["repos"]],
+          ["S", "comença", "Estat de la matèria amb forma i volum fixos.", "sòlid", ["solid"]],
+          ["T", "comença", "Camí que segueix un mòbil.", "trajectòria", ["trajectoria"]],
+          ["U", "conté", "Mescla heterogènia amb partícules sòlides disperses en un líquid.", "suspensió", ["suspensio"]],
+          ["V", "comença", "Espai que ocupa un cos.", "volum", []],
+          ["W", "conté", "Recurs digital on es pot consultar informació científica.", "web", []],
+          ["X", "conté", "Prova que es fa per comprovar una hipòtesi.", "experiment", []],
+          ["Y", "conté", "Conté el dígraf NY. Planificació d’un experiment o d’una investigació.", "disseny", []],
+          ["Z", "comença", "Regió o part d’un espai que s’estudia.", "zona", []]
+        ]
+      },
+
+      semifinal2: {
+        nom: "Semifinal 2",
+
+        A: [
+          ["A", "comença", "Substància amb pH menor que 7.", "àcid", ["acid"]],
+          ["B", "comença", "Instrument per mesurar la pressió atmosfèrica.", "baròmetre", ["barometre"]],
+          ["C", "comença", "Mètode de separació que forma cristalls.", "cristal·lització", ["cristalització", "cristalitzacio"]],
+          ["D", "comença", "Component que dissol el solut.", "dissolvent", []],
+          ["E", "comença", "Capacitat de produir canvis.", "energia", []],
+          ["F", "comença", "Magnitud que pot canviar el moviment d’un cos.", "força", ["forca"]],
+          ["G", "comença", "Acció que fa caure o sedimentar algunes partícules.", "gravetat", []],
+          ["H", "comença", "Quantitat de vapor d’aigua a l’aire.", "humitat", []],
+          ["I", "comença", "Conclusió provisional a partir d’observacions.", "inferència", ["inferencia"]],
+          ["J", "conté", "Finalitat concreta d’una investigació.", "objectiu", []],
+          ["K", "conté", "Prefix que indica mil vegades una unitat.", "kilo", []],
+          ["L", "comença", "Distància entre dos punts.", "longitud", []],
+          ["M", "comença", "Agrupació d’àtoms units químicament.", "molècula", ["molecula"]],
+          ["N", "comença", "Valor que expressa una quantitat.", "nombre", []],
+          ["O", "comença", "Propietat que podem percebre amb el nas.", "olor", []],
+          ["P", "comença", "Unitat de pressió del sistema internacional.", "pascal", []],
+          ["Q", "comença", "Pregunta científica que volem investigar.", "qüestió", ["questio"]],
+          ["R", "comença", "Substància que participa en una reacció.", "reactiu", []],
+          ["S", "comença", "Separació d’un sòlid que cau al fons d’un líquid.", "sedimentació", ["sedimentacio"]],
+          ["T", "comença", "Instrument per mesurar temperatura.", "termòmetre", ["termometre"]],
+          ["U", "comença", "Moviment amb velocitat constant.", "uniforme", []],
+          ["V", "comença", "Pas d’un líquid a gas.", "vaporització", ["vaporitzacio"]],
+          ["W", "conté", "Connexió sense fils usada per cercar informació.", "wifi", []],
+          ["X", "conté", "Reacció relacionada amb la combinació amb oxigen.", "oxidació", ["oxidacio"]],
+          ["Y", "conté", "Conté el dígraf NY. Informació que es pot detectar o mesurar.", "senyal", []],
+          ["Z", "comença", "Valor nul d’una magnitud.", "zero", []]
+        ],
+
+        B: [
+          ["A", "comença", "Unitat de pressió equivalent aproximadament a la pressió de l’aire al nivell del mar.", "atmosfera", []],
+          ["B", "comença", "Núvol baix format per petites gotes d’aigua.", "boira", []],
+          ["C", "comença", "Mètode de separació basat en la diferent velocitat dels components.", "cromatografia", []],
+          ["D", "comença", "Mescla homogènia formada per solut i dissolvent.", "dissolució", ["dissolucio"]],
+          ["E", "comença", "Substància pura formada per un sol tipus d’àtom.", "element", []],
+          ["F", "comença", "Mètode que separa materials segons si suren o s’enfonsen.", "flotació", ["flotacio"]],
+          ["G", "comença", "Partícules molt separades segons la teoria cineticomolecular.", "gasos", []],
+          ["H", "comença", "Mescla en què no es distingeixen els components.", "homogènia", ["homogenia"]],
+          ["I", "comença", "Que no es dissol en un dissolvent.", "insoluble", []],
+          ["J", "conté", "Camí o recorregut que fa un mòbil.", "trajecte", []],
+          ["K", "conté", "Unitat de temperatura del sistema internacional.", "kelvin", ["k"]],
+          ["L", "comença", "Espai on es fan experiments científics.", "laboratori", []],
+          ["M", "comença", "Canvi de posició respecte d’un punt de referència.", "moviment", []],
+          ["N", "comença", "Part central d’un àtom.", "nucli", []],
+          ["O", "comença", "Compost format per oxigen i un altre element.", "òxid", ["oxid"]],
+          ["P", "comença", "Magnitud relacionada amb la força exercida sobre una superfície.", "pressió", ["pressio"]],
+          ["Q", "comença", "Relatiu a quantitats i mesures.", "quantitatiu", []],
+          ["R", "comença", "Material que queda després d’una separació o procés.", "residu", []],
+          ["S", "comença", "Component que es dissol en una dissolució.", "solut", []],
+          ["T", "comença", "Magnitud que mesura la durada d’un fenomen.", "temps", []],
+          ["U", "conté", "Conjunt d’unitats usades per mesurar.", "mesura", []],
+          ["V", "comença", "Magnitud que pot canviar en un experiment.", "variable", []],
+          ["W", "conté", "Unitat de potència.", "watt", ["w"]],
+          ["X", "conté", "Línia de referència d’una gràfica.", "eix", []],
+          ["Y", "conté", "Conté el dígraf NY. Unitat de temps de 365 dies aproximadament.", "any", []],
+          ["Z", "comença", "Element metàl·lic de símbol Zn.", "zinc", []]
+        ]
+      },
+
+      final: {
+        nom: "Final",
+
+        A: [
+          ["A", "comença", "Estudi de dades per obtenir informació.", "anàlisi", ["analisi"]],
+          ["B", "comença", "Substància química comuna que pot reaccionar amb àcids.", "bicarbonat", []],
+          ["C", "comença", "Pas de gas a líquid.", "condensació", ["condensacio"]],
+          ["D", "comença", "Canvi de posició entre el punt inicial i el final.", "desplaçament", ["desplacament"]],
+          ["E", "comença", "Línia horitzontal o vertical en una gràfica.", "eix", []],
+          ["F", "comença", "Substància que pot fluir, com líquids i gasos.", "fluid", []],
+          ["G", "comença", "Petita quantitat de líquid de forma arrodonida.", "gota", []],
+          ["H", "comença", "Element químic de símbol H.", "hidrogen", []],
+          ["I", "comença", "Procés per respondre una pregunta científica.", "investigació", ["investigacio"]],
+          ["J", "conté", "Unitat d’energia.", "joule", ["j"]],
+          ["K", "conté", "Prefix que indica mil vegades una unitat.", "kilo", []],
+          ["L", "comença", "Distància entre dos punts.", "longitud", []],
+          ["M", "comença", "Tot allò que té massa i ocupa volum.", "matèria", ["materia"]],
+          ["N", "conté", "Conté el dígraf NY. Unitat de temps de 365 dies aproximadament.", "any", []],
+          ["O", "comença", "Propietat d’un material que no deixa passar la llum.", "opacitat", []],
+          ["P", "comença", "Instrument per agafar petits volums de líquid.", "pipeta", []],
+          ["Q", "comença", "Característica que descriu com és una substància o dada.", "qualitat", []],
+          ["R", "comença", "Força total que resumeix diverses forces.", "resultant", []],
+          ["S", "comença", "Nom comú del clorur de sodi.", "sal", []],
+          ["T", "comença", "Explicació científica que ajuda a entendre fenòmens.", "teoria", []],
+          ["U", "comença", "Conjunt de tot el que existeix.", "univers", []],
+          ["V", "comença", "Resistència d’un líquid a fluir.", "viscositat", []],
+          ["W", "conté", "Unitat de potència.", "watt", ["w"]],
+          ["X", "comença", "Instrument de laboratori per transferir líquids.", "xeringa", []],
+          ["Y", "conté", "Conté el dígraf NY. Unitat de temps de 365 dies aproximadament.", "any", []],
+          ["Z", "comença", "Element químic de símbol Zn.", "zinc", []]
+        ],
+
+        B: [
+          ["A", "comença", "Substància molt comuna formada per hidrogen i oxigen.", "aigua", []],
+          ["B", "comença", "Instrument que indica el nord.", "brúixola", ["bruixola"]],
+          ["C", "comença", "Element químic que forma part del sulfat de coure, un compost blau cristal·lí.", "coure", []],
+          ["D", "comença", "Moviment de partícules des d’on n’hi ha més cap on n’hi ha menys.", "difusió", ["difusio"]],
+          ["E", "comença", "Forma en què es presenta la matèria: sòlid, líquid o gas.", "estat", []],
+          ["F", "comença", "Fet observable que pot estudiar la ciència.", "fenomen", []],
+          ["G", "comença", "Atracció que exerceix la Terra sobre els cossos.", "gravetat", []],
+          ["H", "comença", "Mescla en què no es distingeixen els components.", "homogènia", ["homogenia"]],
+          ["I", "comença", "Tendència d’un cos a mantenir el seu estat de moviment.", "inèrcia", ["inercia"]],
+          ["J", "conté", "Cos que es pot estudiar en física.", "objecte", []],
+          ["K", "conté", "Unitat de temperatura absoluta.", "kelvin", ["k"]],
+          ["L", "comença", "Espai on es fan experiments científics.", "laboratori", []],
+          ["M", "comença", "Fenomen relacionat amb els imants i l’atracció d’alguns metalls.", "magnetisme", []],
+          ["N", "comença", "Conjunt visible de gotes d’aigua a l’atmosfera.", "núvol", ["nuvol"]],
+          ["O", "comença", "Moviment que es repeteix al voltant d’una posició.", "oscil·lació", ["oscilacio"]],
+          ["P", "comença", "Força amb què la Terra atrau un cos.", "pes", []],
+          ["Q", "comença", "Unitat de longitud igual a mil metres.", "quilòmetre", ["quilometre"]],
+          ["R", "comença", "Instrument per mesurar longituds petites.", "regla", []],
+          ["S", "comença", "Procés per obtenir els components d’una mescla.", "separació", ["separacio"]],
+          ["T", "comença", "Representació ordenada de dades en files i columnes.", "taula", []],
+          ["U", "comença", "Referència necessària per expressar una mesura.", "unitat", []],
+          ["V", "comença", "Espai ocupat per un cos.", "volum", []],
+          ["W", "conté", "Unitat de força.", "newton", []],
+          ["X", "conté", "Gas present a l’aire necessari per respirar.", "oxigen", []],
+          ["Y", "conté", "Conté el dígraf NY. Preparació d’un experiment o d’una solució.", "disseny", []],
+          ["Z", "comença", "Valor que indica absència de quantitat.", "zero", []]
+        ]
+      }
+    };
+
+    let estat = {
+      ronda: "semifinal1",
+      torn: "A",
+      tempsInicial: 120,
+      interval: null,
+      equips: {
+        A: {
+          preguntes: [],
+          index: 0,
+          encerts: 0,
+          errors: 0,
+          temps: 120
+        },
+        B: {
+          preguntes: [],
+          index: 0,
+          encerts: 0,
+          errors: 0,
+          temps: 120
+        }
+      },
+      comencat: false
+    };
+
+    function normalitza(text) {
+      return String(text)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[·'’.,;:!?¿¡()]/g, "")
+        .trim();
+    }
+
+    function creaPreguntes(llista) {
+      return llista.map(item => ({
+        lletra: item[0],
+        tipus: item[1],
+        pista: item[2],
+        resposta: item[3],
+        alternatives: item[4] || [],
+        estat: "pending"
+      }));
+    }
+
+    function llegirTempsInicial() {
+      const input = document.getElementById("timeInput");
+      let valor = parseInt(input.value, 10);
+
+      if (isNaN(valor) || valor < 30) {
+        valor = 30;
+      }
+
+      if (valor > 600) {
+        valor = 600;
+      }
+
+      input.value = valor;
+      return valor;
+    }
+
+    function startGame() {
+      const ronda = document.getElementById("roundSelect").value;
+      const tempsTriat = llegirTempsInicial();
+
+      if (estat.interval) {
+        clearInterval(estat.interval);
+      }
+
+      estat.ronda = ronda;
+      estat.torn = "A";
+      estat.tempsInicial = tempsTriat;
+      estat.comencat = true;
+
+      estat.equips.A = {
+        preguntes: creaPreguntes(dades[ronda].A),
+        index: 0,
+        encerts: 0,
+        errors: 0,
+        temps: tempsTriat
+      };
+
+      estat.equips.B = {
+        preguntes: creaPreguntes(dades[ronda].B),
+        index: 0,
+        encerts: 0,
+        errors: 0,
+        temps: tempsTriat
+      };
+
+      document.getElementById("roundTitle").textContent = dades[ronda].nom;
+      document.getElementById("message").textContent = "Comença l’Equip A.";
+      document.getElementById("answerInput").value = "";
+
+      render();
+      mostraPregunta();
+      iniciaCronometre();
+    }
+
+    function resetGame() {
+      startGame();
+    }
+
+    function actual() {
+      return estat.equips[estat.torn];
+    }
+
+    function preguntaActual() {
+      const equip = actual();
+      return equip.preguntes[equip.index];
+    }
+
+    function mouIndexAlSeguentPendent(equip) {
+      const pendents = equip.preguntes.filter(p => p.estat === "pending");
+
+      if (pendents.length === 0) return;
+
+      let intents = 0;
+
+      do {
+        equip.index = (equip.index + 1) % equip.preguntes.length;
+        intents++;
+      } while (
+        equip.preguntes[equip.index].estat !== "pending" &&
+        intents < equip.preguntes.length + 1
+      );
+    }
+
+    function seguentPreguntaMateixEquip() {
+      const equip = actual();
+      const pendents = equip.preguntes.filter(p => p.estat === "pending");
+
+      if (pendents.length === 0) {
+        canviaTorn();
+        return;
+      }
+
+      mouIndexAlSeguentPendent(equip);
+      mostraPregunta();
+    }
+
+    function canviaTorn() {
+      estat.torn = estat.torn === "A" ? "B" : "A";
+
+      if (partidaAcabada()) {
+        fiPartida();
+        return;
+      }
+
+      let equip = actual();
+      let pendents = equip.preguntes.filter(p => p.estat === "pending");
+
+      if (equip.temps <= 0 || pendents.length === 0) {
+        estat.torn = estat.torn === "A" ? "B" : "A";
+
+        if (partidaAcabada() || actual().temps <= 0) {
+          fiPartida();
+          return;
+        }
+      }
+
+      equip = actual();
+
+      if (equip.preguntes[equip.index].estat !== "pending") {
+        mouIndexAlSeguentPendent(equip);
+      }
+
+      document.getElementById("message").textContent = "Torn de l’Equip " + estat.torn + ".";
+      mostraPregunta();
+    }
+
+    function checkAnswer() {
+      if (!estat.comencat) return;
+
+      const p = preguntaActual();
+      const respostaUsuari = normalitza(document.getElementById("answerInput").value);
+      const correctes = [p.resposta, ...p.alternatives].map(normalitza);
+
+      if (correctes.includes(respostaUsuari)) {
+        p.estat = "correct";
+        actual().encerts++;
+
+        document.getElementById("message").textContent =
+          "Correcte! Continua l’Equip " + estat.torn + ".";
+
+        document.getElementById("answerInput").value = "";
+
+        render();
+        seguentPreguntaMateixEquip();
+      } else {
+        p.estat = "wrong";
+        actual().errors++;
+
+        document.getElementById("message").textContent =
+          "Incorrecte. Canvi de torn.";
+
+        document.getElementById("answerInput").value = "";
+
+        render();
+        canviaTorn();
+      }
+    }
+
+    function passWord() {
+      if (!estat.comencat) return;
+
+      const equip = actual();
+
+      mouIndexAlSeguentPendent(equip);
+
+      document.getElementById("message").textContent = "Passaparaula. Canvi de torn.";
+      document.getElementById("answerInput").value = "";
+
+      render();
+      canviaTorn();
+    }
+
+    function showAnswer() {
+      if (!estat.comencat) return;
+
+      const p = preguntaActual();
+
+      document.getElementById("message").textContent =
+        "Resposta correcta de la lletra " + p.lletra + ": " + p.resposta;
+    }
+
+    function manualCorrect() {
+      if (!estat.comencat) return;
+
+      const p = preguntaActual();
+
+      p.estat = "correct";
+      actual().encerts++;
+
+      document.getElementById("answerInput").value = "";
+      document.getElementById("message").textContent =
+        "Marcada com a correcta. Continua l’Equip " + estat.torn + ".";
+
+      render();
+      seguentPreguntaMateixEquip();
+    }
+
+    function manualWrong() {
+      if (!estat.comencat) return;
+
+      const p = preguntaActual();
+
+      p.estat = "wrong";
+      actual().errors++;
+
+      document.getElementById("answerInput").value = "";
+      document.getElementById("message").textContent =
+        "Incorrecte. Canvi de torn.";
+
+      render();
+      canviaTorn();
+    }
+
+    function mostraPregunta() {
+      if (partidaAcabada()) {
+        fiPartida();
+        return;
+      }
+
+      const equip = actual();
+
+      if (equip.temps <= 0) {
+        canviaTornPerTemps();
+        return;
+      }
+
+      const p = preguntaActual();
+
+      document.getElementById("currentLetter").textContent = p.lletra;
+
+      document.getElementById("hint").innerHTML =
+        "<strong>" + p.tipus.toUpperCase() + " per " + p.lletra + ":</strong><br>" + p.pista;
+
+      document.getElementById("answerInput").focus();
+
+      render();
+    }
+
+    function partidaAcabada() {
+      const pendA = estat.equips.A.preguntes.filter(p => p.estat === "pending").length;
+      const pendB = estat.equips.B.preguntes.filter(p => p.estat === "pending").length;
+
+      const sensePreguntes = pendA === 0 && pendB === 0;
+      const senseTemps = estat.equips.A.temps <= 0 && estat.equips.B.temps <= 0;
+
+      return estat.comencat && (sensePreguntes || senseTemps);
+    }
+
+    function iniciaCronometre() {
+      if (estat.interval) {
+        clearInterval(estat.interval);
+      }
+
+      estat.interval = setInterval(() => {
+        if (!estat.comencat) return;
+
+        const equip = actual();
+
+        if (equip.temps > 0) {
+          equip.temps--;
+          renderEquip(estat.torn);
+        }
+
+        if (equip.temps <= 0) {
+          document.getElementById("message").textContent =
+            "Temps esgotat per a l’Equip " + estat.torn + ". Canvi de torn.";
+
+          canviaTornPerTemps();
+        }
+      }, 1000);
+    }
+
+    function canviaTornPerTemps() {
+      if (partidaAcabada()) {
+        fiPartida();
+        return;
+      }
+
+      const altre = estat.torn === "A" ? "B" : "A";
+
+      if (estat.equips[altre].temps <= 0) {
+        fiPartida();
+        return;
+      }
+
+      estat.torn = altre;
+
+      const equip = actual();
+      const pendents = equip.preguntes.filter(p => p.estat === "pending");
+
+      if (pendents.length === 0) {
+        fiPartida();
+        return;
+      }
+
+      if (equip.preguntes[equip.index].estat !== "pending") {
+        mouIndexAlSeguentPendent(equip);
+      }
+
+      mostraPregunta();
+    }
+
+    function fiPartida() {
+      if (estat.interval) {
+        clearInterval(estat.interval);
+      }
+
+      estat.comencat = false;
+
+      const a = estat.equips.A.encerts;
+      const b = estat.equips.B.encerts;
+
+      let missatge = "Ronda acabada. ";
+
+      if (a > b) {
+        missatge += "Guanya l’Equip A!";
+      } else if (b > a) {
+        missatge += "Guanya l’Equip B!";
+      } else {
+        missatge += "Empat!";
+      }
+
+      document.getElementById("message").textContent = missatge;
+      document.getElementById("currentLetter").textContent = "FI";
+      document.getElementById("hint").textContent = missatge;
+
+      render();
+    }
+
+    function render() {
+      renderEquip("A");
+      renderEquip("B");
+      renderRosco("A");
+      renderRosco("B");
+    }
+
+    function renderEquip(id) {
+      const equip = estat.equips[id];
+      const pendents = equip.preguntes.filter(p => p.estat === "pending").length;
+
+      document.getElementById("score" + id).textContent = equip.encerts;
+      document.getElementById("correct" + id).textContent = equip.encerts;
+      document.getElementById("wrong" + id).textContent = equip.errors;
+      document.getElementById("pending" + id).textContent = pendents;
+      document.getElementById("turn" + id).textContent =
+        estat.comencat && estat.torn === id ? "Sí" : "No";
+      document.getElementById("time" + id).textContent = equip.temps;
+
+      document.getElementById("team" + id).classList.toggle(
+        "active-team",
+        estat.comencat && estat.torn === id
+      );
+    }
+
+    function renderRosco(id) {
+      const container = document.getElementById("rosco" + id);
+      container.innerHTML = "";
+
+      const preguntes = estat.equips[id].preguntes;
+      const total = preguntes.length;
+      const center = 50;
+      const radius = 43;
+
+      preguntes.forEach((p, i) => {
+        const angle = (2 * Math.PI * i / total) - Math.PI / 2;
+        const x = center + radius * Math.cos(angle);
+        const y = center + radius * Math.sin(angle);
+
+        const div = document.createElement("div");
+
+        div.className = "letter " + p.estat;
+
+        if (
+          estat.comencat &&
+          estat.torn === id &&
+          estat.equips[id].index === i &&
+          p.estat === "pending"
+        ) {
+          div.classList.add("current");
+        }
+
+        div.style.left = x + "%";
+        div.style.top = y + "%";
+        div.textContent = p.lletra;
+
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById("answerInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+
+    startGame();
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Passaparaula FQ 2n ESO</title>
+
+  <style>
+    :root {
+      --blau: #2563eb;
+      --verd: #16a34a;
+      --vermell: #dc2626;
+      --gris: #64748b;
+      --fons: #f8fafc;
+      --text: #0f172a;
+      --groc: #facc15;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--fons);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #0891b2);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      font-size: 1rem;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .controls {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    select,
+    button,
+    input {
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      padding: 10px 14px;
+    }
+
     button {
       cursor: pointer;
       border: none;
