@@ -97,6 +97,60 @@
             margin-bottom: 20px;
         }
         .btn-report { background: linear-gradient(135deg, #483D8B 0%, #6A5ACD 100%); color: white; }
+        [hidden] { display: none !important; }
+        .report-form-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+        .report-form-card {
+            width: min(100%, 420px);
+            padding: 24px;
+            border-radius: 12px;
+            background: white;
+        }
+        .report-form-card h2 { margin-bottom: 18px; }
+        .report-form-card label { display: block; margin: 12px 0; font-weight: bold; }
+        .report-form-card input {
+            display: block;
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            border: 1px solid #999;
+            border-radius: 6px;
+            font: inherit;
+        }
+        .report-form-actions, .report-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .report-view {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 28px;
+            background: white;
+            border-radius: 12px;
+        }
+        body.report-open { background: white; }
+        body.report-open > .container { display: none; }
+        .report-view h1, .report-view h2 { margin-bottom: 12px; }
+        .report-view .student-info, .report-view .summary {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 18px 0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .report-view .activity { border-bottom: 1px solid #ddd; padding: 12px 0; }
+        .report-view .correct { color: #167038; font-weight: bold; }
+        .report-view .incorrect { color: #a32121; font-weight: bold; }
+        .report-view .problem-statement { font-weight: bold; }
+        .report-view .user-answer { margin-top: 6px; }
+        .report-view .fraction { display: inline-flex; vertical-align: middle; margin: 0 5px; box-shadow: none; }
+        .report-view .numerator, .report-view .denominator { padding: 0 5px; }
+        .report-view .fraction-line { height: 1px; background: #333; }
 
         .stats {
             display: flex;
@@ -340,6 +394,18 @@
             .controls { flex-direction: column; align-items: center; }
             .solution-container { flex-direction: column; }
         }
+        @media print {
+            body.report-open { padding: 0; color: #000; }
+            body.report-open > .container, .report-form-overlay, .report-controls { display: none !important; }
+            body.report-open .report-view {
+                display: block !important;
+                width: 100%;
+                max-width: none;
+                padding: 0;
+                border-radius: 0;
+            }
+            .report-view .activity { break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -405,6 +471,20 @@
             </div>
         </div>
     </div>
+    <div id="report-form" class="report-form-overlay" hidden>
+        <form id="report-details-form" class="report-form-card">
+            <h2 id="report-form-title">Dades per a l'informe</h2>
+            <label for="student-name" id="student-name-label">Nom i cognoms</label>
+            <input id="student-name" name="student-name" type="text" required autocomplete="name">
+            <label for="student-course" id="student-course-label">Curs</label>
+            <input id="student-course" name="student-course" type="text" required>
+            <div class="report-form-actions">
+                <button class="btn btn-report" id="view-report-btn" type="submit">Veure informe</button>
+                <button class="btn btn-secondary" id="cancel-report-btn" type="button">Cancel·lar</button>
+            </div>
+        </form>
+    </div>
+    <section id="report-view" class="report-view" hidden aria-label="Informe d'activitats"></section>
     
     <script>
         // --- TRANSLATIONS ---
@@ -420,8 +500,8 @@
                 'instructions-title': 'Instruccions', 'instructions-step1': 'Tria un nivell de dificultat.', 'instructions-step2': 'Observa la conversió que has de fer.',
                 'instructions-step3': 'Arrossega els factors o fes-hi doble clic per afegir-los a la zona de treball.', 'instructions-step4': 'Introdueix el resultat numèric i fes clic a "Comprovar".',
                 'instructions-step5': 'Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.',
-                'prompt-name': 'Introdueix el teu nom i cognoms:',
-                'prompt-course': 'Introdueix el teu curs:',
+                'report-form-title': 'Dades per a l’informe', 'student-name-label': 'Nom i cognoms', 'student-course-label': 'Curs',
+                'view-report-btn': 'Veure informe', 'cancel-report-btn': 'Cancel·lar',
             },
             es: {
                 'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado',
@@ -434,8 +514,8 @@
                 'instructions-title': 'Instrucciones', 'instructions-step1': 'Elige un nivel de dificultad.', 'instructions-step2': 'Observa la conversión que tienes que realizar.',
                 'instructions-step3': 'Arrastra los factores o haz doble clic en ellos para añadirlos a la zona de trabajo.', 'instructions-step4': 'Introduce el resultado numérico y haz clic en "Comprobar".',
                 'instructions-step5': 'Para retirar un factor de la zona de trabajo, haz doble clic sobre él.',
-                'prompt-name': 'Introduce tu nombre y apellidos:',
-                'prompt-course': 'Introduce tu curso:',
+                'report-form-title': 'Datos para el informe', 'student-name-label': 'Nombre y apellidos', 'student-course-label': 'Curso',
+                'view-report-btn': 'Ver informe', 'cancel-report-btn': 'Cancelar',
             }
         };
 
@@ -570,6 +650,15 @@
             else setLanguage('ca');
             
             setupDragAndDrop();
+            document.getElementById('cancel-report-btn').addEventListener('click', closeReportForm);
+            document.getElementById('report-details-form').addEventListener('submit', event => {
+                event.preventDefault();
+                const studentName = document.getElementById('student-name').value.trim();
+                const studentCourse = document.getElementById('student-course').value.trim();
+                if (!studentName || !studentCourse) return;
+                closeReportForm();
+                renderReport(studentName, studentCourse);
+            });
             generateProblem();
         }
 
@@ -911,113 +1000,117 @@
         }
 
         // --- REPORT GENERATION ---
+        const reportLabels = {
+            ca: {
+                title: 'Informe d’activitats', name: 'Nom', course: 'Curs', date: 'Data i hora',
+                student: 'Dades de l’alumne/a', summary: 'Resum', total: 'Total d’activitats',
+                correct: 'Respostes correctes', incorrect: 'Respostes incorrectes', percentage: 'Percentatge d’encerts',
+                details: 'Detall de l’activitat', activity: 'Activitat', question: 'Pregunta', answer: 'La teva resposta',
+                statusCorrect: 'Correcte', statusIncorrect: 'Incorrecte',
+                noFactors: 'Cap factor seleccionat', noValue: 'Sense resultat numèric',
+                noActivities: 'Encara no has completat cap activitat.',
+                progress: 'Aquest informe mostra l’estat actual del teu progrés.',
+                print: 'Imprimeix o desa com a PDF', back: 'Torna a l’activitat',
+                pdfHelp: 'Per desar-lo en PDF, tria «Desa com a PDF» a la finestra d’impressió.'
+            },
+            es: {
+                title: 'Informe de actividades', name: 'Nombre', course: 'Curso', date: 'Fecha y hora',
+                student: 'Datos del alumno/a', summary: 'Resumen', total: 'Total de actividades',
+                correct: 'Respuestas correctas', incorrect: 'Respuestas incorrectas', percentage: 'Porcentaje de aciertos',
+                details: 'Detalle de la actividad', activity: 'Actividad', question: 'Pregunta', answer: 'Tu respuesta',
+                statusCorrect: 'Correcto', statusIncorrect: 'Incorrecto',
+                noFactors: 'Ningún factor seleccionado', noValue: 'Sin resultado numérico',
+                noActivities: 'Todavía no has completado ninguna actividad.',
+                progress: 'Este informe muestra el estado actual de tu progreso.',
+                print: 'Imprime o guarda como PDF', back: 'Vuelve a la actividad',
+                pdfHelp: 'Para guardarlo en PDF, elige «Guardar como PDF» en la ventana de impresión.'
+            }
+        };
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[character]);
+        }
+
         function generateReport() {
-            const studentName = prompt(translations[currentLanguage]['prompt-name']);
-            if (studentName === null || studentName.trim() === '') return;
+            document.getElementById('report-form').hidden = false;
+            document.getElementById('student-name').focus();
+        }
 
-            const studentCourse = prompt(translations[currentLanguage]['prompt-course']);
-            if (studentCourse === null || studentCourse.trim() === '') return;
+        function closeReportForm() {
+            document.getElementById('report-form').hidden = true;
+        }
 
+        function closeReport() {
+            document.getElementById('report-view').hidden = true;
+            document.body.classList.remove('report-open');
+        }
+
+        function renderReport(studentName, studentCourse) {
+            const labels = reportLabels[currentLanguage];
             const now = new Date();
             const dateStr = now.toLocaleDateString(currentLanguage, { year: 'numeric', month: 'long', day: 'numeric' });
             const timeStr = now.toLocaleTimeString(currentLanguage, { hour: '2-digit', minute: '2-digit' });
+            const percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
 
             let reportHtml = `
-                <!DOCTYPE html>
-                <html lang="${currentLanguage}">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Informe d'Activitats - ${studentName}</title>
-                    <style>
-                        body { font-family: sans-serif; margin: 20px; color: #333; }
-                        h1, h2 { color: #333; }
-                        .report-container { max-width: 800px; margin: auto; }
-                        .student-info, .summary { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #f9f9f9; }
-                        .activity { border-bottom: 1px solid #eee; padding: 10px 0; }
-                        .activity:last-child { border-bottom: none; }
-                        .correct { color: green; font-weight: bold; }
-                        .incorrect { color: red; font-weight: bold; }
-                        .problem-statement { font-weight: bold; }
-                        .user-answer { margin-left: 20px; }
-                        .fraction { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; margin: 0 5px; }
-                        .numerator, .denominator { padding: 0 5px; }
-                        .fraction-line { height: 1px; background-color: #333; }
-                        sup { vertical-align: super; font-size: smaller; }
-                        .print-controls { text-align: center; margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 8px; }
-                        .print-controls button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background-color: #e0e0e0; }
-                        @media print {
-                            .print-controls { display: none; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="report-container">
-                        <div class="print-controls">
-                            <p>Per guardar com a PDF, feu clic al botó i seleccioneu "Desa com a PDF" a les opcions d'impressió.</p>
-                            <button onclick="window.print()">Imprimeix o Desa com a PDF</button>
-                        </div>
-                        <h1>Informe d'Activitats</h1>
-                        <div class="student-info">
-                            <h2>Dades de l'Alumne/a</h2>
-                            <p><strong>Nom:</strong> ${studentName}</p>
-                            <p><strong>Curs:</strong> ${studentCourse}</p>
-                            <p><strong>Data i Hora:</strong> ${dateStr}, ${timeStr}</p>
-                        </div>
-                        <div class="summary">
-                            <h2>Resum</h2>
-                            <p>Total d'activitats: <strong>${stats.total}</strong></p>
-                            <p>Respostes correctes: <strong class="correct">${stats.correct}</strong></p>
-                            <p>Respostes incorrectes: <strong class="incorrect">${stats.total - stats.correct}</strong></p>
-                            <p>Percentatge d'encerts: <strong>${stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0}%</strong></p>
-                        </div>
-            `;
+                <div class="report-controls">
+                    <button id="print-report-btn" class="btn btn-report" type="button">${labels.print}</button>
+                    <button id="back-to-activity-btn" class="btn btn-secondary" type="button">${labels.back}</button>
+                    <p>${labels.pdfHelp}</p>
+                </div>
+                <h1>${labels.title}</h1>
+                <div class="student-info">
+                    <h2>${labels.student}</h2>
+                    <p><strong>${labels.name}:</strong> ${escapeHtml(studentName)}</p>
+                    <p><strong>${labels.course}:</strong> ${escapeHtml(studentCourse)}</p>
+                    <p><strong>${labels.date}:</strong> ${dateStr}, ${timeStr}</p>
+                </div>
+                <div class="summary">
+                    <h2>${labels.summary}</h2>
+                    <p>${labels.total}: <strong>${stats.total}</strong></p>
+                    <p>${labels.correct}: <strong class="correct">${stats.correct}</strong></p>
+                    <p>${labels.incorrect}: <strong class="incorrect">${stats.total - stats.correct}</strong></p>
+                    <p>${labels.percentage}: <strong>${percentage}%</strong></p>
+                </div>`;
 
-            // Show message if no activities completed
             if (activityLog.length === 0) {
-                reportHtml += `
-                        <div class="no-activities">
-                            <p><strong>Encara no has completat cap activitat.</strong></p>
-                            <p>Aquest informe mostra l'estat actual del teu progrés.</p>
-                        </div>
-                `;
+                reportHtml += `<p><strong>${labels.noActivities}</strong></p><p>${labels.progress}</p>`;
             } else {
-                reportHtml += `<h2>Detall de l'Activitat</h2>`;
-                
+                reportHtml += `<h2>${labels.details}</h2>`;
                 activityLog.forEach((entry, index) => {
                     const problemText = `${entry.problem.from} ${formatUnitString(entry.problem.fromUnit)} → ? ${formatUnitString(entry.problem.toUnit)}`;
-                    // Handle the new activity log structure with both factors and value
-                    const userFactors = Array.isArray(entry.userAnswer) ? entry.userAnswer : entry.userAnswer.factors;
-                    const userValue = Array.isArray(entry.userAnswer) ? null : entry.userAnswer.value;
-                    
-                    const userAnswerText = userFactors.map(key => {
+                    const userFactors = entry.userAnswer.factors;
+                    const userValue = entry.userAnswer.value;
+                    const factorsText = userFactors.map(key => {
                         const factor = conversionFactors[key];
                         return `<span class="fraction">
-                                    <span class="numerator">${factor.num.val} ${formatUnitString(factor.num.unit)}</span>
-                                    <span class="fraction-line" style="width: 100%;"></span>
-                                    <span class="denominator">${factor.den.val} ${formatUnitString(factor.den.unit)}</span>
-                                </span>`;
-                    }).join(' × ') || 'Cap factor seleccionat';
-                    
-                    // Add the numerical value if it exists
-                    const numericalValueText = userValue !== null && userValue !== undefined ? ` = ${userValue} ${formatUnitString(entry.problem.toUnit)}` : '';
-
+                            <span class="numerator">${factor.num.val} ${formatUnitString(factor.num.unit)}</span>
+                            <span class="fraction-line"></span>
+                            <span class="denominator">${factor.den.val} ${formatUnitString(factor.den.unit)}</span>
+                        </span>`;
+                    }).join(' × ') || labels.noFactors;
+                    const valueText = Number.isFinite(userValue)
+                        ? ` = ${userValue} ${formatUnitString(entry.problem.toUnit)}`
+                        : ` — ${labels.noValue}`;
                     reportHtml += `
                         <div class="activity">
-                            <p><strong>Activitat #${index + 1}</strong> - <span class="${entry.isCorrect ? 'correct' : 'incorrect'}">${entry.isCorrect ? 'Correcte' : 'Incorrecte'}</span></p>
-                            <p class="problem-statement">Pregunta: ${problemText}</p>
-                            <p class="user-answer">La teva resposta: ${userAnswerText}${numericalValueText}</p>
-                        </div>
-                    `;
+                            <p><strong>${labels.activity} #${index + 1}</strong> — <span class="${entry.isCorrect ? 'correct' : 'incorrect'}">${entry.isCorrect ? labels.statusCorrect : labels.statusIncorrect}</span></p>
+                            <p class="problem-statement">${labels.question}: ${problemText}</p>
+                            <p class="user-answer">${labels.answer}: ${factorsText}${valueText}</p>
+                        </div>`;
                 });
             }
-            
-            reportHtml += `</div></body></html>`;
 
-            const reportWindow = window.open('', '_blank');
-            reportWindow.document.write(reportHtml);
-            reportWindow.document.close();
+            const reportView = document.getElementById('report-view');
+            reportView.innerHTML = reportHtml;
+            reportView.hidden = false;
+            document.body.classList.add('report-open');
+            reportView.querySelector('#print-report-btn').addEventListener('click', () => window.print());
+            reportView.querySelector('#back-to-activity-btn').addEventListener('click', closeReport);
+            window.scrollTo(0, 0);
         }
-
 
         // --- START APP ---
         window.addEventListener('load', init);
@@ -1033,4 +1126,3 @@
     </script>
 </body>
 </html>
-
