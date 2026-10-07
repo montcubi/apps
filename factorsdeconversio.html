@@ -90,7 +90,9 @@
         .level-btn.basic { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #2c3e50; }
         .level-btn.intermediate { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #8b4513; }
         .level-btn.advanced { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #8b008b; }
+        .level-btn.kinematics { background: linear-gradient(135deg, #c7d2fe 0%, #93c5fd 100%); color: #1e3a8a; }
         .level-btn:hover, .level-btn.active { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        .kinematics-hint { text-align: center; margin: -8px 20px 18px; color: #34495e; }
 
         .report-generator {
             text-align: center;
@@ -126,6 +128,7 @@
             font: inherit;
         }
         .report-form-actions, .report-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .report-controls p { flex-basis: 100%; }
         .report-view {
             max-width: 850px;
             margin: 0 auto;
@@ -422,7 +425,9 @@
             <button class="level-btn basic active" onclick="setLevel('basic')" id="basic-btn">Bàsic</button>
             <button class="level-btn intermediate" onclick="setLevel('intermediate')" id="intermediate-btn">Intermedi</button>
             <button class="level-btn advanced" onclick="setLevel('advanced')" id="advanced-btn">Avançat</button>
+            <button class="level-btn kinematics" onclick="setLevel('kinematics')" id="kinematics-btn">Cinemàtica</button>
         </div>
+        <p id="kinematics-hint" class="kinematics-hint" hidden>mi/h vol dir milles per hora; 1 mi = 1,609344 km.</p>
 
         <div class="report-generator">
             <button class="btn btn-report" onclick="generateReport()" id="report-btn">Generar Informe</button>
@@ -455,7 +460,7 @@
                         <div class="placeholder" id="drop-zone-placeholder"></div>
                     </div>
                     <div class="operator" id="operator-equals" style="display: none;">=</div>
-                    <input type="number" id="result-input" class="result-input" placeholder="?" style="display: none;">
+                    <input type="text" inputmode="decimal" id="result-input" class="result-input" placeholder="?" style="display: none;">
                     <div id="final-unit-container" class="value-display" style="display: none;"></div>
                 </div>
                 <div class="feedback" id="feedback"></div>
@@ -490,7 +495,7 @@
         // --- TRANSLATIONS ---
         const translations = {
             ca: {
-                'main-title': 'Factors de Conversió', 'basic-btn': 'Bàsic', 'intermediate-btn': 'Intermedi', 'advanced-btn': 'Avançat',
+                'main-title': 'Factors de Conversió', 'basic-btn': 'Bàsic', 'intermediate-btn': 'Intermedi', 'advanced-btn': 'Avançat', 'kinematics-btn': 'Cinemàtica',
                 'correct-label': 'Correctes', 'total-label': 'Total', 'percentage-label': 'Percentatge', 'problem-title-prefix': 'Converteix',
                 'check-btn': 'Comprovar', 'reset-btn': 'Reiniciar', 'next-btn': 'Següent', 'report-btn': 'Generar Informe',
                 'correct-feedback': 'Correcte! Molt bé!', 'incorrect-feedback': 'Incorrecte.',
@@ -502,9 +507,10 @@
                 'instructions-step5': 'Per retirar un factor de la zona de treball, fes-hi doble clic a sobre.',
                 'report-form-title': 'Dades per a l’informe', 'student-name-label': 'Nom i cognoms', 'student-course-label': 'Curs',
                 'view-report-btn': 'Veure informe', 'cancel-report-btn': 'Cancel·lar',
+                'kinematics-hint': 'mi/h vol dir milles per hora; 1 mi = 1,609344 km.',
             },
             es: {
-                'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado',
+                'main-title': 'Factores de Conversión', 'basic-btn': 'Básico', 'intermediate-btn': 'Intermedio', 'advanced-btn': 'Avanzado', 'kinematics-btn': 'Cinemática',
                 'correct-label': 'Correctos', 'total-label': 'Total', 'percentage-label': 'Porcentaje', 'problem-title-prefix': 'Convierte',
                 'check-btn': 'Comprobar', 'reset-btn': 'Reiniciar', 'next-btn': 'Siguiente', 'report-btn': 'Generar Informe',
                 'correct-feedback': '¡Correcto! ¡Muy bien!', 'incorrect-feedback': 'Incorrecto.',
@@ -516,6 +522,7 @@
                 'instructions-step5': 'Para retirar un factor de la zona de trabajo, haz doble clic sobre él.',
                 'report-form-title': 'Datos para el informe', 'student-name-label': 'Nombre y apellidos', 'student-course-label': 'Curso',
                 'view-report-btn': 'Ver informe', 'cancel-report-btn': 'Cancelar',
+                'kinematics-hint': 'mi/h significa millas por hora; 1 mi = 1,609344 km.',
             }
         };
 
@@ -534,6 +541,9 @@
             'm-km': { factor: 1/1000, num: { val: 1, unit: 'km' }, den: { val: 1000, unit: 'm' }, category: 'longitud' },
             'm-cm': { factor: 100, num: { val: 100, unit: 'cm' }, den: { val: 1, unit: 'm' }, category: 'longitud' },
             'cm-m': { factor: 1/100, num: { val: 1, unit: 'm' }, den: { val: 100, unit: 'cm' }, category: 'longitud' },
+            // 1 milla = 1,609344 km (milla internacional).
+            'mi-km': { factor: 1.609344, num: { val: 1.609344, unit: 'km' }, den: { val: 1, unit: 'mi' }, category: 'longitud', kinematicsOnly: true },
+            'km-mi': { factor: 1/1.609344, num: { val: 1, unit: 'mi' }, den: { val: 1.609344, unit: 'km' }, category: 'longitud', kinematicsOnly: true },
             // Mass
             'kg-g': { factor: 1000, num: { val: 1000, unit: 'g' }, den: { val: 1, unit: 'kg' }, category: 'massa' },
             'g-kg': { factor: 1/1000, num: { val: 1, unit: 'kg' }, den: { val: 1000, unit: 'g' }, category: 'massa' },
@@ -570,6 +580,10 @@
             'dL-dm3': { factor: 1/10, num: { val: 1, unit: 'dm3' }, den: { val: 10, unit: 'dL' }, category: 'volum' },
             'dm3-dL': { factor: 10, num: { val: 10, unit: 'dL' }, den: { val: 1, unit: 'dm3' }, category: 'volum' },
         };
+        const kinematicsFactorKeys = new Set([
+            'km-m', 'm-km', 'mi-km', 'km-mi',
+            'h-min', 'min-h', 'min-s', 's-min', 'h-s', 's-h'
+        ]);
 
         const problems = {
             basic: [
@@ -595,26 +609,16 @@
                 { from: 3000, fromUnit: 'mL', toUnit: 'L', factors: ['mL-L'] },
             ],
             intermediate: [
-                { from: 72, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
                 { from: 1.5, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
                 { from: 5, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
-                { from: 10, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
-                { from: 36, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
                 { from: 2.5, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
                 { from: 7, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
-                { from: 25, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
-                { from: 18, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
                 { from: 0.8, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
                 { from: 12, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
-                { from: 5, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
-                { from: 90, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
                 { from: 3.2, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
                 { from: 15, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
-                { from: 15, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
-                { from: 144, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
                 { from: 4.7, fromUnit: 'm2', toUnit: 'cm2', factors: ['m2-cm2'] },
                 { from: 20, fromUnit: 'L', toUnit: 'cm3', factors: ['L-dm3', 'dm3-cm3'] },
-                { from: 30, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
                 // Multiple paths for volume conversions
                 { from: 5, fromUnit: 'dL', toUnit: 'cm3', factors: ['dL-L', 'L-dm3', 'dm3-cm3'] },  // dL to L to dm3 to cm3
                 { from: 3, fromUnit: 'dL', toUnit: 'mL', factors: ['dL-L', 'L-mL'] },  // dL to L to mL
@@ -624,22 +628,45 @@
                 { from: 850, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
                 { from: 0.5, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
                 { from: 2500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
-                { from: 1.2, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
                 { from: 1500, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
                 { from: 750, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
                 { from: 0.8, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
                 { from: 3500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
-                { from: 0.9, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
                 { from: 900, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
                 { from: 1200, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
                 { from: 0.3, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
                 { from: 1500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
-                { from: 2.1, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
                 { from: 2000, fromUnit: 'kg/m3', toUnit: 'g/cm3', factors: ['kg-g', 'm3-cm3'] },
                 { from: 650, fromUnit: 'kg/m3', toUnit: 'g/L', factors: ['kg-g', 'L-m3'] },
                 { from: 1.2, fromUnit: 'm3', toUnit: 'L', factors: ['m3-L'] },
                 { from: 4500, fromUnit: 'cm3', toUnit: 'L', factors: ['cm3-dm3', 'dm3-L'] },
+            ],
+            kinematics: [
+                { from: 72, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 10, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 36, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 25, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 18, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 5, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 90, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 15, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 144, fromUnit: 'km/h', toUnit: 'm/s', factors: ['km-m', 's-h'] },
+                { from: 30, fromUnit: 'm/s', toUnit: 'km/h', factors: ['m-km', 'h-s'] },
+                { from: 1.2, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+                { from: 0.9, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+                { from: 2.1, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
                 { from: 0.6, fromUnit: 'km/min', toUnit: 'm/s', factors: ['km-m', 's-min'] },
+                { from: 30, fromUnit: 'mi/h', toUnit: 'km/h', factors: ['mi-km'] },
+                { from: 55, fromUnit: 'mi/h', toUnit: 'km/h', factors: ['mi-km'] },
+                { from: 70, fromUnit: 'mi/h', toUnit: 'km/h', factors: ['mi-km'] },
+                { from: 80, fromUnit: 'km/h', toUnit: 'mi/h', factors: ['km-mi'] },
+                { from: 100, fromUnit: 'km/h', toUnit: 'mi/h', factors: ['km-mi'] },
+                { from: 60, fromUnit: 'mi/h', toUnit: 'm/s', factors: ['mi-km', 'km-m', 's-h'] },
+                { from: 45, fromUnit: 'mi/h', toUnit: 'm/s', factors: ['mi-km', 'km-m', 's-h'] },
+                { from: 20, fromUnit: 'm/s', toUnit: 'mi/h', factors: ['m-km', 'km-mi', 'h-s'] },
+                { from: 30, fromUnit: 'm/s', toUnit: 'mi/h', factors: ['m-km', 'km-mi', 'h-s'] },
+                { from: 15, fromUnit: 'm/s', toUnit: 'km/min', factors: ['m-km', 'min-s'] },
+                { from: 1.5, fromUnit: 'km/min', toUnit: 'mi/h', factors: ['km-mi', 'h-min'] },
             ]
         };
 
@@ -667,6 +694,7 @@
             currentLevel = level;
             document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.level-btn.${level}`).classList.add('active');
+            document.getElementById('kinematics-hint').hidden = level !== 'kinematics';
             generateProblem();
         }
 
@@ -736,16 +764,19 @@
             const factorsCorrect = Math.abs(userConversionFactor - expectedConversionFactor) < 0.000001;
             
             // Calculate the expected result
-            let expectedValue = currentProblem.from * expectedConversionFactor;
-            expectedValue = parseFloat(expectedValue.toPrecision(4));
+            const exactExpectedValue = currentProblem.from * expectedConversionFactor;
+            const expectedValue = parseFloat(exactExpectedValue.toPrecision(4));
             
             // Get user's input
             const resultInput = document.getElementById('result-input');
-            const userValue = parseFloat(resultInput.value);
+            const enteredValue = resultInput.value.trim().replace(',', '.');
+            const userValue = enteredValue === '' ? NaN : Number(enteredValue);
             
-            // Check if numerical result is correct (within small tolerance for floating point)
-            const numericalCorrect = userValue !== null && userValue !== undefined && 
-                                     userValue !== '' && Math.abs(userValue - expectedValue) < 0.001;
+            // Les conversions amb milles poden donar decimals llargs; s'accepta un arrodoniment raonable.
+            const numericalTolerance = Math.max(1e-9, Math.abs(exactExpectedValue) * 0.0005);
+            const numericalCorrect = Number.isFinite(userValue) && (currentLevel === 'kinematics'
+                ? Math.abs(userValue - exactExpectedValue) <= numericalTolerance
+                : Math.abs(userValue - expectedValue) < 0.001);
             
             const isCorrect = factorsCorrect && numericalCorrect;
             
@@ -908,13 +939,17 @@
             const factorsByCategory = {};
             for (const key in conversionFactors) {
                 const factor = conversionFactors[key];
+                if (currentLevel === 'kinematics' && !kinematicsFactorKeys.has(key)) continue;
+                if (factor.kinematicsOnly && currentLevel !== 'kinematics') continue;
                 if (!factorsByCategory[factor.category]) {
                     factorsByCategory[factor.category] = [];
                 }
                 factorsByCategory[factor.category].push(key);
             }
 
-            const categoryOrder = ['longitud', 'massa', 'temps', 'superficie', 'volum'];
+            const categoryOrder = currentLevel === 'kinematics'
+                ? ['longitud', 'temps']
+                : ['longitud', 'massa', 'temps', 'superficie', 'volum'];
 
             categoryOrder.forEach(categoryKey => {
                 if (factorsByCategory[categoryKey]) {
@@ -1010,8 +1045,8 @@
                 noFactors: 'Cap factor seleccionat', noValue: 'Sense resultat numèric',
                 noActivities: 'Encara no has completat cap activitat.',
                 progress: 'Aquest informe mostra l’estat actual del teu progrés.',
-                print: 'Imprimeix o desa com a PDF', back: 'Torna a l’activitat',
-                pdfHelp: 'Per desar-lo en PDF, tria «Desa com a PDF» a la finestra d’impressió.'
+                download: 'Descarrega el PDF', print: 'Imprimeix', back: 'Torna a l’activitat',
+                pdfHelp: 'També pots desar-lo en PDF des de la finestra d’impressió.'
             },
             es: {
                 title: 'Informe de actividades', name: 'Nombre', course: 'Curso', date: 'Fecha y hora',
@@ -1022,8 +1057,8 @@
                 noFactors: 'Ningún factor seleccionado', noValue: 'Sin resultado numérico',
                 noActivities: 'Todavía no has completado ninguna actividad.',
                 progress: 'Este informe muestra el estado actual de tu progreso.',
-                print: 'Imprime o guarda como PDF', back: 'Vuelve a la actividad',
-                pdfHelp: 'Para guardarlo en PDF, elige «Guardar como PDF» en la ventana de impresión.'
+                download: 'Descarga el PDF', print: 'Imprime', back: 'Vuelve a la actividad',
+                pdfHelp: 'También puedes guardarlo en PDF desde la ventana de impresión.'
             }
         };
 
@@ -1056,6 +1091,7 @@
 
             let reportHtml = `
                 <div class="report-controls">
+                    <button id="download-pdf-btn" class="btn btn-success" type="button">${labels.download}</button>
                     <button id="print-report-btn" class="btn btn-report" type="button">${labels.print}</button>
                     <button id="back-to-activity-btn" class="btn btn-secondary" type="button">${labels.back}</button>
                     <p>${labels.pdfHelp}</p>
@@ -1107,9 +1143,141 @@
             reportView.innerHTML = reportHtml;
             reportView.hidden = false;
             document.body.classList.add('report-open');
+            reportView.querySelector('#download-pdf-btn').addEventListener('click', () => downloadReportPdf(studentName, studentCourse));
             reportView.querySelector('#print-report-btn').addEventListener('click', () => window.print());
             reportView.querySelector('#back-to-activity-btn').addEventListener('click', closeReport);
             window.scrollTo(0, 0);
+        }
+
+        // PDF senzill i autònom: no depèn de la impressió ni de biblioteques externes.
+        function pdfText(value) {
+            const extra = { '€': 128, '‘': 145, '’': 146, '“': 147, '”': 148, '–': 150, '—': 151, '…': 133 };
+            let result = '';
+            for (const character of String(value)) {
+                const code = extra[character] ?? character.codePointAt(0);
+                const byte = (code >= 32 && code <= 126) || (code >= 160 && code <= 255) || (code >= 128 && code <= 159)
+                    ? code : 63;
+                const literal = String.fromCharCode(byte);
+                result += literal === '(' || literal === ')' || literal === '\\' ? '\\' + literal : literal;
+            }
+            return result;
+        }
+
+        function wrapPdfText(text, limit) {
+            const words = String(text).split(/\s+/);
+            const lines = [];
+            let line = '';
+            words.forEach(word => {
+                while (word.length > limit) {
+                    if (line) { lines.push(line); line = ''; }
+                    lines.push(word.slice(0, limit));
+                    word = word.slice(limit);
+                }
+                if (line && line.length + word.length + 1 > limit) {
+                    lines.push(line);
+                    line = word;
+                } else {
+                    line += (line ? ' ' : '') + word;
+                }
+            });
+            if (line) lines.push(line);
+            return lines.length ? lines : [''];
+        }
+
+        function buildReportPdf(studentName, studentCourse) {
+            const labels = reportLabels[currentLanguage];
+            const now = new Date();
+            const dateStr = now.toLocaleDateString(currentLanguage, { year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString(currentLanguage, { hour: '2-digit', minute: '2-digit' });
+            const percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+            const pages = [[]];
+            let y = 790;
+            function line(text, size = 11, gap = 5) {
+                for (const part of wrapPdfText(text, size >= 16 ? 52 : 82)) {
+                    if (y < 60) { pages.push([]); y = 790; }
+                    pages[pages.length - 1].push(`BT /F1 ${size} Tf 50 ${y} Td (${pdfText(part)}) Tj ET\n`);
+                    y -= size + 5;
+                }
+                y -= gap;
+            }
+            line(labels.title, 18, 12);
+            line(`${labels.name}: ${studentName}`);
+            line(`${labels.course}: ${studentCourse}`);
+            line(`${labels.date}: ${dateStr}, ${timeStr}`, 11, 14);
+            line(labels.summary, 15, 6);
+            line(`${labels.total}: ${stats.total}`);
+            line(`${labels.correct}: ${stats.correct}`);
+            line(`${labels.incorrect}: ${stats.total - stats.correct}`);
+            line(`${labels.percentage}: ${percentage}%`, 11, 14);
+            if (activityLog.length === 0) {
+                line(labels.noActivities);
+                line(labels.progress);
+            } else {
+                line(labels.details, 15, 8);
+                activityLog.forEach((entry, index) => {
+                    const activityTitle = `${labels.activity} ${index + 1} - ${entry.isCorrect ? labels.statusCorrect : labels.statusIncorrect}`;
+                    const question = `${labels.question}: ${entry.problem.from} ${entry.problem.fromUnit} -> ${entry.problem.toUnit}`;
+                    const factors = entry.userAnswer.factors.map(key => {
+                        const factor = conversionFactors[key];
+                        return `(${factor.num.val} ${factor.num.unit}) / (${factor.den.val} ${factor.den.unit})`;
+                    }).join(' x ') || labels.noFactors;
+                    const answer = `${labels.answer}: ${factors}`;
+                    const value = entry.userAnswer.value;
+                    const result = Number.isFinite(value) ? `= ${value} ${entry.problem.toUnit}` : labels.noValue;
+                    const height = wrapPdfText(activityTitle, 82).length * 17 + 3
+                        + wrapPdfText(question, 82).length * 16 + 2
+                        + wrapPdfText(answer, 82).length * 16 + 2
+                        + wrapPdfText(result, 82).length * 16 + 10;
+                    if (y - height < 60) { pages.push([]); y = 790; }
+                    line(activityTitle, 12, 3);
+                    line(question, 11, 2);
+                    line(answer, 11, 2);
+                    line(result, 11, 10);
+                });
+            }
+            pages.forEach((page, index) => page.push(`BT /F1 9 Tf 50 30 Td (${index + 1} / ${pages.length}) Tj ET\n`));
+
+            const objects = [null];
+            objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+            const pageRefs = pages.map((_, index) => `${4 + index * 2} 0 R`).join(' ');
+            objects[2] = `<< /Type /Pages /Kids [${pageRefs}] /Count ${pages.length} >>`;
+            objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+            pages.forEach((page, index) => {
+                const pageNumber = 4 + index * 2;
+                const stream = page.join('');
+                objects[pageNumber] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${pageNumber + 1} 0 R >>`;
+                objects[pageNumber + 1] = `<< /Length ${stream.length} >>\nstream\n${stream}endstream`;
+            });
+            let pdf = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';
+            const offsets = [0];
+            for (let number = 1; number < objects.length; number++) {
+                offsets[number] = pdf.length;
+                pdf += `${number} 0 obj\n${objects[number]}\nendobj\n`;
+            }
+            const crossReferenceOffset = pdf.length;
+            pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+            for (let number = 1; number < objects.length; number++) {
+                pdf += `${String(offsets[number]).padStart(10, '0')} 00000 n \n`;
+            }
+            pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${crossReferenceOffset}\n%%EOF`;
+            const bytes = new Uint8Array(pdf.length);
+            for (let index = 0; index < pdf.length; index++) bytes[index] = pdf.charCodeAt(index);
+            return bytes;
+        }
+
+        function downloadReportPdf(studentName, studentCourse) {
+            const bytes = buildReportPdf(studentName, studentCourse);
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const safeName = studentName.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-|-$/g, '') || 'alumne';
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `informe-factors-${safeName}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
         }
 
         // --- START APP ---
